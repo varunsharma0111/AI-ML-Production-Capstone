@@ -49,9 +49,10 @@ def setup_mock_db(
             setattr(obj, "created_at", now)
         if hasattr(obj, "updated_at") and getattr(obj, "updated_at") is None:
             setattr(obj, "updated_at", now)
-        if hasattr(obj, "version") and getattr(obj, "version") is None:
+        table_cols = getattr(getattr(type(obj), "__table__", None), "columns", {})
+        if "version" in table_cols and getattr(obj, "version", None) is None:
             setattr(obj, "version", 1)
-        if hasattr(obj, "status") and getattr(obj, "status") is None:
+        if "status" in table_cols and getattr(obj, "status", None) is None:
             setattr(obj, "status", "open")
 
     mock_session.add = MagicMock(side_effect=add_side_effect)
