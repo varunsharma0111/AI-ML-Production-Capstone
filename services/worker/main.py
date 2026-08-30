@@ -8,12 +8,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 
 from app.core.config import get_settings
 from app.core.logging import configure_logging
-from prometheus_client import (  # type: ignore[import-not-found]
-    CONTENT_TYPE_LATEST,
-    Counter,
-    Gauge,
-    generate_latest,
-)
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, generate_latest
 
 logger = logging.getLogger(__name__)
 
