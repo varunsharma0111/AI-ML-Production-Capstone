@@ -29,10 +29,10 @@ dev = [
 ]
 
 [tool.setuptools]
-package-dir = {"" = "apps/api", "services" = "services", "ml" = "ml", "agent" = "agent", "messaging" = "messaging"}
+package-dir = {"app" = "apps/api/app", "services" = "services", "ml" = "ml", "agent" = "agent", "messaging" = "messaging"}
 
 [tool.setuptools.packages.find]
-where = ["apps/api", "."]
+where = ["."]
 
 [tool.ruff]
 target-version = "py311"
