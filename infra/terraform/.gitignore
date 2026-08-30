@@ -1,0 +1,9 @@
+# Local Terraform provider, state, and plan files are environment-specific.
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+*.tfvars
+!*.example.tfvars

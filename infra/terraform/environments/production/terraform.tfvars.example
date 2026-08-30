@@ -1,0 +1,4 @@
+# Example production variable overrides. DO NOT COMMIT REAL SECRETS.
+aws_region  = "us-east-1"
+environment = "production"
+db_password = "CHANGE_ME_IN_PROD_SECRET"

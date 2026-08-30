@@ -1,0 +1,50 @@
+name: CD - $0 Free Demo Deployment (Profile B)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/**'
+      - 'apps/api/**'
+      - '.github/workflows/cd-demo.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-demo-web:
+    name: Deploy Web Frontend to Vercel
+    runs-on: ubuntu-latest
+    environment: demo
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to Vercel
+        if: ${{ secrets.VERCEL_TOKEN != '' }}
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./apps/web
+          vercel-args: '--prod'
+
+      - name: Dry Run Notice (Vercel credentials missing)
+        if: ${{ secrets.VERCEL_TOKEN == '' }}
+        run: echo "Vercel deployment skipped: VERCEL_TOKEN secret is not set."
+
+  deploy-demo-api:
+    name: Trigger Render Backend Deployment
+    runs-on: ubuntu-latest
+    environment: demo
+    steps:
+      - name: Trigger Render Deploy Hook
+        if: ${{ secrets.RENDER_DEPLOY_HOOK_URL != '' }}
+        run: |
+          curl -s -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+
+      - name: Dry Run Notice (Render deploy hook missing)
+        if: ${{ secrets.RENDER_DEPLOY_HOOK_URL == '' }}
+        run: echo "Render deployment skipped: RENDER_DEPLOY_HOOK_URL secret is not set."

@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=75.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-ml-production-capstone"
+version = "0.1.0"
+description = "Production-oriented AI/ML platform capstone"
+requires-python = ">=3.11"
+dependencies = [
+  "alembic==1.16.5",
+  "asyncpg==0.30.0",
+  "fastapi==0.115.12",
+  "pydantic-settings==2.10.1",
+  "PyJWT[crypto]==2.10.1",
+  "prometheus-client==0.21.1",
+  "SQLAlchemy==2.0.43",
+  "uvicorn[standard]==0.34.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "httpx==0.28.1",
+  "mypy==1.18.2",
+  "pre-commit==4.3.0",
+  "pytest==8.4.2",
+  "pytest-asyncio==1.1.0",
+  "ruff==0.12.11",
+]
+
+[tool.setuptools]
+package-dir = {"" = "apps/api"}
+
+[tool.setuptools.packages.find]
+where = ["apps/api"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+extend-exclude = [".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["apps/api", "tests"]
+exclude = ["^\\.venv/"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+asyncio_mode = "auto"

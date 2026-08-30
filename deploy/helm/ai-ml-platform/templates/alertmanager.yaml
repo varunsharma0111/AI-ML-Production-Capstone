@@ -1,0 +1,54 @@
+{{- if .Values.observability.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ai-ml-platform.fullname" . }}-alertmanager
+  labels:
+    {{- include "ai-ml-platform.labels" . | nindent 4 }}
+    app.kubernetes.io/component: alertmanager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "ai-ml-platform.name" . }}
+      app.kubernetes.io/component: alertmanager
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "ai-ml-platform.name" . }}
+        app.kubernetes.io/component: alertmanager
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+      containers:
+        - name: alertmanager
+          image: prom/alertmanager:v0.27.0
+          ports:
+            - containerPort: 9093
+              name: http
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  labels:
+    {{- include "ai-ml-platform.labels" . | nindent 4 }}
+    app.kubernetes.io/component: alertmanager
+spec:
+  ports:
+    - port: 9093
+      targetPort: 9093
+      name: http
+  selector:
+    app.kubernetes.io/name: {{ include "ai-ml-platform.name" . }}
+    app.kubernetes.io/component: alertmanager
+{{- end }}

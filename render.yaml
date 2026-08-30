@@ -1,0 +1,22 @@
+# Render Service Blueprint for $0 Demo Deployment (Profile B)
+services:
+  - type: web
+    name: capstone-demo-api
+    env: python
+    buildCommand: "pip install -e ."
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: DATABASE_URL
+        sync: false # Set in Render dashboard to Neon connection string
+      - key: OIDC_ISSUER
+        sync: false
+      - key: OIDC_AUDIENCE
+        sync: false
+      - key: OIDC_JWKS_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false # Set to Vercel app URL (e.g. https://ai-ml-production-capstone.vercel.app)

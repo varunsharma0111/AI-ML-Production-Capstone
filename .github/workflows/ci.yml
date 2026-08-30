@@ -1,0 +1,143 @@
+name: CI Quality & Infrastructure Pipeline
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  backend-quality:
+    name: Backend Quality & Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
+
+      - name: Check formatting (ruff format)
+        run: ruff format --check .
+
+      - name: Lint Python (ruff check)
+        run: ruff check .
+
+      - name: Type-check Python (mypy)
+        run: mypy apps/api services/worker tests
+
+      - name: Run Pytest suite
+        run: pytest -v
+
+  frontend-quality:
+    name: Frontend Quality & Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: "apps/web/package-lock.json"
+
+      - name: Install web dependencies
+        working-directory: apps/web
+        run: npm ci
+
+      - name: Build React SPA
+        working-directory: apps/web
+        run: npm run build
+
+  infrastructure-validation:
+    name: Infrastructure & Security Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Helm & Kubectl
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.14.0'
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.7.0'
+
+      - name: Validate Docker Compose
+        run: docker compose config --quiet
+
+      - name: Lint & Render Helm Chart
+        run: |
+          helm lint deploy/helm/ai-ml-platform
+          helm template capstone-dev deploy/helm/ai-ml-platform -f deploy/helm/ai-ml-platform/values-development.yaml > /dev/null
+          helm template capstone-prod deploy/helm/ai-ml-platform -f deploy/helm/ai-ml-platform/values-production.yaml > /dev/null
+
+      - name: Validate Terraform Environments
+        run: |
+          for env in development staging production; do
+            echo "Validating Terraform in infra/terraform/environments/$env"
+            (cd infra/terraform/environments/$env && terraform init -backend=false && terraform validate)
+          done
+
+      - name: Validate Observability YAML/JSON
+        run: |
+          python -c "import yaml; yaml.safe_load(open('infra/observability/prometheus.yml'))"
+          python -c "import yaml; yaml.safe_load(open('infra/observability/alerts/alerts.yml'))"
+          python -c "import json; json.load(open('infra/observability/dashboards/system-metrics.json'))"
+
+      - name: Secret Security Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+  container-build:
+    name: Container Build & Verification
+    needs: [backend-quality, frontend-quality, infrastructure-validation]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build API Container Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: infra/docker/Dockerfile.api
+          push: false
+          tags: capstone-api:${{ github.sha }}
+
+      - name: Build Worker Container Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: infra/docker/Dockerfile.worker
+          push: false
+          tags: capstone-worker:${{ github.sha }}
+
+      - name: Build Web Container Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: infra/docker/Dockerfile.web
+          push: false
+          tags: capstone-web:${{ github.sha }}

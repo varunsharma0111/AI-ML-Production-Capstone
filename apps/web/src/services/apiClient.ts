@@ -1,0 +1,75 @@
+import { ProblemDetails } from "../types/api";
+
+export class ApiError extends Error {
+  public readonly status: number;
+  public readonly code: string;
+  public readonly requestId: string;
+  public readonly problem: ProblemDetails;
+
+  constructor(problem: ProblemDetails) {
+    super(problem.detail || problem.title || "An API error occurred");
+    this.name = "ApiError";
+    this.status = problem.status;
+    this.code = problem.code;
+    this.requestId = problem.request_id;
+    this.problem = problem;
+  }
+}
+
+interface RequestOptions extends RequestInit {
+  token?: string | null;
+}
+
+function generateRequestId(): string {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return "req_" + Math.random().toString(36).substring(2, 11);
+}
+
+export async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
+  const { token, headers: customHeaders, ...fetchOptions } = options;
+
+  const baseUrl = (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_API_URL) ? import.meta.env.VITE_API_URL : "";
+  const targetUrl = endpoint.startsWith('/') ? `${baseUrl}${endpoint}` : endpoint;
+
+  const headers = new Headers(customHeaders);
+  headers.set("Accept", "application/json");
+  headers.set("X-Request-ID", generateRequestId());
+
+  if (fetchOptions.body && !(fetchOptions.body instanceof FormData)) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  const response = await fetch(targetUrl, {
+    ...fetchOptions,
+    headers,
+  });
+
+  if (!response.ok) {
+    let problem: ProblemDetails;
+    try {
+      problem = await response.json();
+    } catch {
+      problem = {
+        type: "about:blank",
+        title: response.statusText || "HTTP Error",
+        status: response.status,
+        detail: `Request failed with status ${response.status}`,
+        code: "http_error",
+        request_id: headers.get("X-Request-ID") || "unknown",
+      };
+    }
+    throw new ApiError(problem);
+  }
+
+  if (response.status === 204) {
+    return {} as T;
+  }
+
+  return response.json();
+}

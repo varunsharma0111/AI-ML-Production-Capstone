@@ -1,0 +1,61 @@
+name: CD - Production Kubernetes Deployment (Profile C)
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Container Image Tag / Git SHA to deploy"
+        required: true
+        default: "latest"
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-production-k8s:
+    name: Deploy Helm Release to Production Cluster
+    runs-on: ubuntu-latest
+    environment: production  # Requires explicit GitHub Environment approval gate
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Helm & Kubectl
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.14.0'
+
+      - name: Configure Kubeconfig
+        if: ${{ secrets.KUBECONFIG_DATA != '' }}
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG_DATA }}" | base64 --decode > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Deploy Helm Release to Production
+        if: ${{ secrets.KUBECONFIG_DATA != '' }}
+        run: |
+          TAG="${{ github.event.inputs.image_tag || github.ref_name }}"
+          helm upgrade --install capstone ./deploy/helm/ai-ml-platform \
+            --namespace capstone-prod \
+            --create-namespace \
+            -f ./deploy/helm/ai-ml-platform/values-production.yaml \
+            --set api.image.tag="$TAG" \
+            --set worker.image.tag="$TAG" \
+            --set web.image.tag="$TAG"
+
+      - name: Verify Kubernetes Rollout Status
+        if: ${{ secrets.KUBECONFIG_DATA != '' }}
+        run: |
+          kubectl rollout status deployment/capstone-ai-ml-platform-api -n capstone-prod --timeout=300s
+          kubectl rollout status deployment/capstone-ai-ml-platform-web -n capstone-prod --timeout=300s
+
+      - name: Dry Run Notice (Kubeconfig missing)
+        if: ${{ secrets.KUBECONFIG_DATA == '' }}
+        run: |
+          echo "Production deployment dry-run mode:"
+          echo "KUBECONFIG_DATA secret is not set. Helm rendering verified without cluster push."
+          helm template capstone-prod ./deploy/helm/ai-ml-platform -f ./deploy/helm/ai-ml-platform/values-production.yaml > /dev/null

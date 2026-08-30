@@ -1,0 +1,33 @@
+# Multi-stage Dockerfile for React Web Frontend
+
+# Stage 1: Build static web bundle
+FROM node:20-alpine AS builder
+
+WORKDIR /build
+
+COPY apps/web/package.json apps/web/package-lock.json* ./
+
+RUN npm ci || npm install
+
+COPY apps/web ./
+
+RUN npm run build
+
+# Stage 2: Serve using unprivileged Nginx
+FROM nginx:1.27-alpine-slim AS runtime
+
+COPY --from=builder /build/dist /usr/share/nginx/html
+COPY infra/docker/nginx.conf /etc/nginx/conf.d/default.conf
+
+# Support non-root nginx execution
+RUN touch /var/run/nginx.pid && \
+    chown -R nginx:nginx /var/run/nginx.pid /var/cache/nginx /usr/share/nginx/html
+
+USER nginx
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=15s --timeout=5s --start-period=5s --retries=3 \
+    CMD wget -qO- http://localhost:8080/ || exit 1
+
+CMD ["nginx", "-g", "daemon off;"]

@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "ai-ml-platform.fullname" . }}-config
+  labels:
+    {{- include "ai-ml-platform.labels" . | nindent 4 }}
+data:
+  APP_ENV: {{ .Values.global.environment | quote }}
+  APP_NAME: {{ .Values.global.appName | quote }}
+  LOG_LEVEL: {{ .Values.global.logLevel | quote }}
+  DATABASE_POOL_SIZE: "10"
+  DATABASE_MAX_OVERFLOW: "10"
+  OIDC_ISSUER: {{ .Values.oidc.issuer | quote }}
+  OIDC_AUDIENCE: {{ .Values.oidc.audience | quote }}
+  OIDC_JWKS_URL: {{ .Values.oidc.jwksUrl | quote }}
+  ALLOWED_JWT_ALGORITHMS: {{ .Values.oidc.allowedAlgorithms | quote }}
+  VITE_API_URL: {{ printf "https://%s" .Values.ingress.apiHost | quote }}

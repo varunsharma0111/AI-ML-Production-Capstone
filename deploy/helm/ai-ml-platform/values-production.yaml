@@ -1,0 +1,19 @@
+# Production environment overrides for Helm chart
+
+global:
+  environment: production
+  logLevel: "INFO"
+
+api:
+  replicaCount: 3
+
+worker:
+  replicaCount: 2
+
+web:
+  replicaCount: 3
+
+ingress:
+  enabled: true
+  webHost: capstone.production.org
+  apiHost: api.capstone.production.org

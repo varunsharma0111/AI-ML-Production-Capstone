@@ -1,0 +1,67 @@
+# Operating-system and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# Runtime logs and temporary files
+logs/
+*.log
+tmp/
+temp/
+.cache/
+
+# Node and frontend build output
+node_modules/
+dist/
+build/
+.next/
+coverage/
+
+# Python and ML tooling
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# Model and experiment outputs
+mlruns/
+wandb/
+checkpoints/
+models/
+*.onnx
+*.pt
+*.pth
+*.ckpt
+
+# Local database and cache state
+*.sqlite
+*.sqlite3
+*.db
+redis-data/
+
+# Infrastructure state and generated files
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+.terraform.lock.hcl
+*.kubeconfig
+
+# Test artifacts
+playwright-report/
+test-results/

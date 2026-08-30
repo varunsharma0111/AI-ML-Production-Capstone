@@ -1,0 +1,19 @@
+Metadata-Version: 2.4
+Name: ai-ml-production-capstone
+Version: 0.1.0
+Summary: Production-oriented AI/ML platform capstone
+Requires-Python: >=3.11
+Requires-Dist: alembic==1.16.5
+Requires-Dist: asyncpg==0.30.0
+Requires-Dist: fastapi==0.115.12
+Requires-Dist: pydantic-settings==2.10.1
+Requires-Dist: PyJWT[crypto]==2.10.1
+Requires-Dist: SQLAlchemy==2.0.43
+Requires-Dist: uvicorn[standard]==0.34.0
+Provides-Extra: dev
+Requires-Dist: httpx==0.28.1; extra == "dev"
+Requires-Dist: mypy==1.18.2; extra == "dev"
+Requires-Dist: pre-commit==4.3.0; extra == "dev"
+Requires-Dist: pytest==8.4.2; extra == "dev"
+Requires-Dist: pytest-asyncio==1.1.0; extra == "dev"
+Requires-Dist: ruff==0.12.11; extra == "dev"

@@ -1,0 +1,104 @@
+# Default values for ai-ml-platform Helm chart.
+
+global:
+  environment: production
+  appName: "AI/ML Production Capstone API"
+  logLevel: "INFO"
+
+api:
+  replicaCount: 2
+  image:
+    repository: capstone-api
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  service:
+    type: ClusterIP
+    port: 8000
+
+worker:
+  replicaCount: 1
+  image:
+    repository: capstone-worker
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+web:
+  replicaCount: 2
+  image:
+    repository: capstone-web
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 100m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 128Mi
+  service:
+    type: ClusterIP
+    port: 8080
+
+postgres:
+  image:
+    repository: postgres
+    tag: 16-alpine
+    pullPolicy: IfNotPresent
+  persistence:
+    size: 10Gi
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+redis:
+  image:
+    repository: redis
+    tag: 7-alpine
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+ingress:
+  enabled: true
+  className: nginx
+  webHost: capstone.local
+  apiHost: api.capstone.local
+
+oidc:
+  issuer: "https://issuer.example.com/"
+  audience: "ai-ml-production-capstone-api"
+  jwksUrl: "https://issuer.example.com/.well-known/jwks.json"
+  allowedAlgorithms: "RS256"
+
+# Placeholder secrets. DO NOT COMMIT REAL CREDENTIALS.
+secrets:
+  postgresPassword: "CHANGE_ME_IN_PRODUCTION_SECRET"
+  databaseUrl: "postgresql+asyncpg://postgres:CHANGE_ME_IN_PRODUCTION_SECRET@postgres:5432/capstone"
+  redisUrl: "redis://redis:6379/0"
+
+observability:
+  enabled: true
+

@@ -1,0 +1,52 @@
+# Prometheus Alert Rules Definition
+groups:
+  - name: capstone_availability_alerts
+    rules:
+      - alert: ServiceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Instance {{ $labels.instance }} is down"
+          description: "Service {{ $labels.job }} at {{ $labels.instance }} has been unreachable for > 1 minute."
+
+  - name: capstone_performance_alerts
+    rules:
+      - alert: HighHTTP5xxErrorRate
+        expr: (sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m]))) * 100 > 5
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High HTTP 5xx Error Rate Detected (> 5%)"
+          description: "HTTP 5xx server errors represent {{ $value }}% of traffic over the last 5 minutes."
+
+      - alert: HighAPILatency
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 0.500
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API P95 Latency Exceeds 500ms Threshold"
+          description: "95th percentile API response time is {{ $value }}s over the last 5 minutes."
+
+  - name: capstone_system_alerts
+    rules:
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Host Memory Utilization (> 85%)"
+          description: "Node memory usage is currently at {{ $value }}%."
+
+      - alert: HighJobFailureRate
+        expr: sum(increase(job_execution_failures_total[5m])) > 3
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Elevated Background Job Failure Rate"
+          description: "More than 3 background job execution failures occurred in the last 5 minutes."

@@ -1,0 +1,6 @@
+# Keep this directory tree without committing datasets or generated artifacts.
+*
+!.gitignore
+!raw/
+!processed/
+!artifacts/

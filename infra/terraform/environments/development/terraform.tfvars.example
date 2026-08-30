@@ -1,0 +1,4 @@
+# Example development variable overrides. DO NOT COMMIT REAL SECRETS.
+aws_region  = "us-east-1"
+environment = "development"
+db_password = "CHANGE_ME_IN_DEV_SECRET"

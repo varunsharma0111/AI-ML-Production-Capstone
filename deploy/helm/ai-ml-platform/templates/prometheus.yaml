@@ -1,0 +1,54 @@
+{{- if .Values.observability.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "ai-ml-platform.fullname" . }}-prometheus
+  labels:
+    {{- include "ai-ml-platform.labels" . | nindent 4 }}
+    app.kubernetes.io/component: prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "ai-ml-platform.name" . }}
+      app.kubernetes.io/component: prometheus
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "ai-ml-platform.name" . }}
+        app.kubernetes.io/component: prometheus
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+      containers:
+        - name: prometheus
+          image: prom/prometheus:v2.51.0
+          ports:
+            - containerPort: 9090
+              name: http
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  labels:
+    {{- include "ai-ml-platform.labels" . | nindent 4 }}
+    app.kubernetes.io/component: prometheus
+spec:
+  ports:
+    - port: 9090
+      targetPort: 9090
+      name: http
+  selector:
+    app.kubernetes.io/name: {{ include "ai-ml-platform.name" . }}
+    app.kubernetes.io/component: prometheus
+{{- end }}

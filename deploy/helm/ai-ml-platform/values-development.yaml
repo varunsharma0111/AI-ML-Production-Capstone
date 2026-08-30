@@ -1,0 +1,19 @@
+# Development environment overrides for Helm chart
+
+global:
+  environment: development
+  logLevel: "DEBUG"
+
+api:
+  replicaCount: 1
+
+worker:
+  replicaCount: 1
+
+web:
+  replicaCount: 1
+
+ingress:
+  enabled: true
+  webHost: dev.capstone.local
+  apiHost: dev-api.capstone.local

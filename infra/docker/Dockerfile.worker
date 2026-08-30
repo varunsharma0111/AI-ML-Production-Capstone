@@ -1,0 +1,52 @@
+# Multi-stage Dockerfile for Background Task Worker
+
+# Stage 1: Build virtual environment
+FROM python:3.11-slim AS builder
+
+WORKDIR /build
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+COPY pyproject.toml .
+COPY apps/api ./apps/api
+
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir .
+
+# Stage 2: Final runtime container
+FROM python:3.11-slim AS runtime
+
+WORKDIR /app
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/opt/venv/bin:$PATH" \
+    PYTHONPATH="/app/apps/api"
+
+# Create non-root system user
+RUN groupadd -g 10001 appgroup && \
+    useradd -u 10001 -g appgroup -s /bin/false appuser
+
+COPY --from=builder /opt/venv /opt/venv
+
+COPY apps /app/apps
+COPY agent /app/agent
+COPY database /app/database
+COPY messaging /app/messaging
+COPY ml /app/ml
+COPY services /app/services
+
+RUN chown -R appuser:appgroup /app
+
+USER 10001
+
+CMD ["python", "-m", "services.worker.main"]
