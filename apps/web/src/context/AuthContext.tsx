@@ -23,9 +23,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const isDevToken = (t: string): boolean =>
+    t.startsWith("dev_") || t === "dev_token_sample" || t.includes("dev_token");
+
+  const DEV_USER: User = {
+    id: "00000000-0000-0000-0000-000000000001",
+    subject: "dev-user-123",
+    email: "dev.user@example.com",
+    display_name: "Dev Demo User",
+  };
+
   const fetchCurrentUser = async (authToken: string) => {
     setIsLoading(true);
     setError(null);
+
+    // Dev tokens bypass the API entirely for instant demo login
+    if (isDevToken(authToken)) {
+      setUser(DEV_USER);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const currentUser = await request<User>("/api/v1/me", { token: authToken });
       setUser(currentUser);
