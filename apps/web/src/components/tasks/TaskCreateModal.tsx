@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useWorkspace } from "../../context/WorkspaceContext";
-import { ApiError, request } from "../../services/apiClient";
+import { request } from "../../services/apiClient";
 import { ProblemDetails, Task, TaskCreate } from "../../types/api";
 import { Alert } from "../ui/Alert";
 import { Button } from "../ui/Button";
