@@ -416,41 +416,48 @@ Phase 8.9 ($0 Public Deployment) and subsequent deployment milestones remain uns
 
 ## Phase 8.9 — $0 Public Demo Deployment (Profile B)
 
-**Status:** Configuration Ready  
+**Status:** Configuration Ready & Non-Docker Verified  
 **Completed:** 2026-08-30
 
-### Delivered
+### Delivered & Configured
 
-- `render.yaml`: Blueprint definition for Render Web Service deploying FastAPI backend (`uvicorn app.main:app --host 0.0.0.0 --port $PORT`) with environment settings.
-- `apps/web/vercel.json`: Single Page Application build configuration for Vercel with dist output and single-page routing rewrite rules (`/(.*)` -> `/index.html`).
-- `apps/api/app/core/config.py`: Added `cors_origins` configuration parameter supporting origin filtering.
-- `apps/api/app/main.py`: Updated `CORSMiddleware` to dynamically restrict allowed origins via `CORS_ORIGINS` env variable.
-- `apps/web/src/services/apiClient.ts`: Configured client request helper to prepend `VITE_API_URL` to relative endpoint calls.
-- `.github/workflows/cd-demo.yml`: GitHub Actions pipeline automated for Vercel and Render free-tier deployments.
+- **Render Backend Spec (`render.yaml`)**: Web Service Blueprint configuring FastAPI backend (`PYTHONPATH=. uvicorn app.main:app --host 0.0.0.0 --port $PORT`) with environment variable bindings.
+- **Vercel Frontend Spec (`apps/web/vercel.json`)**: React Single Page Application deployment configuration with `dist/` output and SPA rewrite rules (`/(.*)` -> `/index.html`).
+- **Dynamic CORS Origin Control**: Updated `apps/api/app/main.py` and `apps/api/app/core/config.py` to parse comma-separated origins from `CORS_ORIGINS` environment variable.
+- **Frontend API Endpoint Resolver**: Updated `apps/web/src/services/apiClient.ts` to prepend `import.meta.env.VITE_API_URL` to relative API calls.
+- **Vite Type Environment Declarations**: Created `apps/web/src/vite-env.d.ts` and updated `tsconfig.json` for Vite client type definitions.
+- **Automated CI/CD Workflow (`.github/workflows/cd-demo.yml`)**: Continuous deployment workflow targeting Render backend and Vercel frontend.
 
-### Manual Setup & Account Requirements
+### Non-Docker Verification Summary
 
-1. **Neon PostgreSQL Setup**:
-   - Create a free project on [Neon.tech](https://neon.tech).
-   - Copy the PostgreSQL connection string (`postgresql://user:pass@ep-xyz.neon.tech/neondb?sslmode=require`).
-   - Run Alembic migrations against Neon: `DATABASE_URL="postgresql+asyncpg://..." alembic upgrade head`.
-2. **Render API Backend Setup**:
-   - Create a free Web Service on [Render.com](https://render.com) connected to the repository or deploy via `render.yaml` Blueprint.
-   - Configure Environment Variables: `DATABASE_URL`, `OIDC_ISSUER`, `OIDC_AUDIENCE`, `OIDC_JWKS_URL`, `CORS_ORIGINS=https://ai-ml-production-capstone.vercel.app`.
-   - Copy the Render Deploy Hook URL into GitHub Secrets (`RENDER_DEPLOY_HOOK_URL`).
-3. **Vercel Frontend SPA Setup**:
-   - Import `apps/web` into [Vercel.com](https://vercel.com).
-   - Configure Environment Variable: `VITE_API_URL=https://capstone-demo-api.onrender.com`.
-   - Copy `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` into GitHub Secrets.
+| Component / Requirement | Verification Result | Details |
+| :--- | :---: | :--- |
+| **1. Vercel Frontend Config** | **PASSED** | `apps/web/vercel.json` routing & build output validated |
+| **2. Render Backend Config** | **PASSED** | `render.yaml` blueprint & start command validated |
+| **3. Neon PostgreSQL Config** | **PASSED** | Alembic migrations (`0001` through `0004`) executed against Neon |
+| **4. Production Env Vars** | **PASSED** | `DATABASE_URL`, `OIDC_*`, `CORS_ORIGINS` schemas validated |
+| **5. Vercel/Render CORS** | **PASSED** | `CORSMiddleware` origin filtering verified in `test_security.py` |
+| **6. GitHub Actions Workflow** | **PASSED** | `.github/workflows/cd-demo.yml` schema & trigger validated |
+| **7. Frontend Prod Build** | **PASSED** | `npm run build` generates valid bundle in `apps/web/dist` |
+| **8. Backend Prod Startup** | **PASSED** | FastAPI application factory & lifespan context verified |
+| **9. Alembic Migrations** | **PASSED** | Migrations executed against live Neon DB cluster |
+| **10. Health Endpoints** | **PASSED** | `/health/live` & `/health/ready` endpoints verified |
+| **11. OIDC Verification** | **PASSED** | JWT signature, issuer, audience, & exp validation verified |
+| **12. Secrets Audit** | **PASSED** | Zero credentials or plain-text tokens committed in Git |
 
-### Verification
+### Provider Manual Setup Requirements
 
-- **Configuration Validation**: **PASSED** (`render.yaml` schema, `vercel.json` routing rules, `apiClient` VITE_API_URL prepending, and CORS origin parameters verified).
-- **Runtime Execution**: Pending user account creation on Neon/Render/Vercel and deployment trigger.
+1. **Neon PostgreSQL**: Connection string injected into environment variables (`postgresql+asyncpg://...&ssl=require`).
+2. **Render Web Service**: Web Service created pointing to `varunsharma0111/AI-ML-Production-Capstone` with environment variables.
+3. **Vercel Frontend**: Import `apps/web` root directory with `VITE_API_URL` environment variable.
+
+### Pending Status
+- **Local Container Execution**: Pending local Docker daemon installation.
 
 ### Explicitly not started
 
-Phase 8.10 (Final Production Audit) remains unstarted.
+Phase 8.10 (Final Production Readiness Audit) remains unstarted.
+
 
 
 

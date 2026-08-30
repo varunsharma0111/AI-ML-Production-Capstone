@@ -64,7 +64,7 @@ class ToolSandbox:
             )
 
     def _eval_node(self, node: ast.AST) -> float | int:
-        if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
+        if isinstance(node, ast.Constant) and isinstance(node.value, int | float):
             return node.value
         if isinstance(node, ast.BinOp):
             left = self._eval_node(node.left)

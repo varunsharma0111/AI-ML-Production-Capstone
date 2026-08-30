@@ -6,7 +6,7 @@ from uuid import UUID
 
 from app.api.schemas.jobs import JobSubmit
 from app.core.errors import ConflictError, ResourceNotFoundError
-from app.db.models.entities import AuditEvent, Job
+from app.db.models.entities import AuditEvent, Job, User
 from app.db.repositories.identity import IdentityRepository
 from app.db.repositories.jobs import JobRepository
 from app.domains.identity.policy import Permission, require_permission
@@ -71,7 +71,7 @@ class JobService:
             )
             session.add(audit_event)
 
-        # Run background job execution inline for immediate local execution & test deterministic verification
+        # Run background job execution inline for immediate local execution & verification
         async with session.begin():
             await self._job_runner.execute_job(session, job)
 

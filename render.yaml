@@ -4,7 +4,7 @@ services:
     name: capstone-demo-api
     env: python
     buildCommand: "pip install -e ."
-    startCommand: "PYTHONPATH=apps/api:. uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    startCommand: "cd apps/api && PYTHONPATH=.:../.. uvicorn app.main:app --host 0.0.0.0 --port $PORT"
     envVars:
       - key: APP_ENV
         value: production
