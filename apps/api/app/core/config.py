@@ -13,7 +13,9 @@ class Settings(BaseSettings):
     """Runtime settings loaded from environment variables or an ignored .env file."""
 
     model_config = SettingsConfigDict(
-        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
     )
 
     app_env: Literal["local", "test", "staging", "production"] = "local"
@@ -24,10 +26,12 @@ class Settings(BaseSettings):
     database_max_overflow: int = Field(default=5, ge=0, le=20)
     oidc_issuer: HttpUrl | str = Field(default="https://issuer.example.com/")
     oidc_audience: str = Field(
-        default="ai-ml-production-capstone-api", min_length=1, max_length=256
+        default="ai-ml-production-capstone-api",
+        min_length=1,
+        max_length=256,
     )
     oidc_jwks_url: HttpUrl | str = Field(
-        default="https://issuer.example.com/.well-known/jwks.json"
+        default="https://issuer.example.com/.well-known/jwks.json",
     )
     allowed_jwt_algorithms: tuple[str, ...] = ("RS256",)
     cors_origins: str = "*"
