@@ -37,9 +37,7 @@ class Settings(BaseSettings):
     def validate_database_url(cls, value: str) -> str:
         if value.startswith("postgres://"):
             value = value.replace("postgres://", "postgresql+asyncpg://", 1)
-        elif value.startswith("postgresql://") and not value.startswith(
-            "postgresql+asyncpg://"
-        ):
+        elif value.startswith("postgresql://"):
             value = value.replace("postgresql://", "postgresql+asyncpg://", 1)
 
         if not value.startswith("postgresql+asyncpg://"):
