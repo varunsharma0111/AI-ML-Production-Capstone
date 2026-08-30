@@ -41,7 +41,7 @@ jobs:
         run: ruff check .
 
       - name: Type-check Python (mypy)
-        run: mypy apps/api services/worker tests
+        run: mypy --explicit-package-bases apps/api services tests
 
       - name: Run Pytest suite
         run: pytest -v

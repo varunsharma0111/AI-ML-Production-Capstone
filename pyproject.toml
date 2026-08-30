@@ -45,7 +45,8 @@ select = ["E", "F", "I", "UP"]
 [tool.mypy]
 python_version = "3.11"
 strict = true
-files = ["apps/api", "tests"]
+explicit_package_bases = true
+files = ["apps/api", "services", "tests"]
 exclude = ["^\\.venv/"]
 
 [tool.pytest.ini_options]
