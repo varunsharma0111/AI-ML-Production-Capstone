@@ -5,13 +5,22 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
 from app.db.models.base import Base
-
 
 
 class User(Base):
@@ -44,7 +53,9 @@ class WorkspaceMembership(Base):
     __tablename__ = "workspace_memberships"
     __table_args__ = (
         UniqueConstraint("workspace_id", "user_id", name="uq_workspace_memberships_workspace_user"),
-        CheckConstraint("role IN ('owner', 'editor', 'viewer')", name="ck_workspace_memberships_role"),
+        CheckConstraint(
+            "role IN ('owner', 'editor', 'viewer')", name="ck_workspace_memberships_role"
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
@@ -59,7 +70,9 @@ class Task(Base):
     __table_args__ = (CheckConstraint("status IN ('open', 'completed')", name="ck_tasks_status"),)
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    workspace_id: Mapped[UUID] = mapped_column(ForeignKey("workspaces.id", ondelete="RESTRICT"), index=True)
+    workspace_id: Mapped[UUID] = mapped_column(
+        ForeignKey("workspaces.id", ondelete="RESTRICT"), index=True
+    )
     created_by_user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -76,20 +89,26 @@ class AuditEvent(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     actor_user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="RESTRICT"))
-    workspace_id: Mapped[UUID] = mapped_column(ForeignKey("workspaces.id", ondelete="RESTRICT"), index=True)
+    workspace_id: Mapped[UUID] = mapped_column(
+        ForeignKey("workspaces.id", ondelete="RESTRICT"), index=True
+    )
     action: Mapped[str] = mapped_column(String(100), nullable=False)
     resource_type: Mapped[str] = mapped_column(String(100), nullable=False)
     resource_id: Mapped[UUID] = mapped_column(nullable=False)
     request_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     metadata_json: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False, default=dict)
-    occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    occurred_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
 
 
 class Job(Base):
     __tablename__ = "jobs"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    workspace_id: Mapped[UUID] = mapped_column(ForeignKey("workspaces.id", ondelete="CASCADE"), index=True)
+    workspace_id: Mapped[UUID] = mapped_column(
+        ForeignKey("workspaces.id", ondelete="CASCADE"), index=True
+    )
     created_by_user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     idempotency_key: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
     job_type: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -168,9 +187,7 @@ class InferenceLog(Base):
     input_features: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False)
     prediction: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False)
     latency_ms: Mapped[float] = mapped_column(Float, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
 class OutboxEvent(Base):
@@ -183,13 +200,5 @@ class OutboxEvent(Base):
     payload_json: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False)
     status: Mapped[str] = mapped_column(String(50), nullable=False, default="pending", index=True)
     retry_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
-    )
-    published_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-
-
-
-
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)

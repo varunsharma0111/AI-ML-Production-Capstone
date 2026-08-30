@@ -22,9 +22,7 @@ class ModelTrainer:
         params = hyperparameters or {"learning_rate": 0.01, "max_depth": 5, "seed": 42}
 
         # Deterministic weights generation
-        weights = [
-            round(0.42 + 0.1 * i, 4) for i in range(len(params))
-        ]
+        weights = [round(0.42 + 0.1 * i, 4) for i in range(len(params))]
 
         artifact_data = {
             "model_name": name,

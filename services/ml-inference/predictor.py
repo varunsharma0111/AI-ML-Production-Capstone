@@ -40,7 +40,12 @@ class ControlledInferencePredictor:
         val2 = float(input_features.get("feature_2", 1.0))
 
         # Compute prediction output score & label
-        score = round(min(max(val1 * weights[0] + val2 * (weights[1] if len(weights) > 1 else 0.5), 0.0), 1.0), 4)
+        score = round(
+            min(
+                max(val1 * weights[0] + val2 * (weights[1] if len(weights) > 1 else 0.5), 0.0), 1.0
+            ),
+            4,
+        )
         prediction_label = "positive" if score >= 0.5 else "negative"
 
         latency_ms = round((time.perf_counter() - start_time) * 1000, 3)

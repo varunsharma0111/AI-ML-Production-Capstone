@@ -10,7 +10,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class ModelRepository:
-    async def create_model_version(self, session: AsyncSession, model: ModelVersion) -> ModelVersion:
+    async def create_model_version(
+        self, session: AsyncSession, model: ModelVersion
+    ) -> ModelVersion:
         session.add(model)
         await session.flush()
         await session.refresh(model)
@@ -34,9 +36,7 @@ class ModelRepository:
         await session.refresh(evaluation)
         return evaluation
 
-    async def record_inference_log(
-        self, session: AsyncSession, log: InferenceLog
-    ) -> InferenceLog:
+    async def record_inference_log(self, session: AsyncSession, log: InferenceLog) -> InferenceLog:
         session.add(log)
         await session.flush()
         return log

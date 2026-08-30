@@ -34,7 +34,9 @@ class JobRunner:
         attempt_number = job.attempt_count
 
         try:
-            logger.info("Executing job %s (type=%s, attempt=%d)", job.id, job.job_type, attempt_number)
+            logger.info(
+                "Executing job %s (type=%s, attempt=%d)", job.id, job.job_type, attempt_number
+            )
 
             result: dict[str, Any] = {}
             if job.job_type == JobType.SAMPLE_ML_INGESTION.value:
@@ -101,7 +103,9 @@ class JobRunner:
                 job.status = JobStatus.FAILED.value
                 job.error_detail = error_str
                 job.completed_at = datetime.now(UTC)
-                logger.error("Job %s permanently failed after %d attempts.", job.id, job.max_retries)
+                logger.error(
+                    "Job %s permanently failed after %d attempts.", job.id, job.max_retries
+                )
 
             await session.flush()
             return JobStatus(job.status), None, error_str

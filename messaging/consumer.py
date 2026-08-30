@@ -27,12 +27,16 @@ class IdempotentEventConsumer:
         attempt = 1
         while attempt <= self.max_retries:
             try:
-                logger.info("Consuming event %s (type=%s, attempt=%d)", event_id, event_type, attempt)
+                logger.info(
+                    "Consuming event %s (type=%s, attempt=%d)", event_id, event_type, attempt
+                )
                 # Mark as processed
                 self._processed_event_ids.add(event_id)
                 return True
             except Exception as exc:
-                logger.warning("Consumer error on event %s (attempt %d): %s", event_id, attempt, exc)
+                logger.warning(
+                    "Consumer error on event %s (attempt %d): %s", event_id, attempt, exc
+                )
                 attempt += 1
 
         # Failure past retry limit -> Route to Dead Letter Queue

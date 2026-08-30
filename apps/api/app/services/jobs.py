@@ -120,7 +120,11 @@ class JobService:
             if job is None:
                 raise ResourceNotFoundError("Job not found in workspace.")
 
-            if job.status in (JobStatus.COMPLETED.value, JobStatus.FAILED.value, JobStatus.CANCELLED.value):
+            if job.status in (
+                JobStatus.COMPLETED.value,
+                JobStatus.FAILED.value,
+                JobStatus.CANCELLED.value,
+            ):
                 raise ConflictError(f"Cannot cancel job in state {job.status}.")
 
             job.status = JobStatus.CANCELLED.value
@@ -147,9 +151,7 @@ class JobService:
         permission: Permission,
     ) -> User:
         user = await self._identity_repository.get_or_create_user(session, principal)
-        membership = await self._identity_repository.get_membership(
-            session, workspace_id, user.id
-        )
+        membership = await self._identity_repository.get_membership(session, workspace_id, user.id)
         if membership is None:
             from app.core.errors import AuthorizationError
 

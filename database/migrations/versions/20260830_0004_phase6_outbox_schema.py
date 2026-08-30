@@ -36,9 +36,7 @@ def upgrade() -> None:
         sa.Column("published_at", sa.DateTime(timezone=True), nullable=True),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(
-        op.f("ix_outbox_events_status"), "outbox_events", ["status"], unique=False
-    )
+    op.create_index(op.f("ix_outbox_events_status"), "outbox_events", ["status"], unique=False)
 
 
 def downgrade() -> None:

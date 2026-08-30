@@ -12,7 +12,9 @@ class AgentToolSecurityGuard:
     DANGEROUS_PATTERNS = [
         re.compile(r"\.\.[/\\]"),  # Path traversal (../ or ..\)
         re.compile(r"[;&|`$><]"),  # Shell injection characters
-        re.compile(r"^\s*(rm|del|mkfs|chmod|chown)\b", re.IGNORECASE),  # Destructive system commands
+        re.compile(
+            r"^\s*(rm|del|mkfs|chmod|chown)\b", re.IGNORECASE
+        ),  # Destructive system commands
     ]
 
     def validate_input_string(self, value: str, field_name: str = "input") -> str:

@@ -112,9 +112,7 @@ async def test_submit_job_unauthenticated(test_settings: Settings) -> None:
 
 
 @pytest.mark.asyncio
-async def test_submit_job_success(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_submit_job_success(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -148,9 +146,7 @@ async def test_submit_job_success(
 
 
 @pytest.mark.asyncio
-async def test_list_jobs_success(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_list_jobs_success(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -193,9 +189,7 @@ async def test_list_jobs_success(
 
 
 @pytest.mark.asyncio
-async def test_cancel_job_success(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_cancel_job_success(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)

@@ -9,7 +9,9 @@ from app.domains.ml.types import MIN_ACCURACY_THRESHOLD, MIN_F1_SCORE_THRESHOLD
 class ModelEvaluator:
     """Evaluates model performance metrics against mandatory promotion quality gates."""
 
-    def evaluate(self, accuracy: float, f1_score: float, latency_ms: float) -> tuple[bool, dict[str, Any]]:
+    def evaluate(
+        self, accuracy: float, f1_score: float, latency_ms: float
+    ) -> tuple[bool, dict[str, Any]]:
         passed_accuracy = accuracy >= MIN_ACCURACY_THRESHOLD
         passed_f1 = f1_score >= MIN_F1_SCORE_THRESHOLD
         passed_gate = passed_accuracy and passed_f1

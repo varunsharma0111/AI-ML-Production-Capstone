@@ -16,7 +16,9 @@ class ArtifactStore:
         self.base_dir = Path(base_dir or DEFAULT_ARTIFACT_DIR)
         self.base_dir.mkdir(parents=True, exist_ok=True)
 
-    def save_artifact(self, model_name: str, version_tag: str, artifact_data: dict[str, Any]) -> str:
+    def save_artifact(
+        self, model_name: str, version_tag: str, artifact_data: dict[str, Any]
+    ) -> str:
         """Save model artifact to disk and return relative artifact path."""
         file_dir = self.base_dir / model_name
         file_dir.mkdir(parents=True, exist_ok=True)

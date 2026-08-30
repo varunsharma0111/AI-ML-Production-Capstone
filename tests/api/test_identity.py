@@ -50,9 +50,7 @@ async def test_current_user_invalid_token(test_settings: Settings) -> None:
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://test"
     ) as client:
-        response = await client.get(
-            "/api/v1/me", headers={"Authorization": "Bearer invalid_token"}
-        )
+        response = await client.get("/api/v1/me", headers={"Authorization": "Bearer invalid_token"})
 
     assert response.status_code == 401
     data = response.json()
@@ -89,9 +87,7 @@ async def test_current_user_success(test_settings: Settings) -> None:
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://test"
     ) as client:
-        response = await client.get(
-            "/api/v1/me", headers={"Authorization": "Bearer valid_token"}
-        )
+        response = await client.get("/api/v1/me", headers={"Authorization": "Bearer valid_token"})
 
     assert response.status_code == 200
     data = response.json()

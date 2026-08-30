@@ -13,13 +13,9 @@ from app.core.logging import configure_logging
 logger = logging.getLogger(__name__)
 
 # Worker Prometheus Metrics
-JOB_QUEUE_DEPTH = Gauge(
-    "job_queue_depth",
-    "Current depth of the asynchronous background job queue"
-)
+JOB_QUEUE_DEPTH = Gauge("job_queue_depth", "Current depth of the asynchronous background job queue")
 JOB_EXECUTION_FAILURES = Counter(
-    "job_execution_failures_total",
-    "Total count of background job execution failures"
+    "job_execution_failures_total", "Total count of background job execution failures"
 )
 
 

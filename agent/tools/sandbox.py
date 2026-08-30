@@ -17,7 +17,9 @@ class ToolSandbox:
     def __init__(self, security_guard: AgentToolSecurityGuard | None = None) -> None:
         self.security_guard = security_guard or AgentToolSecurityGuard()
 
-    def execute_tool(self, tool_name: str, arguments: dict[str, Any]) -> tuple[dict[str, Any], float]:
+    def execute_tool(
+        self, tool_name: str, arguments: dict[str, Any]
+    ) -> tuple[dict[str, Any], float]:
         if tool_name not in REGISTERED_TOOLS:
             raise ResourceNotFoundError(f"Agent tool '{tool_name}' is not registered.")
 

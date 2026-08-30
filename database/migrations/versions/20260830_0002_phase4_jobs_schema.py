@@ -59,7 +59,9 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_jobs_workspace_id"), "jobs", ["workspace_id"], unique=False)
-    op.create_index(op.f("ix_jobs_idempotency_key"), "jobs", ["workspace_id", "idempotency_key"], unique=False)
+    op.create_index(
+        op.f("ix_jobs_idempotency_key"), "jobs", ["workspace_id", "idempotency_key"], unique=False
+    )
 
     op.create_table(
         "job_attempts",

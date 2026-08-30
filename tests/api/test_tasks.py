@@ -392,9 +392,7 @@ async def test_update_task_success(test_settings: Settings, mock_principal: Prin
         updated_at=now,
     )
 
-    mock_session = setup_mock_db(
-        app, user=user, membership=membership, task_repo_get=existing_task
-    )
+    mock_session = setup_mock_db(app, user=user, membership=membership, task_repo_get=existing_task)
 
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://test"
