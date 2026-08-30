@@ -3,12 +3,12 @@
 import asyncio
 import logging
 import signal
-from http.server import HTTPServer, BaseHTTPRequestHandler
 import threading
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
-from prometheus_client import Gauge, Counter, generate_latest, CONTENT_TYPE_LATEST
 from app.core.config import get_settings
 from app.core.logging import configure_logging
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, generate_latest
 
 logger = logging.getLogger(__name__)
 

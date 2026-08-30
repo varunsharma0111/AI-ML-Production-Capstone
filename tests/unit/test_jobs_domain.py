@@ -1,9 +1,9 @@
 """Unit tests for Phase 4 job domain enums and schemas."""
 
+import pytest
 from app.api.schemas.jobs import JobSubmit
 from app.domains.jobs.types import JobStatus, JobType
 from pydantic import ValidationError
-import pytest
 
 
 def test_job_status_values():

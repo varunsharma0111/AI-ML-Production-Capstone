@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 
 import pytest
-
 from app.db.models.entities import AuditEvent, Task, User, WorkspaceMembership
 from app.db.repositories.identity import IdentityRepository
 from app.db.repositories.tasks import TaskRepository

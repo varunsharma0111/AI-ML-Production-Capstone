@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
+
 from app.domains.ml.types import MIN_ACCURACY_THRESHOLD, MIN_F1_SCORE_THRESHOLD
 
 

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
 import logging
+from datetime import UTC, datetime
 from uuid import UUID
 
 from app.db.models.entities import OutboxEvent

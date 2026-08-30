@@ -1,10 +1,11 @@
 """Unit tests for Prometheus metrics collection on API and Worker."""
 
-import pytest
-from fastapi.testclient import TestClient
-from app.main import app
-from services.worker.main import WorkerMetricsHandler
 from io import BytesIO
+
+from app.main import app
+from fastapi.testclient import TestClient
+
+from services.worker.main import WorkerMetricsHandler
 
 
 def test_api_metrics_endpoint() -> None:

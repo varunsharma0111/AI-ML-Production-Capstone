@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 from pathlib import Path
 from typing import Any
 
@@ -43,7 +42,7 @@ class ArtifactStore:
         if not file_path.exists():
             raise FileNotFoundError(f"Artifact not found: {artifact_path}")
 
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             payload = json.load(f)
 
         expected_hash = payload.get("sha256")

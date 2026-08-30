@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
 import logging
+from datetime import UTC, datetime
 from typing import Any
-from uuid import UUID
 
 from app.db.models.entities import Job, JobAttempt
 from app.db.repositories.jobs import JobRepository

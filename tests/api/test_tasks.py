@@ -8,13 +8,12 @@ from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 
 import httpx
-from fastapi import FastAPI
 import pytest
-
 from app.core.config import Settings
 from app.db.models.entities import Task, User, WorkspaceMembership
 from app.domains.identity.principal import Principal
 from app.main import create_app
+from fastapi import FastAPI
 
 
 @pytest.fixture

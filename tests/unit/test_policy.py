@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-
 from app.core.errors import AuthorizationError
 from app.domains.identity.policy import (
     ROLE_PERMISSIONS,

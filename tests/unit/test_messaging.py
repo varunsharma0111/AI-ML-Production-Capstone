@@ -1,10 +1,10 @@
 """Unit tests for Phase 6 transactional outbox publishing and idempotent consumer DLQ routing."""
 
+from datetime import UTC, datetime
 from uuid import uuid4
+
 from messaging.consumer import IdempotentEventConsumer
-from messaging.schemas.events import DomainEvent, TaskCreatedPayload
-from datetime import datetime, UTC
-import pytest
+from messaging.schemas.events import DomainEvent
 
 
 def test_domain_event_schema_validation():

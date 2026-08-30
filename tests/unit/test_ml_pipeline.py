@@ -2,7 +2,7 @@
 
 import tempfile
 from pathlib import Path
-import pytest
+
 from ml.artifacts.store import ArtifactStore
 from ml.evaluation.evaluator import ModelEvaluator
 from ml.training.trainer import ModelTrainer

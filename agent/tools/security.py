@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+
 from app.core.errors import DomainError
 
 

@@ -2,16 +2,15 @@
 
 from __future__ import annotations
 
-from uuid import UUID
-
-from agent.tools.definitions import REGISTERED_TOOLS
-from agent.tools.sandbox import ToolSandbox
 from app.api.schemas.agent import ToolExecuteRequest
 from app.db.models.entities import AuditEvent
 from app.db.repositories.identity import IdentityRepository
 from app.domains.identity.policy import Permission, require_permission
 from app.domains.identity.principal import Principal
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from agent.tools.definitions import REGISTERED_TOOLS
+from agent.tools.sandbox import ToolSandbox
 
 
 class AgentService:
