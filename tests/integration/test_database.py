@@ -46,6 +46,7 @@ async def test_identity_repository_get_or_create_user_new() -> None:
     mock_result.scalar_one_or_none.return_value = None
 
     mock_session = AsyncMock()
+    mock_session.add = MagicMock()
     mock_session.execute.return_value = mock_result
 
     user = await repo.get_or_create_user(mock_session, principal)
@@ -104,6 +105,7 @@ async def test_task_repository_create() -> None:
     )
 
     mock_session = AsyncMock()
+    mock_session.add = MagicMock()
 
     result = await repo.create(mock_session, task)
 
@@ -184,6 +186,7 @@ async def test_task_repository_append_audit_event() -> None:
     )
 
     mock_session = AsyncMock()
+    mock_session.add = MagicMock()
 
     await repo.append_audit_event(mock_session, event)
 

@@ -44,10 +44,13 @@ def setup_mock_db(
     """Helper to mock DB session queries for task service calls."""
 
     mock_session = AsyncMock()
+    mock_session.add = MagicMock()
 
     # Begin transaction context manager
-    mock_session.begin.return_value.__aenter__ = AsyncMock()
-    mock_session.begin.return_value.__aexit__ = AsyncMock()
+    begin_cm = MagicMock()
+    begin_cm.__aenter__ = AsyncMock(return_value=None)
+    begin_cm.__aexit__ = AsyncMock(return_value=None)
+    mock_session.begin = MagicMock(return_value=begin_cm)
 
     # Populate timestamps on refresh if missing (simulating DB defaults)
     async def refresh_side_effect(obj: Any) -> None:

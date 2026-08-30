@@ -22,6 +22,8 @@ JOB_EXECUTION_FAILURES = Counter(
 class WorkerMetricsHandler(BaseHTTPRequestHandler):
     """Minimal HTTP handler exposing Prometheus metrics for worker daemon."""
 
+    protocol_version = "HTTP/1.1"
+
     def do_GET(self) -> None:
         if self.path in ("/metrics", "/metrics/"):
             self.send_response(200)

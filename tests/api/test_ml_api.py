@@ -42,9 +42,12 @@ def setup_mock_db(
     model_list: list[ModelVersion] | None = None,
 ) -> AsyncMock:
     mock_session = AsyncMock()
+    mock_session.add = MagicMock()
 
-    mock_session.begin.return_value.__aenter__ = AsyncMock()
-    mock_session.begin.return_value.__aexit__ = AsyncMock()
+    begin_cm = MagicMock()
+    begin_cm.__aenter__ = AsyncMock(return_value=None)
+    begin_cm.__aexit__ = AsyncMock(return_value=None)
+    mock_session.begin = MagicMock(return_value=begin_cm)
 
     async def refresh_side_effect(obj: Any) -> None:
         now = datetime.now(UTC)
