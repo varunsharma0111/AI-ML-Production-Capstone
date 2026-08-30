@@ -13,6 +13,12 @@ jobs:
   backend-quality:
     name: Backend Quality & Tests
     runs-on: ubuntu-latest
+    env:
+      APP_ENV: test
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/capstone_test
+      OIDC_ISSUER: https://issuer.example.com/
+      OIDC_AUDIENCE: ai-ml-production-capstone-api
+      OIDC_JWKS_URL: https://issuer.example.com/.well-known/jwks.json
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -51,12 +57,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
-          cache-dependency-path: "apps/web/package-lock.json"
 
       - name: Install web dependencies
         working-directory: apps/web
-        run: npm ci
+        run: npm install
 
       - name: Build React SPA
         working-directory: apps/web
