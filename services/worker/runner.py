@@ -26,6 +26,8 @@ class JobRunner:
         """Run simulated job execution based on job type."""
         job.started_at = datetime.now(UTC)
         job.status = JobStatus.PROCESSING.value
+        if job.attempt_count is None:
+            job.attempt_count = 0
         job.attempt_count += 1
         await session.flush()
 

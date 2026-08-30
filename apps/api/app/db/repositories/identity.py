@@ -22,6 +22,7 @@ class IdentityRepository:
             )
             session.add(user)
             await session.flush()
+            await session.refresh(user)
         return user
 
     async def get_membership(

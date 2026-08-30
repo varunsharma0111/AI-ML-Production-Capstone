@@ -44,7 +44,17 @@ def setup_mock_db(
     """Helper to mock DB session queries for task service calls."""
 
     mock_session = AsyncMock()
-    mock_session.add = MagicMock()
+
+    def add_side_effect(obj: Any) -> None:
+        if hasattr(obj, "id") and getattr(obj, "id") is None:
+            setattr(obj, "id", uuid4())
+        now = datetime.now(UTC)
+        if hasattr(obj, "created_at") and getattr(obj, "created_at") is None:
+            setattr(obj, "created_at", now)
+        if hasattr(obj, "updated_at") and getattr(obj, "updated_at") is None:
+            setattr(obj, "updated_at", now)
+
+    mock_session.add = MagicMock(side_effect=add_side_effect)
 
     # Begin transaction context manager
     begin_cm = MagicMock()
@@ -54,11 +64,7 @@ def setup_mock_db(
 
     # Populate timestamps on refresh if missing (simulating DB defaults)
     async def refresh_side_effect(obj: Any) -> None:
-        now = datetime.now(UTC)
-        if hasattr(obj, "created_at") and getattr(obj, "created_at") is None:
-            setattr(obj, "created_at", now)
-        if hasattr(obj, "updated_at") and getattr(obj, "updated_at") is None:
-            setattr(obj, "updated_at", now)
+        add_side_effect(obj)
 
     mock_session.refresh.side_effect = refresh_side_effect
 

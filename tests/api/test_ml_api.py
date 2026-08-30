@@ -42,7 +42,17 @@ def setup_mock_db(
     model_list: list[ModelVersion] | None = None,
 ) -> AsyncMock:
     mock_session = AsyncMock()
-    mock_session.add = MagicMock()
+
+    def add_side_effect(obj: Any) -> None:
+        if hasattr(obj, "id") and getattr(obj, "id") is None:
+            setattr(obj, "id", uuid4())
+        now = datetime.now(UTC)
+        if hasattr(obj, "created_at") and getattr(obj, "created_at") is None:
+            setattr(obj, "created_at", now)
+        if hasattr(obj, "updated_at") and getattr(obj, "updated_at") is None:
+            setattr(obj, "updated_at", now)
+
+    mock_session.add = MagicMock(side_effect=add_side_effect)
 
     begin_cm = MagicMock()
     begin_cm.__aenter__ = AsyncMock(return_value=None)
@@ -50,11 +60,7 @@ def setup_mock_db(
     mock_session.begin = MagicMock(return_value=begin_cm)
 
     async def refresh_side_effect(obj: Any) -> None:
-        now = datetime.now(UTC)
-        if hasattr(obj, "created_at") and getattr(obj, "created_at") is None:
-            setattr(obj, "created_at", now)
-        if hasattr(obj, "updated_at") and getattr(obj, "updated_at") is None:
-            setattr(obj, "updated_at", now)
+        add_side_effect(obj)
 
     mock_session.refresh.side_effect = refresh_side_effect
 

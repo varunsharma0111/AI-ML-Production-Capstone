@@ -75,6 +75,12 @@ async def test_current_user_success(test_settings: Settings) -> None:
     )
 
     mock_session = AsyncMock()
+    mock_session.add = MagicMock()
+    begin_cm = MagicMock()
+    begin_cm.__aenter__ = AsyncMock(return_value=None)
+    begin_cm.__aexit__ = AsyncMock(return_value=None)
+    mock_session.begin = MagicMock(return_value=begin_cm)
+
     mock_result = MagicMock()
     mock_result.scalar_one_or_none.return_value = db_user
     mock_session.execute.return_value = mock_result
