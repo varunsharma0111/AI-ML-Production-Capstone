@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 
+from typing import cast
+
 from app.core.errors import AuthenticationError
 from app.core.security import JwtVerifier
 from app.db.session import session_from_factory
@@ -16,7 +18,7 @@ bearer_scheme = HTTPBearer(auto_error=False)
 
 
 def get_session_factory(request: Request) -> async_sessionmaker[AsyncSession]:
-    return request.app.state.session_factory
+    return cast(async_sessionmaker[AsyncSession], request.app.state.session_factory)
 
 
 async def get_session(
@@ -27,11 +29,11 @@ async def get_session(
 
 
 def get_token_verifier(request: Request) -> JwtVerifier:
-    return request.app.state.token_verifier
+    return cast(JwtVerifier, request.app.state.token_verifier)
 
 
 def get_request_id(request: Request) -> str:
-    return request.state.request_id
+    return str(getattr(request.state, "request_id", ""))
 
 
 def get_authenticated_principal(

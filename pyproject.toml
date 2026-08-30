@@ -46,6 +46,7 @@ select = ["E", "F", "I", "UP"]
 python_version = "3.11"
 strict = true
 explicit_package_bases = true
+mypy_path = "apps/api"
 files = ["apps/api", "services", "tests"]
 exclude = ["^\\.venv/"]
 

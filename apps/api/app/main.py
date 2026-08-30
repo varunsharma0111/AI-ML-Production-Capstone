@@ -7,11 +7,15 @@ import time
 from contextlib import asynccontextmanager
 from uuid import UUID, uuid4
 
+from collections.abc import AsyncGenerator
+from typing import Any, cast
+
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 from app.api.routers import agent, health, identity, jobs, ml, tasks, websocket
 from app.core.config import Settings, get_settings
@@ -28,24 +32,23 @@ def problem_response(
 ) -> JSONResponse:
     """Return a consistent client-safe error with the correlation identifier."""
 
+    request_id = getattr(request.state, "request_id", "unknown")
     return JSONResponse(
         status_code=status_code,
         content={
-            "type": f"https://ai-ml-production-capstone.dev/problems/{code}",
-            "title": title,
             "status": status_code,
-            "detail": detail,
             "code": code,
-            "request_id": request.state.request_id,
+            "title": title,
+            "detail": detail,
+            "request_id": request_id,
         },
-        headers={"WWW-Authenticate": "Bearer"} if status_code == 401 else None,
     )
 
 
 class RequestContextMiddleware(BaseHTTPMiddleware):
-    """Attach a correlation ID and emit a safe structured completion event."""
+    """Attach correlation identifier and log basic request details."""
 
-    async def dispatch(self, request: Request, call_next: object) -> JSONResponse:
+    async def dispatch(self, request: Request, call_next: Any) -> Response:
         candidate = request.headers.get("X-Request-ID")
         try:
             request_id = str(UUID(candidate)) if candidate else str(uuid4())
@@ -53,7 +56,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
             request_id = str(uuid4())
         request.state.request_id = request_id
         started = time.perf_counter()
-        response = await call_next(request)  # type: ignore[operator]
+        response = await call_next(request)
         response.headers["X-Request-ID"] = request_id
         logger.info(
             "request_complete",
@@ -65,19 +68,19 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
                 "duration_ms": round((time.perf_counter() - started) * 1000, 2),
             },
         )
-        return response  # type: ignore[return-value]
+        return cast(Response, response)
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """Inject defensive HTTP security headers into all API responses."""
 
-    async def dispatch(self, request: Request, call_next: object) -> JSONResponse:
+    async def dispatch(self, request: Request, call_next: Any) -> Response:
         response = await call_next(request)  # type: ignore[operator]
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        return response  # type: ignore[return-value]
+        return cast(Response, response)
 
 
 def create_app(
@@ -90,7 +93,7 @@ def create_app(
     engine = create_database_engine(resolved_settings)
 
     @asynccontextmanager
-    async def lifespan(_: FastAPI):
+    async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
         yield
         await engine.dispose()
 
