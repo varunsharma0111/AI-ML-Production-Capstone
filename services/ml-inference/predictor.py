@@ -28,8 +28,10 @@ class ControlledInferencePredictor:
             raise DomainError(
                 status_code=400,
                 code="model_not_approved",
-                title="Inference Denied",
-                detail=f"Model version status is '{model_status}'. Only 'approved' models can serve inference requests.",
+                detail=(
+                    f"Model version status is '{model_status}'. Only 'approved' models "
+                    "can serve inference requests."
+                ),
             )
 
         start_time = time.perf_counter()
