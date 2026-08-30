@@ -69,8 +69,10 @@ def setup_mock_db(
 
     mock_session.execute.side_effect = execute_side_effect
 
-    mock_session_factory = MagicMock()
-    mock_session_factory.return_value.__aenter__.return_value = mock_session
+    mock_context = MagicMock()
+    mock_context.__aenter__ = AsyncMock(return_value=mock_session)
+    mock_context.__aexit__ = AsyncMock(return_value=None)
+    mock_session_factory = MagicMock(return_value=mock_context)
     app.state.session_factory = mock_session_factory
     return mock_session
 

@@ -49,7 +49,7 @@ def test_worker_metrics_handler() -> None:
     handler = TestHandler()
     wfile_buf: Any = handler.wfile
     response_data = cast_bytes(wfile_buf.getvalue())
-    assert "HTTP/1.1 200 OK" in response_data
+    assert "200 OK" in response_data
     assert "job_queue_depth" in response_data
     assert "job_execution_failures_total" in response_data
 

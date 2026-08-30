@@ -79,8 +79,10 @@ async def test_current_user_success(test_settings: Settings) -> None:
     mock_result.scalar_one_or_none.return_value = db_user
     mock_session.execute.return_value = mock_result
 
-    mock_session_factory = MagicMock()
-    mock_session_factory.return_value.__aenter__.return_value = mock_session
+    mock_context = MagicMock()
+    mock_context.__aenter__ = AsyncMock(return_value=mock_session)
+    mock_context.__aexit__ = AsyncMock(return_value=None)
+    mock_session_factory = MagicMock(return_value=mock_context)
     app.state.session_factory = mock_session_factory
 
     async with httpx.AsyncClient(
