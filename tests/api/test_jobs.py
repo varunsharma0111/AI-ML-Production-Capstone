@@ -56,6 +56,8 @@ def setup_mock_db(
         table_cols = getattr(getattr(type(obj), "__table__", None), "columns", {})
         if "version" in table_cols and getattr(obj, "version", None) is None:
             setattr(obj, "version", 1)
+        if "max_retries" in table_cols and getattr(obj, "max_retries", None) is None:
+            setattr(obj, "max_retries", 3)
         if "attempt_count" in table_cols and getattr(obj, "attempt_count", None) is None:
             setattr(obj, "attempt_count", 0)
         if "status" in table_cols and getattr(obj, "status", None) is None:
@@ -183,7 +185,9 @@ async def test_list_jobs_success(test_settings: Settings, mock_principal: Princi
             job_type=JobType.DATA_EXPORT.value,
             payload_json={},
             status=JobStatus.COMPLETED.value,
+            max_retries=3,
             attempt_count=1,
+            version=1,
             created_at=now,
             updated_at=now,
         )
@@ -227,6 +231,8 @@ async def test_cancel_job_success(test_settings: Settings, mock_principal: Princ
         job_type=JobType.MODEL_EVALUATION.value,
         payload_json={},
         status=JobStatus.QUEUED.value,
+        max_retries=3,
+        attempt_count=0,
         version=1,
         created_at=now,
         updated_at=now,

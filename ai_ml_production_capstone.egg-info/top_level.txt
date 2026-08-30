@@ -1,0 +1,16 @@
+agent
+apps
+artifacts
+config
+data
+database
+deploy
+docs
+infra
+messaging
+ml
+packages
+scripts
+security
+services
+tests
