@@ -39,8 +39,10 @@ async def test_readiness_endpoint_success(test_settings: Settings) -> None:
     app = create_app(settings=test_settings)
 
     mock_session = AsyncMock()
-    mock_session_factory = MagicMock()
-    mock_session_factory.return_value.__aenter__.return_value = mock_session
+    mock_context = MagicMock()
+    mock_context.__aenter__ = AsyncMock(return_value=mock_session)
+    mock_context.__aexit__ = AsyncMock(return_value=None)
+    mock_session_factory = MagicMock(return_value=mock_context)
 
     app.state.session_factory = mock_session_factory
 
@@ -59,8 +61,10 @@ async def test_readiness_endpoint_database_failure(test_settings: Settings) -> N
 
     mock_session = AsyncMock()
     mock_session.execute.side_effect = Exception("Database connection timeout")
-    mock_session_factory = MagicMock()
-    mock_session_factory.return_value.__aenter__.return_value = mock_session
+    mock_context = MagicMock()
+    mock_context.__aenter__ = AsyncMock(return_value=mock_session)
+    mock_context.__aexit__ = AsyncMock(return_value=None)
+    mock_session_factory = MagicMock(return_value=mock_context)
 
     app.state.session_factory = mock_session_factory
 

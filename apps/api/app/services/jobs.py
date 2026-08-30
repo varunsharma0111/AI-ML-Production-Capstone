@@ -57,6 +57,8 @@ class JobService:
                 payload_json=payload.payload,
                 status=JobStatus.QUEUED.value,
                 max_retries=payload.max_retries,
+                attempt_count=0,
+                version=1,
             )
             await self._job_repository.create_job(session, job)
 

@@ -44,6 +44,8 @@ class TaskService:
                 created_by_user_id=user.id,
                 title=payload.title,
                 description=payload.description,
+                status="open",
+                version=1,
             )
             await self._task_repository.create(session, task)
             await self._record_audit(session, user, workspace_id, "task.created", task, request_id)

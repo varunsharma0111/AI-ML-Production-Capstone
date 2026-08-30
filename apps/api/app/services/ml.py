@@ -48,6 +48,7 @@ class MLService:
                 description=payload.description,
                 artifact_path=artifact_path,
                 status=ModelStatus.DRAFT.value,
+                version=1,
             )
 
             return await self._model_repository.create_model_version(session, model)
