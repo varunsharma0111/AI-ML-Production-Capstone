@@ -25,6 +25,7 @@ class AgentToolSecurityGuard:
                 raise DomainError(
                     status_code=400,
                     code="security_violation",
+                    title="Malicious Input Detected",
                     detail=(
                         f"Field '{field_name}' contains disallowed characters or unsafe path "
                         "traversal patterns."

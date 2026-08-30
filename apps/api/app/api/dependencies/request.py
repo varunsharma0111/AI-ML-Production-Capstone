@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
-
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 from app.core.errors import AuthenticationError
 from app.core.security import JwtVerifier
@@ -13,6 +11,9 @@ from app.domains.identity.principal import Principal
 from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
 
 bearer_scheme = HTTPBearer(auto_error=False)
 

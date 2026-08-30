@@ -5,10 +5,8 @@ from __future__ import annotations
 import logging
 import time
 from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING, Any, cast
 from uuid import UUID, uuid4
-
-from collections.abc import AsyncGenerator
-from typing import Any, cast
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -23,6 +21,9 @@ from app.core.errors import DomainError
 from app.core.logging import configure_logging
 from app.core.security import JwtVerifier
 from app.db.session import create_database_engine, create_session_factory
+
+if TYPE_CHECKING:
+    from collections.abc import AsyncGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +76,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """Inject defensive HTTP security headers into all API responses."""
 
     async def dispatch(self, request: Request, call_next: Any) -> Response:
-        response = await call_next(request)  # type: ignore[operator]
+        response = await call_next(request)
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"

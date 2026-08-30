@@ -1,5 +1,7 @@
 """Unit tests for Phase 6 transactional outbox publishing and idempotent consumer DLQ routing."""
 
+from __future__ import annotations
+
 from datetime import UTC, datetime
 from uuid import uuid4
 
@@ -7,7 +9,7 @@ from messaging.consumer import IdempotentEventConsumer
 from messaging.schemas.events import DomainEvent
 
 
-def test_domain_event_schema_validation():
+def test_domain_event_schema_validation() -> None:
     event_id = uuid4()
     aggregate_id = uuid4()
 
@@ -23,7 +25,7 @@ def test_domain_event_schema_validation():
     assert event.event_type == "task.created"
 
 
-def test_idempotent_consumer_skips_duplicates():
+def test_idempotent_consumer_skips_duplicates() -> None:
     consumer = IdempotentEventConsumer()
     event_id = uuid4()
 

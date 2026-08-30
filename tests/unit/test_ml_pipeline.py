@@ -1,5 +1,7 @@
 """Unit tests for Phase 5 ML training, artifact integrity, and quality gates."""
 
+from __future__ import annotations
+
 import tempfile
 from pathlib import Path
 
@@ -8,7 +10,7 @@ from ml.evaluation.evaluator import ModelEvaluator
 from ml.training.trainer import ModelTrainer
 
 
-def test_artifact_store_save_and_verify_hash():
+def test_artifact_store_save_and_verify_hash() -> None:
     with tempfile.TemporaryDirectory() as tmpdir:
         store = ArtifactStore(base_dir=tmpdir)
         path = store.save_artifact("classifier", "v1.0", {"param": 100})
@@ -17,7 +19,7 @@ def test_artifact_store_save_and_verify_hash():
         assert loaded_data["param"] == 100
 
 
-def test_trainer_produces_artifact():
+def test_trainer_produces_artifact() -> None:
     with tempfile.TemporaryDirectory() as tmpdir:
         store = ArtifactStore(base_dir=tmpdir)
         trainer = ModelTrainer(artifact_store=store)
@@ -26,7 +28,7 @@ def test_trainer_produces_artifact():
         assert Path(path).exists()
 
 
-def test_evaluator_quality_gate():
+def test_evaluator_quality_gate() -> None:
     evaluator = ModelEvaluator()
 
     # Passing thresholds (accuracy >= 0.85, f1 >= 0.80)

@@ -6,7 +6,12 @@ import time
 from collections.abc import Awaitable, Callable
 
 from fastapi import FastAPI, Request, Response
-from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
+from prometheus_client import (  # type: ignore[import-not-found]
+    CONTENT_TYPE_LATEST,
+    Counter,
+    Histogram,
+    generate_latest,
+)
 
 # Define Prometheus metrics
 HTTP_REQUESTS_TOTAL = Counter(

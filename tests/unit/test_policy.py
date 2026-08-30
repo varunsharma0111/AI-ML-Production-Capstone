@@ -13,16 +13,16 @@ from app.domains.identity.policy import (
 
 
 def test_workspace_role_enum_values() -> None:
-    assert WorkspaceRole.OWNER == "owner"
-    assert WorkspaceRole.EDITOR == "editor"
-    assert WorkspaceRole.VIEWER == "viewer"
+    assert WorkspaceRole.OWNER.value == "owner"
+    assert WorkspaceRole.EDITOR.value == "editor"
+    assert WorkspaceRole.VIEWER.value == "viewer"
 
 
 def test_permission_enum_values() -> None:
-    assert Permission.WORKSPACE_READ == "workspace:read"
-    assert Permission.TASK_CREATE == "task:create"
-    assert Permission.TASK_READ == "task:read"
-    assert Permission.TASK_UPDATE == "task:update"
+    assert Permission.WORKSPACE_READ.value == "workspace:read"
+    assert Permission.TASK_CREATE.value == "task:create"
+    assert Permission.TASK_READ.value == "task:read"
+    assert Permission.TASK_UPDATE.value == "task:update"
 
 
 def test_owner_role_has_all_permissions() -> None:

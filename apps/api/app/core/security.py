@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Any, Protocol, cast
 
 import jwt
 from app.core.config import Settings
@@ -43,7 +43,7 @@ class JwtVerifier:
             signing_key = self._key_provider.get_signing_key(token)
             claims = jwt.decode(
                 token,
-                signing_key,
+                cast(Any, signing_key),
                 algorithms=self._algorithms,
                 audience=self._audience,
                 issuer=self._issuer,

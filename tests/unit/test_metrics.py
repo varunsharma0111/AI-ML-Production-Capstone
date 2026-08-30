@@ -1,6 +1,9 @@
 """Unit tests for Prometheus metrics collection on API and Worker."""
 
+from __future__ import annotations
+
 from io import BytesIO
+from typing import Any
 
 from app.main import app
 from fastapi.testclient import TestClient
@@ -29,22 +32,27 @@ def test_worker_metrics_handler() -> None:
     """Test that Worker HTTP metrics handler returns valid Prometheus metrics."""
 
     class MockSocket:
-        def makefile(self, *args, **kwargs):
+        def makefile(self, *args: Any, **kwargs: Any) -> BytesIO:
             return BytesIO(b"GET /metrics HTTP/1.1\r\nHost: localhost\r\n\r\n")
 
     class TestHandler(WorkerMetricsHandler):
-        def __init__(self):
+        def __init__(self) -> None:
             self.rfile = BytesIO(b"GET /metrics HTTP/1.1\r\nHost: localhost\r\n\r\n")
             self.wfile = BytesIO()
             self.requestline = "GET /metrics HTTP/1.1"
             self.command = "GET"
             self.path = "/metrics"
             self.request_version = "HTTP/1.1"
-            self.headers = {}
+            self.headers = {}  # type: ignore[assignment]
             self.do_GET()
 
     handler = TestHandler()
-    response_data = handler.wfile.getvalue().decode("utf-8")
+    wfile_buf: Any = handler.wfile
+    response_data = cast_bytes(wfile_buf.getvalue())
     assert "HTTP/1.1 200 OK" in response_data
     assert "job_queue_depth" in response_data
     assert "job_execution_failures_total" in response_data
+
+
+def cast_bytes(data: bytes) -> str:
+    return data.decode("utf-8")

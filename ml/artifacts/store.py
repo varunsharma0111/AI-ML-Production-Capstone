@@ -5,7 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 DEFAULT_ARTIFACT_DIR = Path("artifacts/models")
 
@@ -54,4 +54,4 @@ class ArtifactStore:
         if expected_hash and expected_hash != recalculated_hash:
             raise ValueError("Artifact integrity check failed: Hash mismatch.")
 
-        return data
+        return cast(dict[str, Any], data)
