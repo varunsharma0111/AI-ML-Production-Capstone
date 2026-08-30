@@ -24,9 +24,7 @@ class Settings(BaseSettings):
     database_max_overflow: int = Field(default=5, ge=0, le=20)
     oidc_issuer: HttpUrl | str = Field(default="https://issuer.example.com/")
     oidc_audience: str = Field(
-        default="ai-ml-production-capstone-api",
-        min_length=1,
-        max_length=256,
+        default="ai-ml-production-capstone-api", min_length=1, max_length=256
     )
     oidc_jwks_url: HttpUrl | str = Field(
         default="https://issuer.example.com/.well-known/jwks.json"
@@ -37,6 +35,13 @@ class Settings(BaseSettings):
     @field_validator("database_url")
     @classmethod
     def validate_database_url(cls, value: str) -> str:
+        if value.startswith("postgres://"):
+            value = value.replace("postgres://", "postgresql+asyncpg://", 1)
+        elif value.startswith("postgresql://") and not value.startswith(
+            "postgresql+asyncpg://"
+        ):
+            value = value.replace("postgresql://", "postgresql+asyncpg://", 1)
+
         if not value.startswith("postgresql+asyncpg://"):
             msg = "DATABASE_URL must use the postgresql+asyncpg scheme."
             raise ValueError(msg)
