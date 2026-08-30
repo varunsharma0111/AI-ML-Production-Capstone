@@ -29,7 +29,7 @@ class Settings(BaseSettings):
         max_length=256,
     )
     oidc_jwks_url: HttpUrl | str = Field(
-        default="https://issuer.example.com/.well-known/jwks.json",
+        default="https://issuer.example.com/.well-known/jwks.json"
     )
     allowed_jwt_algorithms: tuple[str, ...] = ("RS256",)
     cors_origins: str = "*"
