@@ -30,7 +30,7 @@ WORKDIR /app
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH="/opt/venv/bin:$PATH" \
-    PYTHONPATH="/app/apps/api"
+    PYTHONPATH="/app/apps/api:/app"
 
 # Create non-root system user
 RUN groupadd -g 10001 appgroup && \
