@@ -42,7 +42,8 @@ venv/
 mlruns/
 wandb/
 checkpoints/
-models/
+ml/models/
+!**/db/models/
 *.onnx
 *.pt
 *.pth
