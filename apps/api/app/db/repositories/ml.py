@@ -28,6 +28,16 @@ class ModelRepository:
         )
         return list(result.scalars())
 
+    async def list_model_versions_for_workspace(
+        self, session: AsyncSession, workspace_id: UUID
+    ) -> list[ModelVersion]:
+        result = await session.execute(
+            select(ModelVersion)
+            .where(ModelVersion.workspace_id == workspace_id)
+            .order_by(ModelVersion.created_at.desc())
+        )
+        return list(result.scalars())
+
     async def record_evaluation(
         self, session: AsyncSession, evaluation: ModelEvaluation
     ) -> ModelEvaluation:
@@ -36,7 +46,29 @@ class ModelRepository:
         await session.refresh(evaluation)
         return evaluation
 
+    async def get_latest_evaluation(
+        self, session: AsyncSession, model_version_id: UUID
+    ) -> ModelEvaluation | None:
+        result = await session.execute(
+            select(ModelEvaluation)
+            .where(ModelEvaluation.model_version_id == model_version_id)
+            .order_by(ModelEvaluation.evaluated_at.desc())
+            .limit(1)
+        )
+        return result.scalar_one_or_none()
+
     async def record_inference_log(self, session: AsyncSession, log: InferenceLog) -> InferenceLog:
         session.add(log)
         await session.flush()
         return log
+
+    async def list_inference_logs_for_workspace(
+        self, session: AsyncSession, workspace_id: UUID, limit: int = 100
+    ) -> list[InferenceLog]:
+        result = await session.execute(
+            select(InferenceLog)
+            .where(InferenceLog.workspace_id == workspace_id)
+            .order_by(InferenceLog.created_at.desc())
+            .limit(limit)
+        )
+        return list(result.scalars())

@@ -148,6 +148,21 @@ class ModelVersion(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     artifact_path: Mapped[str] = mapped_column(String(500), nullable=False)
     status: Mapped[str] = mapped_column(String(50), nullable=False, default="draft")
+    workspace_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("workspaces.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    dataset_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("datasets.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    job_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("jobs.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    metrics_json: Mapped[dict[str, object]] = mapped_column(
+        JSONB, nullable=False, server_default="{}"
+    )
+    hyperparameters_json: Mapped[dict[str, object]] = mapped_column(
+        JSONB, nullable=False, server_default="{}"
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -160,6 +175,9 @@ class ModelEvaluation(Base):
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     model_version_id: Mapped[UUID] = mapped_column(
         ForeignKey("model_versions.id", ondelete="CASCADE"), index=True
+    )
+    workspace_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("workspaces.id", ondelete="CASCADE"), nullable=True, index=True
     )
     accuracy: Mapped[float] = mapped_column(Float, nullable=False)
     f1_score: Mapped[float] = mapped_column(Float, nullable=False)
@@ -201,3 +219,39 @@ class OutboxEvent(Base):
     retry_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
+class Dataset(Base):
+    __tablename__ = "datasets"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    workspace_id: Mapped[UUID] = mapped_column(
+        ForeignKey("workspaces.id", ondelete="CASCADE"), index=True
+    )
+    created_by_user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
+    original_filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    storage_path: Mapped[str] = mapped_column(String(500), nullable=False)
+    file_size_bytes: Mapped[int] = mapped_column(Integer, nullable=False)
+    mime_type: Mapped[str] = mapped_column(String(100), nullable=False, default="text/csv")
+    format: Mapped[str] = mapped_column(String(20), nullable=False, default="csv")
+    status: Mapped[str] = mapped_column(String(50), nullable=False, default="uploaded")
+    row_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    column_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+class DatasetProfile(Base):
+    __tablename__ = "dataset_profiles"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    dataset_id: Mapped[UUID] = mapped_column(
+        ForeignKey("datasets.id", ondelete="CASCADE"), unique=True, index=True
+    )
+    row_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    column_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    columns_json: Mapped[list[dict[str, object]]] = mapped_column(JSONB, nullable=False, default=list)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+

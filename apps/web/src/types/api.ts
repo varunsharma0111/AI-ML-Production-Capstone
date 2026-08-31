@@ -42,6 +42,18 @@ export interface Task {
   updated_at: string;
 }
 
+export interface TaskCreate {
+  title: string;
+  description?: string | null;
+}
+
+export interface TaskUpdate {
+  version?: number;
+  title?: string;
+  description?: string | null;
+  status?: TaskStatus;
+}
+
 export interface TaskListResponse {
   items: Task[];
   offset: number;
@@ -50,6 +62,12 @@ export interface TaskListResponse {
 
 export type JobStatus = "queued" | "processing" | "completed" | "failed" | "cancelled";
 export type JobType = "sample_ml_ingestion" | "data_export" | "model_evaluation" | "dataset_profiling" | "model_training";
+
+export interface JobListResponse {
+  items: Job[];
+  offset: number;
+  limit: number;
+}
 
 export interface Job {
   id: string;

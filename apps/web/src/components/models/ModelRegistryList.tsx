@@ -9,7 +9,6 @@ import { Button } from "../ui/Button";
 import {
   IconBox,
   IconCheckCircle,
-  IconRocket,
   IconShieldCheck,
   IconZap,
 } from "../ui/Icons";
@@ -22,7 +21,7 @@ interface ModelRegistryListProps {
 
 export const ModelRegistryList: React.FC<ModelRegistryListProps> = ({ onRunInference }) => {
   const { token } = useAuth();
-  const { activeWorkspace, role, hasPermission } = useWorkspace();
+  const { activeWorkspace, hasPermission } = useWorkspace();
 
   const [models, setModels] = useState<ModelVersion[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -32,9 +31,8 @@ export const ModelRegistryList: React.FC<ModelRegistryListProps> = ({ onRunInfer
   const [qualityGate, setQualityGate] = useState<QualityGateResponse | null>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-  const canEvaluate = hasPermission("model:evaluate");
   const canPromote = hasPermission("model:promote");
-  const isOwner = role === "owner";
+  const isOwner = activeWorkspace.role === "owner";
 
   useEffect(() => {
     fetchModels();
@@ -135,7 +133,6 @@ export const ModelRegistryList: React.FC<ModelRegistryListProps> = ({ onRunInfer
             const isApproved = model.status === "approved";
             const isStaging = model.status === "staging";
             const isProduction = model.status === "production";
-            const isRejected = model.status === "rejected";
             const isEligibleForInference = isApproved || isStaging || isProduction;
 
             return (
@@ -181,7 +178,7 @@ export const ModelRegistryList: React.FC<ModelRegistryListProps> = ({ onRunInfer
                       <Button
                         variant="primary"
                         size="sm"
-                        icon={<IconRocket size={14} />}
+                        icon={<IconZap size={14} />}
                         onClick={() => handlePromote(model.id, "staging")}
                       >
                         Promote Staging

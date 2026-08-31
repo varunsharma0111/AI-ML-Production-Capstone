@@ -458,6 +458,119 @@ Phase 8.9 ($0 Public Deployment) and subsequent deployment milestones remain uns
 
 Phase 8.10 (Final Production Readiness Audit) remains unstarted.
 
+---
+
+## Milestone 3 — Automated Quality Gate & Model Promotion
+
+**Status:** Complete  
+**Completed:** 2026-08-30
+
+### Delivered & Implemented
+
+- **Database Migration (`20260830_0007_milestone3_quality_gate_schema.py`)**: Added `workspace_id` foreign key column to `model_evaluations` table.
+- **Quality Gate Engine (`ml/evaluation/evaluator.py`)**: Support configurable per-workspace thresholds (default: Accuracy $\ge 0.90$, F1 $\ge 0.85$) with structured failure reason diagnostics.
+- **Lifecycle Transition Governance (`apps/api/app/services/ml.py`)**:
+  - Model status lifecycle: `candidate` / `draft` $\rightarrow$ `approved` / `rejected` $\rightarrow$ `staging` $\rightarrow$ `production`.
+  - State transition safeguards: `REJECTED` models cannot be promoted; `CANDIDATE` models must pass Quality Gate (`APPROVED`) before promotion; `PRODUCTION` promotion requires `OWNER` role.
+- **Role-Based Access Control (`apps/api/app/domains/identity/policy.py`)**: Added `MODEL_EVALUATE`, `MODEL_PROMOTE`, and `MODEL_READ` permissions.
+- **Audit Logging**: Comprehensive audit trail (`model.evaluation_started`, `model.evaluation_completed`, `model.approved`, `model.rejected`, `model.promoted_staging`, `model.promoted_production`, `model.promotion_denied`).
+- **REST Endpoints (`apps/api/app/api/routers/ml.py`)**:
+  - `POST /api/v1/models/{model_id}/evaluate` (Quality Gate evaluation)
+  - `POST /api/v1/models/{model_id}/promote` (Lifecycle promotion)
+  - `GET /api/v1/models/{model_id}/quality-gate` (Quality gate audit certificate retrieval)
+- **React Model Registry UI (`apps/web/src/components/models/`)**: `ModelRegistryList`, `QualityGateModal`, and Model Registry workspace tab.
+- **Test Suite**: Unit and API test suite (`tests/unit/test_quality_gate.py`, `tests/api/test_quality_gate_api.py`).
+
+---
+
+---
+
+## Milestone 5 — AI Agent Assistant & Analytics Workspace
+
+**Status:** Complete & Verified  
+**Completed:** 2026-08-30
+
+### Delivered & Implemented
+
+- **Agent Orchestrator & Services (`apps/api/app/services/agent.py`)**:
+  - Built ML platform analytics orchestrator processing user queries and executing authorized agent tools.
+  - Fine-grained RBAC permission matrix for tools (`list_models`, `list_datasets`, `compare_models`, `explain_metrics`, `summarize_dataset`, `run_prediction`).
+  - Workspace isolation and fail-closed security guard integration (`AgentToolSecurityGuard`).
+- **Registered Tools (`agent/tools/definitions.py` & `agent/tools/sandbox.py`)**:
+  - `compare_models`: Compares model metrics, F1 scores, accuracy, training duration, and lifecycle status of two model versions.
+  - `explain_metrics`: Explains Quality Gate evaluation pass/fail criteria, actual vs required thresholds, and failure diagnostics.
+  - `summarize_dataset`: Summarizes dataset profiling row/column counts, missing percentage, and feature data types.
+  - `run_prediction`: Executes real-time model inference using existing controlled inference engine (`ControlledInferencePredictor`).
+  - `list_models`: Workspace-isolated model listing.
+  - `list_datasets`: Workspace-isolated dataset listing.
+- **Audit Logging**: Comprehensive audit trail (`agent.requested`, `agent.tool_requested`, `agent.tool_completed`, `agent.tool_denied`, `agent.completed`, `agent.failed`).
+- **REST Endpoints (`apps/api/app/api/routers/agent.py`)**:
+  - `POST /api/v1/agent/orchestrate` returning structured answer, tools executed, and tool results.
+  - `POST /api/v1/agent/tools/execute` for direct sandboxed tool execution.
+  - `GET /api/v1/agent/tools` for tool discovery.
+- **React Agent Assistant UI (`apps/web/src/components/agent/AgentWorkspace.tsx`)**:
+  - ML platform chat interface with user/agent messages, tool execution badges, quick suggestion chips, and loading states.
+  - Added `🤖 AI Assistant` tab to `TasksPage.tsx`.
+- **Test Suite (`tests/api/test_agent_api.py`)**:
+  - Tests for unauthenticated 401, workspace isolation 403, path traversal rejection, command injection rejection, model comparison, metric explanation.
+  - **Real End-to-End Test**: Agent calls real inference engine on actual trained model artifact.
+
+---
+
+## Milestone 6 & Full Platform Verification — Production Enterprise AI/ML Engine
+
+**Status:** Complete & Verified  
+**Completed:** 2026-08-30
+
+### Delivered & Implemented
+
+- **Operations Telemetry Service & Dashboard (`apps/api/app/services/operations.py` & `apps/api/app/api/routers/operations.py`)**:
+  - `GET /api/v1/workspaces/{workspace_id}/operations/dashboard` returning real infrastructure telemetry: API/DB health, dataset counts (ready/profiling/failed), job execution metrics, model status breakdown, and inference total predictions/average latency.
+  - `OperationsDashboard.tsx` React component with live metric cards and refresh capability.
+- **Real-Time Prediction History (`apps/web/src/components/inference/PredictionHistory.tsx` & `apps/api/app/api/routers/ml.py`)**:
+  - `GET /api/v1/workspaces/{workspace_id}/predictions` listing persisted `InferenceLog` entries.
+  - Search/filter predictions by label or features, with detailed feature payload inspection modal.
+- **Model Comparison View (`apps/web/src/components/models/ModelComparisonView.tsx`)**:
+  - Interactive side-by-side dropdown selectors comparing performance metrics (F1, Accuracy, Precision, Recall, Latency) and highlighting winner models.
+- **Dataset Deletion & Filtering (`apps/web/src/components/datasets/DatasetList.tsx` & `apps/api/app/api/routers/datasets.py`)**:
+  - `DELETE /api/v1/datasets/{dataset_id}` deleting dataset records and audit-logging `dataset.deleted`.
+  - Search bar and status filter dropdowns in dataset manager.
+- **Audit Event Trail (`apps/web/src/components/audit/AuditLogViewer.tsx` & `apps/api/app/api/routers/operations.py`)**:
+  - `GET /api/v1/workspaces/{workspace_id}/audit-logs` rendering tamper-evident workspace audit events with action, resource, request correlation ID, and metadata.
+- **Enterprise SaaS App Layout & Theme Switcher (`apps/web/src/components/layout/AppLayout.tsx`, `Header.tsx`, `ToastContext.tsx`)**:
+  - Left Sidebar with active section navigation for all platform tools.
+  - Dark/Light Theme toggle persistence.
+  - Toast notification system for real-time WebSocket alerts and user notifications.
+
+---
+
+## Production Product UX Polish — Enterprise SaaS Engine
+
+**Status:** Complete & Verified  
+**Completed:** 2026-08-30
+
+### Delivered & Implemented
+
+- **Unified SaaS Layout & Global Sidebar (`apps/web/src/components/layout/AppLayout.tsx`)**:
+  - Implemented single-page navigation sidebar supporting 10 active platform views with icons and active status styling.
+  - Added URL hash routing (`#overview`, `#datasets`, `#training`, `#models`, `#compare`, `#sandbox`, `#predictions`, `#agent`, `#tasks`, `#audit`) enabling deep-linking, browser refresh state persistence, and back/forward history support.
+  - Added Breadcrumb bar (`AuraML Platform / [Workspace Name] / [Current Section Name]`).
+- **Brand Identity & Favicon (`apps/web/public/favicon.svg` & `index.html`)**:
+  - Custom SVG platform logo, updated title tags, and meta tags (`AuraML — Enterprise AI/ML Production SaaS Platform`).
+  - Clickable logo header navigation returning to Overview.
+- **Persistent Dark/Light Mode Theme Switcher (`apps/web/src/components/layout/Header.tsx` & `index.css`)**:
+  - Theme state stored in `localStorage` (`auraml_theme`) and applied dynamically to document root (`data-theme="dark"|"light"`).
+  - Verified high-contrast styling across dark and light themes for all modals, tables, forms, toast alerts, cards, and sidebar items.
+- **Mobile Responsive Navigation (`apps/web/src/index.css`)**:
+  - Added media queries and collapsible mobile drawer menu with hamburger button toggle.
+- **Accessibility & UX Polish**:
+  - ARIA attributes (`aria-label`, `aria-current`, `role="banner"`), keyboard focus states, skeleton loaders, clear empty state placeholders, and structured error alerts with retry triggers.
+
+
+
+
+
+
 
 
 

@@ -15,7 +15,7 @@ from sqlalchemy.exc import IntegrityError
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
-from app.api.routers import agent, health, identity, jobs, ml, tasks, websocket
+from app.api.routers import agent, datasets, health, identity, jobs, ml, tasks, websocket
 from app.core.config import Settings, get_settings
 from app.core.errors import DomainError
 from app.core.logging import configure_logging
@@ -84,6 +84,9 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return cast(Response, response)
 
 
+from app.core.redis import RedisManager
+
+
 def create_app(
     settings: Settings | None = None, token_verifier: JwtVerifier | None = None
 ) -> FastAPI:
@@ -92,17 +95,24 @@ def create_app(
     resolved_settings = settings or get_settings()
     configure_logging(resolved_settings.log_level)
     engine = create_database_engine(resolved_settings)
+    redis_manager = RedisManager(resolved_settings.redis_url)
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
+        await redis_manager.connect()
         yield
+        await redis_manager.close()
         await engine.dispose()
 
     app = FastAPI(title=resolved_settings.app_name, lifespan=lifespan)
     app.state.session_factory = create_session_factory(engine)
     app.state.token_verifier = token_verifier or JwtVerifier(resolved_settings)
+    app.state.redis_manager = redis_manager
+    from app.core.rate_limit import RateLimitMiddleware
+
     app.add_middleware(RequestContextMiddleware)
     app.add_middleware(SecurityHeadersMiddleware)
+    app.add_middleware(RateLimitMiddleware)
 
     from fastapi.middleware.cors import CORSMiddleware
 
@@ -143,13 +153,18 @@ def create_app(
             request, 500, "internal_error", "Internal Server Error", "An unexpected error occurred."
         )
 
+    from app.api.routers import agent, datasets, health, identity, jobs, ml, operations, tasks, websocket
+
     app.include_router(health.router)
     app.include_router(identity.router, prefix="/api/v1")
     app.include_router(tasks.router, prefix="/api/v1")
     app.include_router(jobs.router)
+    app.include_router(jobs.global_jobs_router)
     app.include_router(websocket.router)
     app.include_router(ml.router)
     app.include_router(agent.router)
+    app.include_router(datasets.router)
+    app.include_router(operations.router)
 
     from app.core.metrics import setup_metrics
 

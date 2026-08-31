@@ -6,7 +6,7 @@ import { ModelVersion, ProblemDetails, QualityGateResponse } from "../../types/a
 import { Alert } from "../ui/Alert";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
-import { IconAlertTriangle, IconCheckCircle, IconShieldCheck, IconXCircle } from "../ui/Icons";
+import { IconCheckCircle, IconShieldCheck, IconXCircle } from "../ui/Icons";
 import { Modal } from "../ui/Modal";
 
 interface QualityGateModalProps {

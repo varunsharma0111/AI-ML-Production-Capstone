@@ -9,9 +9,24 @@ from typing import Any
 
 
 class JsonFormatter(logging.Formatter):
-    """Emit JSON logs without serializing request bodies or credentials."""
+    """Emit JSON logs with correlation identifiers without serializing request bodies or credentials."""
 
-    safe_fields = {"request_id", "method", "path", "status_code", "duration_ms", "actor_id"}
+    safe_fields = {
+        "request_id",
+        "job_id",
+        "workspace_id",
+        "correlation_id",
+        "dataset_id",
+        "model_id",
+        "component",
+        "method",
+        "path",
+        "status_code",
+        "duration_ms",
+        "actor_id",
+    }
+
+    sensitive_keywords = {"token", "password", "secret", "access_key", "key", "authorization"}
 
     def format(self, record: logging.LogRecord) -> str:
         payload: dict[str, Any] = {
@@ -23,7 +38,13 @@ class JsonFormatter(logging.Formatter):
         for field in self.safe_fields:
             value = getattr(record, field, None)
             if value is not None:
-                payload[field] = value
+                payload[field] = str(value)
+
+        # Redact sensitive fields if passed in extra
+        for k in list(payload.keys()):
+            if any(keyword in k.lower() for keyword in self.sensitive_keywords):
+                payload[k] = "[REDACTED]"
+
         if record.exc_info:
             payload["exception"] = self.formatException(record.exc_info)
         return json.dumps(payload, default=str)

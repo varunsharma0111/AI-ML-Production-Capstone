@@ -6,17 +6,32 @@ from uuid import UUID
 
 from app.api.dependencies.request import (
     get_authenticated_principal,
+    get_redis_manager,
     get_request_id,
     get_session,
 )
-from app.api.schemas.jobs import JobListResponse, JobResponse, JobSubmit
+from app.api.schemas.jobs import JobListResponse, JobResponse, JobSubmit, TrainingJobCreate
+from app.core.redis import RedisManager
 from app.domains.identity.principal import Principal
 from app.services.jobs import JobService
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/api/v1/workspaces/{workspace_id}/jobs", tags=["jobs"])
-_job_service = JobService()
+global_jobs_router = APIRouter(prefix="/api/v1/jobs", tags=["jobs"])
+
+
+@global_jobs_router.post("/train", response_model=JobResponse, status_code=status.HTTP_201_CREATED)
+async def submit_training_job(
+    payload: TrainingJobCreate,
+    principal: Principal = Depends(get_authenticated_principal),
+    session: AsyncSession = Depends(get_session),
+    request_id: str = Depends(get_request_id),
+    redis_manager: RedisManager | None = Depends(get_redis_manager),
+) -> JobResponse:
+    job_service = JobService(redis_manager=redis_manager)
+    job = await job_service.submit_training_job(session, principal, payload, request_id)
+    return JobResponse.model_validate(job)
 
 
 @router.post("", response_model=JobResponse, status_code=status.HTTP_201_CREATED)
@@ -26,8 +41,10 @@ async def submit_job(
     principal: Principal = Depends(get_authenticated_principal),
     session: AsyncSession = Depends(get_session),
     request_id: str = Depends(get_request_id),
+    redis_manager: RedisManager | None = Depends(get_redis_manager),
 ) -> JobResponse:
-    job = await _job_service.submit_job(session, principal, workspace_id, payload, request_id)
+    job_service = JobService(redis_manager=redis_manager)
+    job = await job_service.submit_job(session, principal, workspace_id, payload, request_id)
     return JobResponse.model_validate(job)
 
 
@@ -39,7 +56,8 @@ async def list_jobs(
     principal: Principal = Depends(get_authenticated_principal),
     session: AsyncSession = Depends(get_session),
 ) -> JobListResponse:
-    jobs = await _job_service.list_jobs(session, principal, workspace_id, offset, limit)
+    job_service = JobService()
+    jobs = await job_service.list_jobs(session, principal, workspace_id, offset, limit)
     return JobListResponse(
         items=[JobResponse.model_validate(job) for job in jobs],
         offset=offset,
@@ -54,7 +72,8 @@ async def get_job(
     principal: Principal = Depends(get_authenticated_principal),
     session: AsyncSession = Depends(get_session),
 ) -> JobResponse:
-    job = await _job_service.get_job(session, principal, workspace_id, job_id)
+    job_service = JobService()
+    job = await job_service.get_job(session, principal, workspace_id, job_id)
     return JobResponse.model_validate(job)
 
 
@@ -66,5 +85,6 @@ async def cancel_job(
     session: AsyncSession = Depends(get_session),
     request_id: str = Depends(get_request_id),
 ) -> JobResponse:
-    job = await _job_service.cancel_job(session, principal, workspace_id, job_id, request_id)
+    job_service = JobService()
+    job = await job_service.cancel_job(session, principal, workspace_id, job_id, request_id)
     return JobResponse.model_validate(job)

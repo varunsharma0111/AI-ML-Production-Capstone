@@ -44,3 +44,11 @@ def get_authenticated_principal(
     if credentials is None or credentials.scheme.lower() != "bearer":
         raise AuthenticationError("A bearer access token is required.")
     return verifier.verify(credentials.credentials)
+
+
+from app.core.redis import RedisManager
+
+
+def get_redis_manager(request: Request) -> RedisManager | None:
+    return getattr(request.app.state, "redis_manager", None)
+

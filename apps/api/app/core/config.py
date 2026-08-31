@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     database_url: str = Field(default="postgresql+asyncpg://localhost/capstone")
     database_pool_size: int = Field(default=5, ge=1, le=20)
     database_max_overflow: int = Field(default=5, ge=0, le=20)
+    redis_url: str = Field(default="redis://localhost:6379/0")
     oidc_issuer: HttpUrl | str = Field(default="https://issuer.example.com/")
     oidc_audience: str = Field(
         default="ai-ml-production-capstone-api",
@@ -35,6 +36,15 @@ class Settings(BaseSettings):
     )
     allowed_jwt_algorithms: tuple[str, ...] = ("RS256",)
     cors_origins: str = "*"
+
+    # Storage & Artifact Settings
+    storage_backend: Literal["local", "s3"] = "local"
+    storage_path: str = "./data/uploads"
+    s3_endpoint_url: str | None = None
+    s3_bucket: str = "auraml-artifacts"
+    s3_region: str = "us-east-1"
+    s3_access_key_id: str | None = None
+    s3_secret_access_key: str | None = None
 
     @field_validator("database_url")
     @classmethod

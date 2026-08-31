@@ -10,7 +10,6 @@ import {
   IconCheckCircle,
   IconCpu,
   IconPlus,
-  IconRefreshCw,
   IconXCircle,
 } from "../ui/Icons";
 import { Skeleton } from "../ui/Skeleton";
@@ -45,7 +44,7 @@ export const TrainingJobList: React.FC<TrainingJobListProps> = ({
         `/api/v1/workspaces/${activeWorkspace.id}/jobs?offset=0&limit=50`,
         { token }
       );
-      const trainingJobs = data.items.filter((j) => j.job_type === "model_training");
+      const trainingJobs = data.items.filter((j: Job) => j.job_type === "model_training");
       setJobs(trainingJobs);
       setError(null);
     } catch {

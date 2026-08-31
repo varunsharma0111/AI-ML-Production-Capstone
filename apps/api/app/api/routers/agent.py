@@ -1,4 +1,4 @@
-"""REST endpoints for listing and executing sandboxed AI agent tools."""
+"""REST endpoints for listing, executing sandboxed tools, and orchestrating AI agent requests."""
 
 from __future__ import annotations
 
@@ -8,6 +8,8 @@ from app.api.dependencies.request import (
     get_session,
 )
 from app.api.schemas.agent import (
+    AgentOrchestrateRequest,
+    AgentOrchestrateResponse,
     ToolExecuteRequest,
     ToolExecuteResponse,
     ToolSummaryResponse,
@@ -17,17 +19,17 @@ from app.services.agent import AgentService
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-router = APIRouter(prefix="/api/v1/agent/tools", tags=["agent"])
+router = APIRouter(prefix="/api/v1/agent", tags=["agent"])
 _agent_service = AgentService()
 
 
-@router.get("", response_model=list[ToolSummaryResponse])
+@router.get("/tools", response_model=list[ToolSummaryResponse])
 async def list_agent_tools() -> list[ToolSummaryResponse]:
     tools = _agent_service.list_tools()
     return [ToolSummaryResponse.model_validate(t) for t in tools]
 
 
-@router.post("/execute", response_model=ToolExecuteResponse)
+@router.post("/tools/execute", response_model=ToolExecuteResponse)
 async def execute_agent_tool(
     payload: ToolExecuteRequest,
     principal: Principal = Depends(get_authenticated_principal),
@@ -40,3 +42,13 @@ async def execute_agent_tool(
         result=result,
         duration_ms=duration_ms,
     )
+
+
+@router.post("/orchestrate", response_model=AgentOrchestrateResponse)
+async def orchestrate_agent(
+    payload: AgentOrchestrateRequest,
+    principal: Principal = Depends(get_authenticated_principal),
+    session: AsyncSession = Depends(get_session),
+    request_id: str = Depends(get_request_id),
+) -> AgentOrchestrateResponse:
+    return await _agent_service.orchestrate(session, principal, payload, request_id)

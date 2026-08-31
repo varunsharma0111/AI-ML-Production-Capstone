@@ -15,3 +15,6 @@ class JobType(StrEnum):
     SAMPLE_ML_INGESTION = "sample_ml_ingestion"
     DATA_EXPORT = "data_export"
     MODEL_EVALUATION = "model_evaluation"
+    DATASET_PROFILING = "dataset_profiling"
+    MODEL_TRAINING = "model_training"
+

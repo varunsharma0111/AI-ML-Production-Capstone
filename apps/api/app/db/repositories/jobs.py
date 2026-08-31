@@ -50,3 +50,29 @@ class JobRepository:
     async def record_attempt(self, session: AsyncSession, attempt: JobAttempt) -> None:
         session.add(attempt)
         await session.flush()
+
+    async def get_job_by_id(self, session: AsyncSession, job_id: UUID) -> Job | None:
+        result = await session.execute(select(Job).where(Job.id == job_id))
+        return result.scalar_one_or_none()
+
+    async def get_next_queued_job(self, session: AsyncSession) -> Job | None:
+        result = await session.execute(
+            select(Job)
+            .where(Job.status == "queued")
+            .order_by(Job.created_at.asc())
+            .limit(1)
+            .with_for_update(skip_locked=True)
+        )
+        return result.scalar_one_or_none()
+
+    async def get_stuck_processing_jobs(
+        self, session: AsyncSession, cutoff_datetime: Any
+    ) -> list[Job]:
+        result = await session.execute(
+            select(Job).where(
+                Job.status == "processing",
+                Job.started_at < cutoff_datetime,
+            )
+        )
+        return list(result.scalars())
+

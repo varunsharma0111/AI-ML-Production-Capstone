@@ -5,7 +5,7 @@ import { request } from "../../services/apiClient";
 import { Dataset, DatasetListResponse, DatasetProfile, Job, ProblemDetails, TrainingJobCreatePayload } from "../../types/api";
 import { Alert } from "../ui/Alert";
 import { Button } from "../ui/Button";
-import { IconCpu, IconLayers, IconPlay } from "../ui/Icons";
+import { IconLayers, IconPlay } from "../ui/Icons";
 import { Modal } from "../ui/Modal";
 
 interface TrainingFormModalProps {

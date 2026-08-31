@@ -1,4 +1,4 @@
-"""Transport schemas for Phase 7 AI agent tool endpoints."""
+"""Transport schemas for Phase 7 and Milestone 5 AI agent tool and orchestrator endpoints."""
 
 from __future__ import annotations
 
@@ -26,3 +26,16 @@ class ToolSummaryResponse(BaseModel):
     name: str
     description: str
     required_permission: str
+
+
+class AgentOrchestrateRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    workspace_id: UUID
+    message: str = Field(min_length=1, max_length=1000)
+
+
+class AgentOrchestrateResponse(BaseModel):
+    answer: str
+    tools_used: list[str] = Field(default_factory=list)
+    tool_results: list[dict[str, Any]] = Field(default_factory=list)

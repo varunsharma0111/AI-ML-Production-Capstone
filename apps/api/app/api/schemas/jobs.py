@@ -19,6 +19,17 @@ class JobSubmit(BaseModel):
     max_retries: int = Field(default=3, ge=0, le=10)
 
 
+class TrainingJobCreate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    workspace_id: UUID
+    dataset_id: UUID
+    target_column: str = Field(min_length=1, max_length=255)
+    model_name: str = Field(min_length=1, max_length=100)
+    model_type: str = Field(default="random_forest")
+    hyperparameters: dict[str, Any] = Field(default_factory=dict)
+
+
 class JobResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

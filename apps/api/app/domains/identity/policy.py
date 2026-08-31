@@ -18,6 +18,11 @@ class Permission(StrEnum):
     TASK_CREATE = "task:create"
     TASK_READ = "task:read"
     TASK_UPDATE = "task:update"
+    DATASET_CREATE = "dataset:create"
+    DATASET_READ = "dataset:read"
+    MODEL_EVALUATE = "model:evaluate"
+    MODEL_PROMOTE = "model:promote"
+    MODEL_READ = "model:read"
 
 
 ROLE_PERMISSIONS: dict[WorkspaceRole, frozenset[Permission]] = {
@@ -28,9 +33,21 @@ ROLE_PERMISSIONS: dict[WorkspaceRole, frozenset[Permission]] = {
             Permission.TASK_CREATE,
             Permission.TASK_READ,
             Permission.TASK_UPDATE,
+            Permission.DATASET_CREATE,
+            Permission.DATASET_READ,
+            Permission.MODEL_EVALUATE,
+            Permission.MODEL_PROMOTE,
+            Permission.MODEL_READ,
         }
     ),
-    WorkspaceRole.VIEWER: frozenset({Permission.WORKSPACE_READ, Permission.TASK_READ}),
+    WorkspaceRole.VIEWER: frozenset(
+        {
+            Permission.WORKSPACE_READ,
+            Permission.TASK_READ,
+            Permission.DATASET_READ,
+            Permission.MODEL_READ,
+        }
+    ),
 }
 
 

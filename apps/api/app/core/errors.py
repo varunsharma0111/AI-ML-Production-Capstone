@@ -33,3 +33,9 @@ class ResourceNotFoundError(DomainError):
 class ConflictError(DomainError):
     def __init__(self, detail: str = "The resource was modified by another request.") -> None:
         super().__init__(409, "resource_conflict", "Conflict", detail)
+
+
+class ValidationError(DomainError):
+    def __init__(self, detail: str = "Invalid request payload or parameters.") -> None:
+        super().__init__(400, "validation_failed", "Bad Request", detail)
+

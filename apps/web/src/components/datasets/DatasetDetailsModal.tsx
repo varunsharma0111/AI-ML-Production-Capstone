@@ -5,7 +5,6 @@ import { request } from "../../services/apiClient";
 import { Dataset, DatasetProfile, ProblemDetails } from "../../types/api";
 import { Alert } from "../ui/Alert";
 import { Badge } from "../ui/Badge";
-import { IconDatabase, IconFileText } from "../ui/Icons";
 import { Modal } from "../ui/Modal";
 
 interface DatasetDetailsModalProps {
