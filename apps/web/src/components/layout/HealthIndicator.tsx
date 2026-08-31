@@ -22,7 +22,7 @@ export const HealthIndicator: React.FC = () => {
     };
 
     checkHealth();
-    const interval = setInterval(checkHealth, 30000); // Poll health every 30s
+    const interval = setInterval(checkHealth, 30000);
     return () => {
       isMounted = false;
       clearInterval(interval);
@@ -30,12 +30,32 @@ export const HealthIndicator: React.FC = () => {
   }, []);
 
   if (status === "checking") {
-    return <Badge variant="neutral">System Checking...</Badge>;
+    return (
+      <Badge variant="neutral" size="sm">
+        <span className="spinner" style={{ width: "10px", height: "10px", marginRight: "0.25rem" }} />
+        Checking Systems...
+      </Badge>
+    );
   }
 
   return (
-    <Badge variant={status === "ready" ? "online" : "offline"}>
-      Backend API: {status === "ready" ? "Healthy (200)" : "Degraded (503)"}
+    <Badge
+      variant={status === "ready" ? "success" : "danger"}
+      size="sm"
+      icon={
+        <span
+          style={{
+            width: "6px",
+            height: "6px",
+            borderRadius: "50%",
+            backgroundColor: status === "ready" ? "var(--status-success)" : "var(--status-danger)",
+            display: "inline-block",
+            marginRight: "0.2rem",
+          }}
+        />
+      }
+    >
+      {status === "ready" ? "Platform Systems Online" : "Service Degraded"}
     </Badge>
   );
 };

@@ -7,22 +7,15 @@ interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement
 }
 
 export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ label, error, id, maxLength, value, className = "", ...props }, ref) => {
+  ({ label, error, id, maxLength, value, className = "", style, ...props }, ref) => {
     const textareaId = id || (label ? label.toLowerCase().replace(/\s+/g, "-") : undefined);
     const currentLength = typeof value === "string" ? value.length : 0;
 
     return (
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.375rem", width: "100%" }}>
+      <div className="aura-form-group" style={{ width: "100%" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           {label && (
-            <label
-              htmlFor={textareaId}
-              style={{
-                fontSize: "0.875rem",
-                fontWeight: 500,
-                color: "var(--text-secondary)",
-              }}
-            >
+            <label htmlFor={textareaId} className="aura-label">
               {label}
             </label>
           )}
@@ -37,24 +30,18 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           id={textareaId}
           value={value}
           maxLength={maxLength}
-          className={className}
+          className={`aura-textarea ${className}`}
           style={{
-            width: "100%",
             minHeight: "100px",
-            padding: "0.625rem 0.875rem",
-            fontSize: "0.875rem",
-            color: "var(--text-primary)",
-            backgroundColor: "var(--bg-card)",
-            border: `1px solid ${error ? "var(--status-danger)" : "var(--border-subtle)"}`,
-            borderRadius: "var(--radius-sm)",
-            outline: "none",
-            resize: "vertical",
-            fontFamily: "inherit",
+            borderColor: error ? "var(--status-danger)" : undefined,
+            ...style,
           }}
           {...props}
         />
         {error && (
-          <span style={{ fontSize: "0.75rem", color: "var(--status-danger)" }}>{error}</span>
+          <span style={{ fontSize: "0.75rem", color: "var(--status-danger)", fontWeight: 500 }}>
+            {error}
+          </span>
         )}
       </div>
     );

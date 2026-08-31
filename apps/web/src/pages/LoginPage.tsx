@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Button } from "../components/ui/Button";
+import { IconCpu, IconKey, IconLock } from "../components/ui/Icons";
 import { Input } from "../components/ui/Input";
 
 export const LoginPage: React.FC = () => {
@@ -22,14 +23,15 @@ export const LoginPage: React.FC = () => {
         alignItems: "center",
         justifyContent: "center",
         padding: "1.5rem",
-        background: "radial-gradient(circle at top right, hsl(222, 40%, 15%), var(--bg-dark))",
+        backgroundColor: "var(--bg-dark)",
+        backgroundImage: "radial-gradient(ellipse at 50% 0%, var(--accent-purple-light), transparent 70%)",
       }}
     >
       <div
-        className="glass-panel animate-fade-in"
+        className="aura-card animate-fade-in"
         style={{
           width: "100%",
-          maxWidth: "460px",
+          maxWidth: "440px",
           padding: "2.5rem 2rem",
           display: "flex",
           flexDirection: "column",
@@ -40,38 +42,37 @@ export const LoginPage: React.FC = () => {
         <div>
           <div
             style={{
-              width: "48px",
-              height: "48px",
-              margin: "0 auto 1rem auto",
+              width: "52px",
+              height: "52px",
+              margin: "0 auto 1.25rem auto",
               borderRadius: "var(--radius-md)",
-              background: "linear-gradient(135deg, var(--accent-blue), var(--accent-purple))",
+              backgroundColor: "var(--accent-purple)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontSize: "1.5rem",
-              fontWeight: 700,
-              color: "#fff",
-              boxShadow: "0 4px 14px rgba(59, 130, 246, 0.4)",
+              color: "#ffffff",
+              boxShadow: "0 6px 20px rgba(139, 92, 246, 0.35)",
             }}
           >
-            AI
+            <IconCpu size={28} />
           </div>
-          <h1 style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>
-            AI/ML Production Capstone
+
+          <h1 style={{ fontSize: "1.5rem", fontWeight: 800, margin: "0 0 0.5rem 0", letterSpacing: "-0.02em" }}>
+            AuraML Enterprise Platform
           </h1>
-          <p style={{ fontSize: "0.875rem", color: "var(--text-secondary)" }}>
-            Authenticate with OIDC PKCE to access workspace-scoped tasks, agent orchestrations, and audit logs.
+          <p style={{ fontSize: "0.84375rem", color: "var(--text-secondary)", margin: 0, lineHeight: 1.5 }}>
+            Authenticate via OIDC identity provider to access workspace telemetry, model registries, and autonomous AI agents.
           </p>
         </div>
 
         {error && (
           <div
             style={{
-              padding: "0.75rem",
-              fontSize: "0.875rem",
+              padding: "0.75rem 1rem",
+              fontSize: "0.8125rem",
               color: "var(--status-danger)",
-              backgroundColor: "rgba(239, 68, 68, 0.1)",
-              border: "1px solid rgba(239, 68, 68, 0.3)",
+              backgroundColor: "var(--status-danger-bg)",
+              border: "1px solid var(--status-danger-border)",
               borderRadius: "var(--radius-sm)",
             }}
           >
@@ -79,19 +80,25 @@ export const LoginPage: React.FC = () => {
           </div>
         )}
 
-        <Button variant="primary" onClick={login} style={{ width: "100%", padding: "0.75rem" }}>
-          Sign In with OIDC Identity Provider
+        <Button
+          variant="primary"
+          onClick={login}
+          icon={<IconLock size={16} />}
+          style={{ width: "100%", padding: "0.75rem" }}
+        >
+          Sign In via OIDC Identity Provider
         </Button>
 
         <div style={{ borderTop: "1px solid var(--border-subtle)", paddingTop: "1.25rem", marginTop: "0.5rem" }}>
-          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "block", marginBottom: "0.75rem" }}>
-            Local First / Development Quick Auth
+          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", display: "block", marginBottom: "0.75rem", fontWeight: 600 }}>
+            Developer Fast-Track Access
           </span>
           <form onSubmit={handleDevLogin} style={{ display: "flex", gap: "0.5rem" }}>
             <Input
               placeholder="Paste Bearer JWT Token..."
               value={devTokenInput}
               onChange={(e) => setDevTokenInput(e.target.value)}
+              icon={<IconKey size={15} />}
             />
             <Button type="submit" variant="secondary">
               Login

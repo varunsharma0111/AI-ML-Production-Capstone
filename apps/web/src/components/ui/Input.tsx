@@ -4,45 +4,51 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
   helperText?: string;
+  icon?: React.ReactNode;
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, helperText, id, className = "", ...props }, ref) => {
+  ({ label, error, helperText, icon, id, className = "", style, ...props }, ref) => {
     const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, "-") : undefined);
 
     return (
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.375rem", width: "100%" }}>
+      <div className="aura-form-group" style={{ width: "100%" }}>
         {label && (
-          <label
-            htmlFor={inputId}
-            style={{
-              fontSize: "0.875rem",
-              fontWeight: 500,
-              color: "var(--text-secondary)",
-            }}
-          >
+          <label htmlFor={inputId} className="aura-label">
             {label}
           </label>
         )}
-        <input
-          ref={ref}
-          id={inputId}
-          className={className}
-          style={{
-            width: "100%",
-            padding: "0.625rem 0.875rem",
-            fontSize: "0.875rem",
-            color: "var(--text-primary)",
-            backgroundColor: "var(--bg-card)",
-            border: `1px solid ${error ? "var(--status-danger)" : "var(--border-subtle)"}`,
-            borderRadius: "var(--radius-sm)",
-            outline: "none",
-            transition: "border-color var(--transition-fast)",
-          }}
-          {...props}
-        />
+        <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
+          {icon && (
+            <div
+              style={{
+                position: "absolute",
+                left: "0.75rem",
+                color: "var(--text-muted)",
+                display: "flex",
+                alignItems: "center",
+                pointerEvents: "none",
+              }}
+            >
+              {icon}
+            </div>
+          )}
+          <input
+            ref={ref}
+            id={inputId}
+            className={`aura-input ${className}`}
+            style={{
+              paddingLeft: icon ? "2.25rem" : "0.875rem",
+              borderColor: error ? "var(--status-danger)" : undefined,
+              ...style,
+            }}
+            {...props}
+          />
+        </div>
         {error && (
-          <span style={{ fontSize: "0.75rem", color: "var(--status-danger)" }}>{error}</span>
+          <span style={{ fontSize: "0.75rem", color: "var(--status-danger)", fontWeight: 500 }}>
+            {error}
+          </span>
         )}
         {helperText && !error && (
           <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{helperText}</span>

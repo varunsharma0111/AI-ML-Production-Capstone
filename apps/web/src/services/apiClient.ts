@@ -16,8 +16,9 @@ export class ApiError extends Error {
   }
 }
 
-interface RequestOptions extends RequestInit {
+interface RequestOptions extends Omit<RequestInit, "body"> {
   token?: string | null;
+  body?: any;
 }
 
 function generateRequestId(): string {
@@ -28,7 +29,7 @@ function generateRequestId(): string {
 }
 
 export async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-  const { token, headers: customHeaders, ...fetchOptions } = options;
+  const { token, headers: customHeaders, body, ...fetchOptions } = options;
 
   const baseUrl = (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_API_URL) ? import.meta.env.VITE_API_URL : "";
   const targetUrl = endpoint.startsWith('/') ? `${baseUrl}${endpoint}` : endpoint;
@@ -37,8 +38,14 @@ export async function request<T>(endpoint: string, options: RequestOptions = {})
   headers.set("Accept", "application/json");
   headers.set("X-Request-ID", generateRequestId());
 
-  if (fetchOptions.body && !(fetchOptions.body instanceof FormData)) {
-    headers.set("Content-Type", "application/json");
+  let processedBody: BodyInit | null = null;
+  if (body) {
+    if (body instanceof FormData || body instanceof Blob || typeof body === "string") {
+      processedBody = body;
+    } else {
+      headers.set("Content-Type", "application/json");
+      processedBody = JSON.stringify(body);
+    }
   }
 
   if (token) {
@@ -47,6 +54,7 @@ export async function request<T>(endpoint: string, options: RequestOptions = {})
 
   const response = await fetch(targetUrl, {
     ...fetchOptions,
+    body: processedBody,
     headers,
   });
 

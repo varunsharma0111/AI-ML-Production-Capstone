@@ -1,23 +1,70 @@
 import React from "react";
-import { TaskStatus, WorkspaceRole } from "../../types/api";
+
+export type BadgeVariant =
+  | "success"
+  | "warning"
+  | "danger"
+  | "info"
+  | "neutral"
+  | "purple"
+  | "ready"
+  | "completed"
+  | "profiling"
+  | "uploaded"
+  | "failed"
+  | "queued"
+  | "processing"
+  | "cancelled"
+  | "owner"
+  | "editor"
+  | "viewer"
+  | "candidate"
+  | "approved"
+  | "staging"
+  | "production"
+  | "rejected";
 
 interface BadgeProps {
   children: React.ReactNode;
-  variant?: TaskStatus | WorkspaceRole | "online" | "offline" | "neutral";
+  variant?: BadgeVariant | string;
+  icon?: React.ReactNode;
   className?: string;
+  size?: "sm" | "md";
 }
 
-export const Badge: React.FC<BadgeProps> = ({ children, variant = "neutral", className = "" }) => {
-  let badgeClass = "badge";
+export const Badge: React.FC<BadgeProps> = ({
+  children,
+  variant = "neutral",
+  icon,
+  className = "",
+  size = "md",
+}) => {
+  let variantClass = "aura-badge-neutral";
 
-  if (variant === "open") badgeClass += " badge-open";
-  else if (variant === "completed") badgeClass += " badge-completed";
-  else if (variant === "owner" || variant === "editor" || variant === "viewer")
-    badgeClass += " badge-role";
-  else if (variant === "online")
-    badgeClass += " badge-completed";
-  else if (variant === "offline")
-    badgeClass += " badge-open";
+  const v = variant.toString().toLowerCase();
 
-  return <span className={`${badgeClass} ${className}`}>{children}</span>;
+  if (["success", "ready", "completed", "approved", "production", "online"].includes(v)) {
+    variantClass = "aura-badge-success";
+  } else if (["warning", "profiling", "queued", "staging"].includes(v)) {
+    variantClass = "aura-badge-warning";
+  } else if (["danger", "failed", "cancelled", "rejected", "offline"].includes(v)) {
+    variantClass = "aura-badge-danger";
+  } else if (["info", "processing", "uploaded", "candidate"].includes(v)) {
+    variantClass = "aura-badge-info";
+  } else if (["purple", "owner", "editor"].includes(v)) {
+    variantClass = "aura-badge-purple";
+  }
+
+  const paddingClass = size === "sm" ? "0.15rem 0.4rem" : "0.2rem 0.55rem";
+  const fontSizeClass = size === "sm" ? "0.625rem" : "0.6875rem";
+
+  return (
+    <span
+      className={`aura-badge ${variantClass} ${className}`}
+      style={{ padding: paddingClass, fontSize: fontSizeClass }}
+    >
+      {icon && <span style={{ display: "inline-flex", alignItems: "center" }}>{icon}</span>}
+      {children}
+    </span>
+  );
 };

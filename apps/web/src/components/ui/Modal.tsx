@@ -1,14 +1,23 @@
 import React, { useEffect } from "react";
-import { Button } from "./Button";
+import { IconX } from "./Icons";
 
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
+  subtitle?: string;
+  maxWidth?: string;
   children: React.ReactNode;
 }
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
+export const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  title,
+  subtitle,
+  maxWidth = "640px",
+  children,
+}) => {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -30,49 +39,44 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 50,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "1rem",
-        backgroundColor: "rgba(0, 0, 0, 0.65)",
-        backdropFilter: "blur(4px)",
-      }}
+      className="aura-modal-backdrop"
       onClick={onClose}
     >
       <div
-        className="glass-panel animate-fade-in"
-        style={{
-          width: "100%",
-          maxWidth: "540px",
-          padding: "1.5rem",
-          backgroundColor: "var(--bg-card)",
-          borderRadius: "var(--radius-md)",
-          boxShadow: "var(--shadow-lg)",
-        }}
+        className="aura-modal"
+        style={{ maxWidth }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "1rem",
-            paddingBottom: "0.75rem",
-            borderBottom: "1px solid var(--border-subtle)",
-          }}
-        >
-          <h2 id="modal-title" style={{ fontSize: "1.25rem" }}>
-            {title}
-          </h2>
-          <Button variant="ghost" onClick={onClose} aria-label="Close dialog">
-            ✕
-          </Button>
+        <div className="aura-modal-header">
+          <div>
+            <h3 id="modal-title" style={{ fontSize: "1.125rem", margin: 0 }}>
+              {title}
+            </h3>
+            {subtitle && (
+              <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: "0.15rem 0 0" }}>
+                {subtitle}
+              </p>
+            )}
+          </div>
+          <button
+            onClick={onClose}
+            aria-label="Close dialog"
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "var(--text-muted)",
+              cursor: "pointer",
+              padding: "0.35rem",
+              borderRadius: "var(--radius-sm)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <IconX size={18} />
+          </button>
         </div>
-        {children}
+        <div className="aura-modal-body">{children}</div>
       </div>
     </div>
   );

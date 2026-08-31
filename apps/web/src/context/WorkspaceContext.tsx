@@ -30,9 +30,23 @@ const DEFAULT_WORKSPACES: Workspace[] = [
 ];
 
 const ROLE_PERMISSIONS: Record<WorkspaceRole, Set<Permission>> = {
-  owner: new Set<Permission>(["workspace:read", "task:create", "task:read", "task:update"]),
-  editor: new Set<Permission>(["workspace:read", "task:create", "task:read", "task:update"]),
-  viewer: new Set<Permission>(["workspace:read", "task:read"]),
+  owner: new Set<Permission>([
+    "workspace:read",
+    "task:create",
+    "task:read",
+    "task:update",
+    "dataset:create",
+    "dataset:read",
+  ]),
+  editor: new Set<Permission>([
+    "workspace:read",
+    "task:create",
+    "task:read",
+    "task:update",
+    "dataset:create",
+    "dataset:read",
+  ]),
+  viewer: new Set<Permission>(["workspace:read", "task:read", "dataset:read"]),
 };
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
