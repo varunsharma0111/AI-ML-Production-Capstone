@@ -6,10 +6,11 @@ from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 
 import pytest
-from app.core.errors import AuthorizationError, DomainError, ValidationError
+
+from app.core.errors import AuthorizationError, DomainError
 from app.core.storage import LocalStorageBackend, S3StorageBackend, StorageService
 from app.domains.identity.policy import Permission, require_permission
-from app.domains.identity.principal import Principal
+
 from ml.artifacts.store import ArtifactStore
 from services.ml_inference.predictor import ControlledInferencePredictor
 
@@ -49,14 +50,14 @@ def test_path_traversal_prevention(tmp_path):
 
 
 def test_corrupted_artifact_integrity_rejection(mock_s3_client: MagicMock):
-    """Verify ControlledInferencePredictor rejects artifacts with tampered payload / SHA-256 mismatch."""
+    """Verify predictor rejects artifacts with tampered payload / SHA-256 mismatch."""
     backend = S3StorageBackend(bucket_name="auraml-test-bucket", s3_client=mock_s3_client)
     store = ArtifactStore(backend=backend)
 
     tampered_data = {
         "model_name": "tampered_model",
         "version_tag": "v1.0.0",
-        "sha256": "0000000000000000000000000000000000000000000000000000000000000000",  # Fake invalid hash
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
         "weights": [1.0],
     }
 

@@ -1,9 +1,10 @@
-"""Unit tests for ML model trainer, artifact creation, SHA-256 integrity, and algorithm selection."""
+"""Unit tests for ML model trainer, artifact creation, and integrity."""
 
 import tempfile
 from pathlib import Path
 
 import pytest
+
 from ml.artifacts.store import ArtifactStore
 from ml.training.trainer import ModelTrainer
 

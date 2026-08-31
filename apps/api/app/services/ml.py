@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
 from uuid import UUID
 
 from app.api.schemas.ml import (
@@ -14,7 +13,6 @@ from app.api.schemas.ml import (
 )
 from app.core.errors import (
     AuthorizationError,
-    ConflictError,
     ResourceNotFoundError,
     ValidationError,
 )
@@ -357,7 +355,7 @@ class MLService:
 
             evaluation = await self._model_repository.get_latest_evaluation(session, model.id)
             if evaluation is None:
-                # Construct synthetic candidate quality gate status from metrics_json if not yet evaluated
+                # Construct synthetic quality gate from metrics_json
                 metrics = model.metrics_json or {}
                 acc = float(metrics.get("accuracy", 0.0))
                 f1 = float(metrics.get("f1_score", 0.0))

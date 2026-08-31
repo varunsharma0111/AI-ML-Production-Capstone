@@ -1,4 +1,4 @@
-"""Background worker main service process loop with Redis task queue consumer and Prometheus metrics server."""
+"""Background worker process loop with Redis queue consumer."""
 
 from __future__ import annotations
 
@@ -17,6 +17,7 @@ from app.db.repositories.jobs import JobRepository
 from app.db.session import create_database_engine, create_session_factory
 from app.domains.jobs.types import JobStatus
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, generate_latest
+
 from services.worker.runner import JobRunner
 
 logger = logging.getLogger(__name__)

@@ -95,6 +95,7 @@ class ModelTrainer:
         """Parse CSV, train classification model, compute metrics, save artifact."""
 
         import io
+
         from app.core.storage import StorageService
 
         start_time = time.time()
@@ -219,7 +220,6 @@ class ModelTrainer:
 
         except ImportError:
             # Standalone fallback decision logic
-            majority_class = Counter_mode(y_train)
             weights = [round(1.0 / max(1, len(feature_names)), 4) for _ in feature_names]
 
             # Simple decision boundary fallback

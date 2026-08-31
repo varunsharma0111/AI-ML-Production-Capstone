@@ -6,7 +6,6 @@ from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
-
 from app.core.storage import LocalStorageBackend, S3StorageBackend, StorageService
 
 

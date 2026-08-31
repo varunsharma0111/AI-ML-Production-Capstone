@@ -13,8 +13,9 @@ from app.db.repositories.jobs import JobRepository
 from app.domains.identity.policy import Permission, require_permission
 from app.domains.identity.principal import Principal
 from app.domains.jobs.types import JobStatus
-from services.worker.runner import JobRunner
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from services.worker.runner import JobRunner
 
 
 class JobService:

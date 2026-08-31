@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from app.core.redis import RedisManager
@@ -31,7 +31,7 @@ async def test_redis_manager_disabled_fallback() -> None:
 @pytest.mark.asyncio
 async def test_redis_manager_mocked_success() -> None:
     with (
-        patch("app.core.redis.ConnectionPool.from_url") as mock_pool_fn,
+        patch("app.core.redis.ConnectionPool.from_url"),
         patch("app.core.redis.Redis") as mock_redis_cls,
     ):
         mock_client = AsyncMock()

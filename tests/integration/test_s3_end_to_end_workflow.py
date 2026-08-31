@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 from uuid import uuid4
 
 from app.core.storage import S3StorageBackend, StorageService
+
 from ml.artifacts.store import ArtifactStore
 from ml.training.trainer import ModelTrainer
 from services.ml_inference.predictor import ControlledInferencePredictor
@@ -42,14 +43,14 @@ def test_milestone7_s3_end_to_end_workflow(mock_s3_client: MagicMock) -> None:
 
     # 2. Upload CSV Dataset
     csv_content = (
-        "f1,f2,f3,label\n"
-        "1.0,2.0,3.0,positive\n"
-        "2.0,1.0,4.0,negative\n"
-        "1.5,2.5,3.5,positive\n"
-        "3.0,0.5,5.0,negative\n"
-        "2.5,1.5,4.5,positive\n"
-        "4.0,0.2,6.0,negative\n"
-    ).encode("utf-8")
+        b"f1,f2,f3,label\n"
+        b"1.0,2.0,3.0,positive\n"
+        b"2.0,1.0,4.0,negative\n"
+        b"1.5,2.5,3.5,positive\n"
+        b"3.0,0.5,5.0,negative\n"
+        b"2.5,1.5,4.5,positive\n"
+        b"4.0,0.2,6.0,negative\n"
+    )
 
     dataset_key = storage_service.save_dataset_file(
         workspace_id=workspace_id,

@@ -154,15 +154,7 @@ def create_app(
         )
 
     from app.api.routers import (
-        agent,
-        datasets,
-        health,
-        identity,
-        jobs,
-        ml,
         operations,
-        tasks,
-        websocket,
     )
 
     app.include_router(health.router)

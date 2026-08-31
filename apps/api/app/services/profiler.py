@@ -60,9 +60,10 @@ def _try_parse_datetime(val: str) -> datetime | None:
 
 
 def profile_csv_file(file_path: Path | str | bytes) -> tuple[int, int, list[dict[str, Any]]]:
-    """Read and profile CSV file using O(1) row memory streaming, returning (row_count, column_count, columns_data)."""
+    """Read and profile CSV file, returning (row_count, column_count, columns_data)."""
 
     import io
+
     from app.core.storage import StorageService
 
     file_obj: io.StringIO | io.TextIOWrapper

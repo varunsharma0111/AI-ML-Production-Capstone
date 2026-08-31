@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import re
 from typing import Any
-from uuid import UUID
 
 from app.api.schemas.agent import (
     AgentOrchestrateRequest,
@@ -12,7 +11,7 @@ from app.api.schemas.agent import (
     ToolExecuteRequest,
 )
 from app.api.schemas.ml import PredictRequest
-from app.core.errors import AuthorizationError, DomainError, ResourceNotFoundError
+from app.core.errors import AuthorizationError, ResourceNotFoundError
 from app.db.models.entities import AuditEvent
 from app.db.repositories.datasets import DatasetRepository
 from app.db.repositories.identity import IdentityRepository

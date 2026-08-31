@@ -6,10 +6,9 @@ import time
 from collections import defaultdict
 from typing import Any, cast
 
+from app.core.errors import DomainError
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
-
-from app.core.errors import DomainError
 
 MAX_REQUESTS_PER_MINUTE = 120
 MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # 50 MB

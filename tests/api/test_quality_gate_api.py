@@ -1,4 +1,4 @@
-"""API and integration tests for Quality Gate evaluation, model promotion, RBAC, state transitions, and audit certificates."""
+"""Tests for Quality Gate evaluation, promotion, and RBAC."""
 
 from __future__ import annotations
 

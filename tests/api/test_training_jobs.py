@@ -12,7 +12,7 @@ from uuid import uuid4
 import httpx
 import pytest
 from app.core.config import Settings
-from app.db.models.entities import Dataset, DatasetProfile, Job, User, WorkspaceMembership
+from app.db.models.entities import Dataset, DatasetProfile, User, WorkspaceMembership
 from app.domains.identity.principal import Principal
 from app.main import create_app
 from fastapi import FastAPI

@@ -6,11 +6,10 @@ import logging
 from typing import Any
 
 import boto3
-from botocore.config import Config
-from botocore.exceptions import BotoCoreError, ClientError
-
 from app.core.errors import DomainError
 from app.core.storage.base import StorageBackend
+from botocore.config import Config
+from botocore.exceptions import BotoCoreError, ClientError
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,6 @@
 """Unit tests for ControlledInferencePredictor feature validation and prediction execution."""
 
 import json
-from uuid import uuid4
 
 import pytest
 from app.core.errors import DomainError, ValidationError

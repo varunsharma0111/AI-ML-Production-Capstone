@@ -25,11 +25,13 @@ class ModelEvaluator:
         failure_reasons: list[str] = []
         if not passed_accuracy:
             failure_reasons.append(
-                f"Accuracy ({accuracy * 100:.1f}%) is below required threshold ({accuracy_threshold * 100:.1f}%)."
+                f"Accuracy ({accuracy * 100:.1f}%) is below "
+                f"required threshold ({accuracy_threshold * 100:.1f}%)."
             )
         if not passed_f1:
             failure_reasons.append(
-                f"F1 score ({f1_score * 100:.1f}%) is below required threshold ({f1_threshold * 100:.1f}%)."
+                f"F1 score ({f1_score * 100:.1f}%) is below "
+                f"required threshold ({f1_threshold * 100:.1f}%)."
             )
 
         metadata: dict[str, Any] = {

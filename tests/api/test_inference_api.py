@@ -226,7 +226,11 @@ async def test_real_end_to_end_training_to_inference_flow(
     store = ArtifactStore(base_dir=tmp_path)
     trainer = ModelTrainer(artifact_store=store)
 
-    csv_data = "age,income,tenure,churn\n25,30000,1,0\n50,90000,5,1\n22,25000,1,0\n45,80000,4,1\n28,35000,2,0\n55,95000,6,1\n"
+    csv_data = (
+        "age,income,tenure,churn\n"
+        "25,30000,1,0\n50,90000,5,1\n22,25000,1,0\n"
+        "45,80000,4,1\n28,35000,2,0\n55,95000,6,1\n"
+    )
     csv_file = tmp_path / "train_churn.csv"
     csv_file.write_text(csv_data, encoding="utf-8")
 

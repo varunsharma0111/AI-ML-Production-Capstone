@@ -16,8 +16,9 @@ from app.domains.datasets.types import DatasetStatus
 from app.domains.identity.policy import Permission, require_permission
 from app.domains.identity.principal import Principal
 from app.domains.jobs.types import JobStatus, JobType
-from services.worker.runner import JobRunner
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from services.worker.runner import JobRunner
 
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
 

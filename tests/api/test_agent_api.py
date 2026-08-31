@@ -1,4 +1,4 @@
-"""API, security, and real end-to-end integration tests for AI Agent Assistant & Analytics Workspace."""
+"""Tests for AI Agent Assistant & Analytics Workspace."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from uuid import uuid4
 import httpx
 import pytest
 from app.core.config import Settings
-from app.db.models.entities import ModelEvaluation, ModelVersion, User, WorkspaceMembership
+from app.db.models.entities import ModelVersion, User, WorkspaceMembership
 from app.domains.identity.principal import Principal
 from app.main import create_app
 from fastapi import FastAPI

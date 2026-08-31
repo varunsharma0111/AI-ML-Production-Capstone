@@ -1,4 +1,4 @@
-"""Controlled inference engine serving only approved/staging/production model versions with feature validation."""
+"""Controlled inference engine serving approved/staging/production models."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ VALID_INFERENCE_STATUSES = {"approved", "staging", "production"}
 
 
 class ControlledInferencePredictor:
-    """Loads approved/staging/production model versions and executes schema-validated predictions."""
+    """Loads approved model versions and executes predictions."""
 
     def __init__(self, artifact_store: ArtifactStore | None = None) -> None:
         self.artifact_store = artifact_store or ArtifactStore()
@@ -38,8 +38,9 @@ class ControlledInferencePredictor:
                 code="model_not_approved",
                 title="Inference Denied",
                 detail=(
-                    f"Inference unavailable. Model version status is '{model_status}'. "
-                    "Only models promoted to approved, staging, or production can serve inference requests."
+                    "Inference unavailable. Model version status is "
+                    f"'{model_status}'. Only models promoted to approved, "
+                    "staging, or production can serve inference requests."
                 ),
             )
 

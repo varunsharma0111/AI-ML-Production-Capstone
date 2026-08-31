@@ -5,7 +5,6 @@ from __future__ import annotations
 import ast
 import time
 from typing import Any
-from uuid import UUID
 
 from app.core.errors import DomainError, ResourceNotFoundError
 

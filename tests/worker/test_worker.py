@@ -6,8 +6,10 @@ from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 
 import pytest
+
 from app.db.models.entities import Job
 from app.domains.jobs.types import JobStatus, JobType
+
 from services.worker.main import process_job_by_id
 
 

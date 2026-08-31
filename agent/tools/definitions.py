@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
+
 from pydantic import BaseModel, Field
 
 
@@ -61,17 +62,28 @@ REGISTERED_TOOLS: dict[str, ToolDefinition] = {
     ),
     "compare_models": ToolDefinition(
         name="compare_models",
-        description="Compares performance metrics, training datasets, hyperparameters, and lifecycle status of two model versions.",
+        description=(
+            "Compares performance metrics, training datasets, "
+            "hyperparameters, and lifecycle status of two model versions."
+        ),
         required_permission="model:read",
     ),
     "explain_metrics": ToolDefinition(
         name="explain_metrics",
-        description="Explains Quality Gate evaluation metrics, threshold pass/fail criteria, and failure reasons for a model version.",
+        description=(
+            "Explains Quality Gate evaluation metrics, "
+            "threshold pass/fail criteria, and failure reasons "
+            "for a model version."
+        ),
         required_permission="model:read",
     ),
     "summarize_dataset": ToolDefinition(
         name="summarize_dataset",
-        description="Summarizes dataset profiling statistics, column types, row counts, missing value percentages, and categorical distributions.",
+        description=(
+            "Summarizes dataset profiling statistics, column types, "
+            "row counts, missing value percentages, "
+            "and categorical distributions."
+        ),
         required_permission="dataset:read",
     ),
     "run_prediction": ToolDefinition(

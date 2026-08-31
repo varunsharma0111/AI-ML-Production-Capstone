@@ -1,4 +1,4 @@
-"""Extend model_versions with workspace_id, dataset_id, job_id, metrics_json, and hyperparameters_json for Milestone 2.
+"""Extend model_versions for Milestone 2.
 
 Revision ID: 20260830_0006
 Revises: 20260830_0005
