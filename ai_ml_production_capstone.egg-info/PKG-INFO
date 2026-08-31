@@ -5,13 +5,19 @@ Summary: Production-oriented AI/ML platform capstone
 Requires-Python: >=3.11
 Requires-Dist: alembic==1.16.5
 Requires-Dist: asyncpg==0.30.0
+Requires-Dist: boto3==1.36.23
+Requires-Dist: botocore==1.36.23
 Requires-Dist: fastapi==0.115.12
+Requires-Dist: greenlet==3.1.1
+Requires-Dist: prometheus-client==0.21.1
 Requires-Dist: pydantic-settings==2.10.1
 Requires-Dist: PyJWT[crypto]==2.10.1
-Requires-Dist: prometheus-client==0.21.1
+Requires-Dist: redis==5.2.1
+Requires-Dist: scikit-learn==1.6.1
 Requires-Dist: SQLAlchemy==2.0.43
 Requires-Dist: uvicorn[standard]==0.34.0
 Provides-Extra: dev
+Requires-Dist: boto3-stubs[s3]==1.36.23; extra == "dev"
 Requires-Dist: httpx==0.28.1; extra == "dev"
 Requires-Dist: mypy==1.18.2; extra == "dev"
 Requires-Dist: pre-commit==4.3.0; extra == "dev"

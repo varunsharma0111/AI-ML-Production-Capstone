@@ -43,9 +43,7 @@ async def test_process_job_by_id_success() -> None:
     mock_redis.publish_job_update = AsyncMock(return_value=True)
 
     mock_runner = AsyncMock()
-    mock_runner.execute_job = AsyncMock(
-        return_value=(JobStatus.COMPLETED, {"records": 100}, None)
-    )
+    mock_runner.execute_job = AsyncMock(return_value=(JobStatus.COMPLETED, {"records": 100}, None))
 
     mock_repo = AsyncMock()
     mock_repo.get_job_by_id = AsyncMock(return_value=mock_job)
@@ -95,9 +93,11 @@ async def test_prevent_duplicate_worker_execution() -> None:
     mock_redis.publish_job_update = AsyncMock(return_value=True)
 
     mock_runner = AsyncMock()
+
     async def _execute_job_side_effect(session, job):
         job.status = JobStatus.COMPLETED.value
         return (JobStatus.COMPLETED, {"records": 100}, None)
+
     mock_runner.execute_job.side_effect = _execute_job_side_effect
 
     mock_repo = AsyncMock()
@@ -133,4 +133,3 @@ async def test_prevent_duplicate_worker_execution() -> None:
 
     # Verify final status is COMPLETED
     assert mock_job.status == JobStatus.COMPLETED.value
-

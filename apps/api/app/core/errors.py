@@ -38,4 +38,3 @@ class ConflictError(DomainError):
 class ValidationError(DomainError):
     def __init__(self, detail: str = "Invalid request payload or parameters.") -> None:
         super().__init__(400, "validation_failed", "Bad Request", detail)
-

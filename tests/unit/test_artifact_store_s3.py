@@ -48,7 +48,9 @@ def test_1_local_artifact_store_save_and_load(temp_local_backend: LocalStorageBa
     assert loaded["weights"] == [0.1, 0.2]
 
 
-def test_2_s3_artifact_store_save_and_load(s3_backend: S3StorageBackend, mock_s3_client: MagicMock) -> None:
+def test_2_s3_artifact_store_save_and_load(
+    s3_backend: S3StorageBackend, mock_s3_client: MagicMock
+) -> None:
     """Verify S3 ArtifactStore calls put_object and get_object on S3 backend."""
     store = ArtifactStore(backend=s3_backend)
     data = {"weights": [0.5, 0.5], "feature_names": ["f1", "f2"]}
@@ -129,7 +131,9 @@ def test_8_workspace_isolation_in_key_structure(temp_local_backend: LocalStorage
     assert key == f"workspaces/{ws_id}/models/isolated_model/v1.0.0.json"
 
 
-def test_9_model_version_isolation_in_key_structure(temp_local_backend: LocalStorageBackend) -> None:
+def test_9_model_version_isolation_in_key_structure(
+    temp_local_backend: LocalStorageBackend,
+) -> None:
     """Verify different versions produce distinct non-colliding object keys."""
     store = ArtifactStore(backend=temp_local_backend)
     key1 = store.save_artifact("model_a", "v1.0.0", {"v": 1})
@@ -140,7 +144,9 @@ def test_9_model_version_isolation_in_key_structure(temp_local_backend: LocalSto
     assert store.load_artifact(key2)["v"] == 2
 
 
-def test_10_s3_unavailable_error_handling(s3_backend: S3StorageBackend, mock_s3_client: MagicMock) -> None:
+def test_10_s3_unavailable_error_handling(
+    s3_backend: S3StorageBackend, mock_s3_client: MagicMock
+) -> None:
     """Verify S3 ClientError translates into DomainError."""
     store = ArtifactStore(backend=s3_backend)
     mock_s3_client.get_object.side_effect = ClientError(
@@ -153,7 +159,9 @@ def test_10_s3_unavailable_error_handling(s3_backend: S3StorageBackend, mock_s3_
     assert exc_info.value.code == "storage_unavailable"
 
 
-def test_11_inference_using_s3_backed_artifact(s3_backend: S3StorageBackend, mock_s3_client: MagicMock) -> None:
+def test_11_inference_using_s3_backed_artifact(
+    s3_backend: S3StorageBackend, mock_s3_client: MagicMock
+) -> None:
     """Verify ControlledInferencePredictor executes predictions using S3-backed artifacts."""
     store = ArtifactStore(backend=s3_backend)
 
@@ -168,8 +176,10 @@ def test_11_inference_using_s3_backed_artifact(s3_backend: S3StorageBackend, moc
 
     # Save to mock s3
     saved_bytes: list[bytes] = []
+
     def fake_put_object(Bucket, Key, Body, **kwargs):
         saved_bytes.append(Body)
+
     mock_s3_client.put_object.side_effect = fake_put_object
 
     key = store.save_artifact("s3_predictor", "v1.0.0", artifact_data)

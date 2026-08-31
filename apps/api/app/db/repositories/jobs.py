@@ -75,4 +75,3 @@ class JobRepository:
             )
         )
         return list(result.scalars())
-

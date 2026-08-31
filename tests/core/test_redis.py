@@ -30,9 +30,10 @@ async def test_redis_manager_disabled_fallback() -> None:
 
 @pytest.mark.asyncio
 async def test_redis_manager_mocked_success() -> None:
-    with patch("app.core.redis.ConnectionPool.from_url") as mock_pool_fn, patch(
-        "app.core.redis.Redis"
-    ) as mock_redis_cls:
+    with (
+        patch("app.core.redis.ConnectionPool.from_url") as mock_pool_fn,
+        patch("app.core.redis.Redis") as mock_redis_cls,
+    ):
         mock_client = AsyncMock()
         mock_client.ping = AsyncMock(return_value=True)
         mock_client.lpush = AsyncMock(return_value=1)

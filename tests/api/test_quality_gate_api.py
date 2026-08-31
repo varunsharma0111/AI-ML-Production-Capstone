@@ -84,7 +84,9 @@ def setup_mock_ml_db(
         if "FROM model_evaluations" in query_str:
             return eval_get_result
         if "FROM model_versions" in query_str:
-            if "ORDER BY" in query_str and ("workspace_id" in query_str or "WHERE" not in query_str):
+            if "ORDER BY" in query_str and (
+                "workspace_id" in query_str or "WHERE" not in query_str
+            ):
                 return model_list_result
             return model_get_result
         return MagicMock()

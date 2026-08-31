@@ -99,4 +99,3 @@ async def workspace_jobs_websocket(websocket: WebSocket, workspace_id: UUID) -> 
                 await pubsub_task
             except asyncio.CancelledError:
                 pass
-

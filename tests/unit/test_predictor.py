@@ -10,7 +10,9 @@ from ml.artifacts.store import ArtifactStore
 from services.ml_inference.predictor import ControlledInferencePredictor
 
 
-def create_test_artifact(tmp_path, model_name: str, version_tag: str, model_type: str = "random_forest"):
+def create_test_artifact(
+    tmp_path, model_name: str, version_tag: str, model_type: str = "random_forest"
+):
     store = ArtifactStore(base_dir=tmp_path)
     payload = {
         "model_name": model_name,

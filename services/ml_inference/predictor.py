@@ -29,6 +29,7 @@ class ControlledInferencePredictor:
         if model_status not in VALID_INFERENCE_STATUSES:
             try:
                 from app.core.metrics import INFERENCE_REQUESTS_TOTAL
+
                 INFERENCE_REQUESTS_TOTAL.labels(status="unapproved").inc()
             except Exception:
                 pass
@@ -111,6 +112,7 @@ class ControlledInferencePredictor:
 
         try:
             from app.core.metrics import INFERENCE_LATENCY_SECONDS, INFERENCE_REQUESTS_TOTAL
+
             INFERENCE_REQUESTS_TOTAL.labels(status="success").inc()
             INFERENCE_LATENCY_SECONDS.observe(latency_ms / 1000.0)
         except Exception:

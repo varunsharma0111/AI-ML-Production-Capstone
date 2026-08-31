@@ -12,7 +12,12 @@ from app.api.schemas.ml import (
     PredictRequest,
     QualityGateResponse,
 )
-from app.core.errors import AuthorizationError, ConflictError, ResourceNotFoundError, ValidationError
+from app.core.errors import (
+    AuthorizationError,
+    ConflictError,
+    ResourceNotFoundError,
+    ValidationError,
+)
 from app.db.models.entities import AuditEvent, InferenceLog, ModelEvaluation, ModelVersion
 from app.db.repositories.identity import IdentityRepository
 from app.db.repositories.ml import ModelRepository
@@ -49,9 +54,7 @@ class MLService:
         required_permission: Permission,
     ):
         user = await self._identity_repository.get_or_create_user(session, principal)
-        membership = await self._identity_repository.get_membership(
-            session, workspace_id, user.id
-        )
+        membership = await self._identity_repository.get_membership(session, workspace_id, user.id)
         if membership is None:
             raise AuthorizationError("You are not a member of this workspace.")
         require_permission(membership.role, required_permission)
@@ -85,16 +88,18 @@ class MLService:
     ) -> list[ModelVersion]:
         async with session.begin():
             if workspace_id:
-                await self._authorized_user(
-                    session, principal, workspace_id, Permission.MODEL_READ
-                )
+                await self._authorized_user(session, principal, workspace_id, Permission.MODEL_READ)
                 return await self._model_repository.list_model_versions_for_workspace(
                     session, workspace_id
                 )
             return await self._model_repository.list_model_versions(session)
 
     async def get_model(
-        self, session: AsyncSession, principal: Principal, model_id: UUID, workspace_id: UUID | None = None
+        self,
+        session: AsyncSession,
+        principal: Principal,
+        model_id: UUID,
+        workspace_id: UUID | None = None,
     ) -> ModelVersion:
         async with session.begin():
             model = await self._model_repository.get_model_version(session, model_id)
@@ -236,7 +241,10 @@ class MLService:
                         resource_type="model_version",
                         resource_id=model.id,
                         request_id=request_id,
-                        metadata_json={"reason": "Cannot promote a REJECTED model version", "current_status": model.status},
+                        metadata_json={
+                            "reason": "Cannot promote a REJECTED model version",
+                            "current_status": model.status,
+                        },
                     )
                 )
                 raise ValidationError("Cannot promote a REJECTED model version.")
@@ -250,12 +258,20 @@ class MLService:
                         resource_type="model_version",
                         resource_id=model.id,
                         request_id=request_id,
-                        metadata_json={"reason": "Model must be evaluated and APPROVED before promotion", "current_status": model.status},
+                        metadata_json={
+                            "reason": "Model must be evaluated and APPROVED before promotion",
+                            "current_status": model.status,
+                        },
                     )
                 )
-                raise ValidationError("Model must pass quality gate evaluation (APPROVED status) before promotion.")
+                raise ValidationError(
+                    "Model must pass quality gate evaluation (APPROVED status) before promotion."
+                )
 
-            if target_status == ModelStatus.PRODUCTION.value and membership.role != WorkspaceRole.OWNER.value:
+            if (
+                target_status == ModelStatus.PRODUCTION.value
+                and membership.role != WorkspaceRole.OWNER.value
+            ):
                 session.add(
                     AuditEvent(
                         actor_user_id=user.id,
@@ -264,7 +280,9 @@ class MLService:
                         resource_type="model_version",
                         resource_id=model.id,
                         request_id=request_id,
-                        metadata_json={"reason": "Only workspace owners can promote models to production"},
+                        metadata_json={
+                            "reason": "Only workspace owners can promote models to production"
+                        },
                     )
                 )
                 raise AuthorizationError("Only workspace owners can promote models to production.")
@@ -279,10 +297,14 @@ class MLService:
                             resource_type="model_version",
                             resource_id=model.id,
                             request_id=request_id,
-                            metadata_json={"reason": f"Invalid transition from {model.status} to staging"},
+                            metadata_json={
+                                "reason": f"Invalid transition from {model.status} to staging"
+                            },
                         )
                     )
-                    raise ValidationError(f"Cannot transition model from '{model.status}' to STAGING.")
+                    raise ValidationError(
+                        f"Cannot transition model from '{model.status}' to STAGING."
+                    )
                 model.status = ModelStatus.STAGING.value
                 audit_action = "model.promoted_staging"
 
@@ -296,10 +318,14 @@ class MLService:
                             resource_type="model_version",
                             resource_id=model.id,
                             request_id=request_id,
-                            metadata_json={"reason": f"Invalid transition from {model.status} to production"},
+                            metadata_json={
+                                "reason": f"Invalid transition from {model.status} to production"
+                            },
                         )
                     )
-                    raise ValidationError(f"Cannot transition model from '{model.status}' to PRODUCTION.")
+                    raise ValidationError(
+                        f"Cannot transition model from '{model.status}' to PRODUCTION."
+                    )
                 model.status = ModelStatus.PRODUCTION.value
                 audit_action = "model.promoted_production"
             else:
@@ -357,7 +383,9 @@ class MLService:
                 passed_gate=evaluation.passed_gate,
                 accuracy=evaluation.accuracy,
                 f1_score=evaluation.f1_score,
-                accuracy_threshold=float(meta.get("accuracy_threshold", DEFAULT_ACCURACY_THRESHOLD)),
+                accuracy_threshold=float(
+                    meta.get("accuracy_threshold", DEFAULT_ACCURACY_THRESHOLD)
+                ),
                 f1_threshold=float(meta.get("f1_threshold", DEFAULT_F1_SCORE_THRESHOLD)),
                 failure_reasons=list(meta.get("failure_reasons", [])),
                 evaluated_at=evaluation.evaluated_at,
@@ -377,7 +405,9 @@ class MLService:
             )
 
             model = await self._model_repository.get_model_version(session, model_id)
-            if model is None or (model.workspace_id is not None and model.workspace_id != payload.workspace_id):
+            if model is None or (
+                model.workspace_id is not None and model.workspace_id != payload.workspace_id
+            ):
                 raise ResourceNotFoundError("Model version not found.")
 
             session.add(
@@ -450,4 +480,3 @@ class MLService:
             return await self._model_repository.list_inference_logs_for_workspace(
                 session, workspace_id, limit=limit
             )
-

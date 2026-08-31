@@ -153,7 +153,17 @@ def create_app(
             request, 500, "internal_error", "Internal Server Error", "An unexpected error occurred."
         )
 
-    from app.api.routers import agent, datasets, health, identity, jobs, ml, operations, tasks, websocket
+    from app.api.routers import (
+        agent,
+        datasets,
+        health,
+        identity,
+        jobs,
+        ml,
+        operations,
+        tasks,
+        websocket,
+    )
 
     app.include_router(health.router)
     app.include_router(identity.router, prefix="/api/v1")

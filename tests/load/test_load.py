@@ -38,7 +38,7 @@ async def test_concurrent_s3_storage_load(mock_s3_client: MagicMock) -> None:
 
     async def single_upload_task(i: int) -> float:
         ds_id = uuid4()
-        content = f"col1,col2\n{i},{i*2}\n".encode("utf-8")
+        content = f"col1,col2\n{i},{i * 2}\n".encode("utf-8")
         start = time.perf_counter()
         key = service.save_dataset_file(ws_id, ds_id, f"data_{i}.csv", content)
         read_back = service.read_dataset_file(key)

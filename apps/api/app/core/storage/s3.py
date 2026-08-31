@@ -65,9 +65,12 @@ class S3StorageBackend(StorageBackend):
                 Body=content,
                 **extra_args,
             )
-            logger.info("Successfully uploaded object to S3: s3://%s/%s", self.bucket_name, clean_key)
+            logger.info(
+                "Successfully uploaded object to S3: s3://%s/%s", self.bucket_name, clean_key
+            )
             try:
                 from app.core.metrics import S3_OPERATIONS_TOTAL
+
                 S3_OPERATIONS_TOTAL.labels(operation="put", status="success").inc()
             except Exception:
                 pass
@@ -76,6 +79,7 @@ class S3StorageBackend(StorageBackend):
             logger.error("S3 error uploading object to %s: %s", clean_key, err)
             try:
                 from app.core.metrics import S3_OPERATIONS_TOTAL
+
                 S3_OPERATIONS_TOTAL.labels(operation="put", status="error").inc()
             except Exception:
                 pass

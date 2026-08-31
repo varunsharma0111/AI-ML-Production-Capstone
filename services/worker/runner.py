@@ -20,11 +20,10 @@ class JobRunner:
     def __init__(self, job_repository: JobRepository | None = None) -> None:
         self._job_repository = job_repository or JobRepository()
 
-    async def recover_stuck_jobs(
-        self, session: AsyncSession, max_stuck_minutes: int = 15
-    ) -> int:
+    async def recover_stuck_jobs(self, session: AsyncSession, max_stuck_minutes: int = 15) -> int:
         """Find jobs stuck in PROCESSING longer than max_stuck_minutes and requeue or fail them."""
         from datetime import timedelta
+
         cutoff = datetime.now(UTC) - timedelta(minutes=max_stuck_minutes)
         stuck_jobs = await self._job_repository.get_stuck_processing_jobs(session, cutoff)
         recovered_count = 0
@@ -32,7 +31,10 @@ class JobRunner:
             if (job.attempt_count or 0) < job.max_retries:
                 job.status = JobStatus.QUEUED.value
                 logger.warning(
-                    "Requeueing stuck job %s (attempt %d/%d)", job.id, job.attempt_count or 0, job.max_retries
+                    "Requeueing stuck job %s (attempt %d/%d)",
+                    job.id,
+                    job.attempt_count or 0,
+                    job.max_retries,
                 )
             else:
                 job.status = JobStatus.FAILED.value
@@ -168,9 +170,7 @@ class JobRunner:
                     else {}
                 )
                 hyperparameters = dict(raw_params) if isinstance(raw_params, dict) else {}
-                version_tag = str(
-                    job.payload_json.get("version_tag", f"v1.{job.attempt_count}.0")
-                )
+                version_tag = str(job.payload_json.get("version_tag", f"v1.{job.attempt_count}.0"))
 
                 dataset = await dataset_repo.get_dataset(session, dataset_id)
                 if dataset is None or dataset.status != "ready":

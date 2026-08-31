@@ -214,9 +214,7 @@ async def test_upload_dataset_viewer_forbidden(
 
 
 @pytest.mark.asyncio
-async def test_upload_dataset_success(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_upload_dataset_success(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -249,9 +247,7 @@ async def test_upload_dataset_success(
 
 
 @pytest.mark.asyncio
-async def test_list_datasets_success(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_list_datasets_success(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)

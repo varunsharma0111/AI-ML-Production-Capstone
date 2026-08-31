@@ -62,6 +62,7 @@ def test_corrupted_artifact_integrity_rejection(mock_s3_client: MagicMock):
 
     mock_body = MagicMock()
     import json
+
     mock_body.read.return_value = json.dumps(tampered_data).encode("utf-8")
     mock_s3_client.get_object.return_value = {"Body": mock_body}
 

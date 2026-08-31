@@ -37,7 +37,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                         status_code=413,
                         code="payload_too_large",
                         title="Payload Too Large",
-                        detail=f"File upload size exceeds maximum limit of {MAX_UPLOAD_BYTES // (1024*1024)}MB.",
+                        detail=f"File upload size exceeds maximum limit of {MAX_UPLOAD_BYTES // (1024 * 1024)}MB.",
                     )
             except ValueError:
                 pass

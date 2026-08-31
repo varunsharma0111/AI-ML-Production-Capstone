@@ -9,7 +9,15 @@ from app.api.schemas.operations import (
     OperationsDashboardResponse,
     SystemMetricsSummary,
 )
-from app.db.models.entities import AuditEvent, Dataset, InferenceLog, Job, ModelVersion, User, WorkspaceMembership
+from app.db.models.entities import (
+    AuditEvent,
+    Dataset,
+    InferenceLog,
+    Job,
+    ModelVersion,
+    User,
+    WorkspaceMembership,
+)
 from app.domains.identity.policy import Permission, PolicyEngine
 from app.domains.identity.principal import Principal
 from app.domains.identity.types import WorkspaceRole
@@ -48,7 +56,9 @@ class OperationsService:
 
         role = WorkspaceRole(membership.role)
         if not self._policy_engine.has_permission(role, required_permission):
-            raise AuthorizationError("Insufficient permissions for operational workspace telemetry.")
+            raise AuthorizationError(
+                "Insufficient permissions for operational workspace telemetry."
+            )
 
         return user, membership
 

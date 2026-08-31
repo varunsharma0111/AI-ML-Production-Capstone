@@ -17,4 +17,3 @@ class JobType(StrEnum):
     MODEL_EVALUATION = "model_evaluation"
     DATASET_PROFILING = "dataset_profiling"
     MODEL_TRAINING = "model_training"
-

@@ -140,9 +140,7 @@ class ModelTrainer:
                 if target_idx < len(row):
                     t_val = row[target_idx].strip()
                     if not _is_null(t_val):
-                        f_vals = [
-                            row[i].strip() if i < len(row) else "" for i in feature_indices
-                        ]
+                        f_vals = [row[i].strip() if i < len(row) else "" for i in feature_indices]
                         rows.append((f_vals, t_val))
         finally:
             file_obj.close()

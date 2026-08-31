@@ -200,9 +200,7 @@ class DatasetService:
             if dataset is None:
                 raise ResourceNotFoundError("Dataset not found in workspace.")
 
-            profile = await self._dataset_repository.get_profile_by_dataset_id(
-                session, dataset_id
-            )
+            profile = await self._dataset_repository.get_profile_by_dataset_id(session, dataset_id)
             if profile is None:
                 raise ResourceNotFoundError("Profile statistics are not ready for this dataset.")
             return profile
@@ -253,4 +251,3 @@ class DatasetService:
             raise AuthorizationError("You are not a member of this workspace.")
         require_permission(membership.role, permission)
         return user
-

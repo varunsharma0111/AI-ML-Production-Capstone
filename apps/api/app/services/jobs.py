@@ -112,9 +112,7 @@ class JobService:
                 session, payload.workspace_id, payload.dataset_id
             )
             if dataset is None:
-                raise ResourceNotFoundError(
-                    f"Dataset {payload.dataset_id} not found in workspace."
-                )
+                raise ResourceNotFoundError(f"Dataset {payload.dataset_id} not found in workspace.")
 
             if dataset.status != "ready":
                 raise ValidationError(

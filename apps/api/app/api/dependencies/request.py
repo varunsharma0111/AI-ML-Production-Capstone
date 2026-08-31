@@ -51,4 +51,3 @@ from app.core.redis import RedisManager
 
 def get_redis_manager(request: Request) -> RedisManager | None:
     return getattr(request.app.state, "redis_manager", None)
-

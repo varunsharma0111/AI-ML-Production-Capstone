@@ -31,6 +31,7 @@ def test_milestone7_s3_end_to_end_workflow(mock_s3_client: MagicMock) -> None:
     def fake_get_object(Bucket, Key):
         if Key not in s3_objects:
             from botocore.exceptions import ClientError
+
             raise ClientError({"Error": {"Code": "NoSuchKey"}}, "GetObject")
         mock_body = MagicMock()
         mock_body.read.return_value = s3_objects[Key]
