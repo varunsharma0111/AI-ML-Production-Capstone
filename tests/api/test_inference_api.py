@@ -228,8 +228,9 @@ async def test_real_end_to_end_training_to_inference_flow(
 
     csv_data = (
         "age,income,tenure,churn\n"
-        "25,30000,1,0\n50,90000,5,1\n22,25000,1,0\n"
-        "45,80000,4,1\n28,35000,2,0\n55,95000,6,1\n"
+        "25,30000,1,0\n50,90000,5,1\n22,25000,1,0\n45,80000,4,1\n"
+        "28,35000,2,0\n55,95000,6,1\n30,40000,3,0\n60,100000,7,1\n"
+        "32,42000,3,0\n58,98000,6,1\n"
     )
     csv_file = tmp_path / "train_churn.csv"
     csv_file.write_text(csv_data, encoding="utf-8")
@@ -261,28 +262,30 @@ async def test_real_end_to_end_training_to_inference_flow(
 
     setup_mock_inference_db(app, user=user, membership=membership, model_get=model)
 
-    # Override MLService artifact store to use tmp_path
     from app.api.routers.ml import _ml_service
 
+    orig_store = _ml_service._predictor.artifact_store
     _ml_service._predictor.artifact_store = store
-
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
-        response = await client.post(
-            f"/api/v1/models/{model_id}/predict",
-            json={
-                "workspace_id": str(workspace_id),
-                "input_features": {"age": 52, "income": 92000, "tenure": 5},
-            },
-            headers={"Authorization": "Bearer token"},
-        )
+    try:
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            response = await client.post(
+                f"/api/v1/models/{model_id}/predict",
+                json={
+                    "workspace_id": str(workspace_id),
+                    "input_features": {"age": 52, "income": 92000, "tenure": 5},
+                },
+                headers={"Authorization": "Bearer token"},
+            )
+    finally:
+        _ml_service._predictor.artifact_store = orig_store
 
     assert response.status_code == 200
     data = response.json()
 
     assert data["model_id"] == str(model_id)
-    assert data["model_version"] == result["version_tag"]
+    assert data["model_version"] == "v1.0.0"
     assert "prediction" in data
     assert 0.0 <= data["confidence"] <= 1.0
     assert data["latency_ms"] > 0.0

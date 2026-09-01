@@ -13,6 +13,7 @@ from fastapi import FastAPI
 
 from agent.tools.security import AgentToolSecurityGuard
 from app.core.config import Settings
+from app.core.errors import DomainError
 from app.db.models.entities import ModelVersion, User, WorkspaceMembership
 from app.domains.identity.principal import Principal
 from app.main import create_app
@@ -144,26 +145,20 @@ async def test_agent_orchestrate_workspace_isolation_denied(
     assert response.status_code == 403
 
 
-@pytest.mark.asyncio
-async def test_agent_tool_security_path_traversal_attempt(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+def test_agent_tool_security_path_traversal_attempt() -> None:
     """Security Test: Rejects path traversal attempt in agent tool arguments."""
     guard = AgentToolSecurityGuard()
-    with pytest.raises(Exception) as exc_info:
+    with pytest.raises(DomainError) as exc_info:
         guard.validate_input_string("../../etc/passwd", field_name="expression")
-    assert "Path traversal sequence detected" in str(exc_info.value)
+    assert "unsafe path traversal" in exc_info.value.detail
 
 
-@pytest.mark.asyncio
-async def test_agent_tool_security_command_injection_attempt(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+def test_agent_tool_security_command_injection_attempt() -> None:
     """Security Test: Rejects shell injection characters in agent tool arguments."""
     guard = AgentToolSecurityGuard()
-    with pytest.raises(Exception) as exc_info:
+    with pytest.raises(DomainError) as exc_info:
         guard.validate_input_string("100; rm -rf /", field_name="expression")
-    assert "Shell injection character detected" in str(exc_info.value)
+    assert "disallowed characters" in exc_info.value.detail
 
 
 @pytest.mark.asyncio
@@ -293,7 +288,12 @@ async def test_real_agent_prediction_end_to_end(
     store = ArtifactStore(base_dir=tmp_path)
     trainer = ModelTrainer(artifact_store=store)
 
-    csv_data = "age,income,tenure,churn\n25,30000,1,0\n50,90000,5,1\n22,25000,1,0\n45,80000,4,1\n"
+    csv_data = (
+        "age,income,tenure,churn\n"
+        "25,30000,1,0\n50,90000,5,1\n22,25000,1,0\n45,80000,4,1\n"
+        "28,35000,2,0\n55,95000,6,1\n30,40000,3,0\n60,100000,7,1\n"
+        "32,42000,3,0\n58,98000,6,1\n"
+    )
     csv_file = tmp_path / "agent_churn.csv"
     csv_file.write_text(csv_data, encoding="utf-8")
 
@@ -322,19 +322,22 @@ async def test_real_agent_prediction_end_to_end(
 
     from app.services.agent import _agent_service
 
+    orig_store = _agent_service._ml_service._predictor.artifact_store
     _agent_service._ml_service._predictor.artifact_store = store
-
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
-        response = await client.post(
-            "/api/v1/agent/orchestrate",
-            json={
-                "workspace_id": str(workspace_id),
-                "message": "Predict churn for age 52, income 92000, tenure 5",
-            },
-            headers={"Authorization": "Bearer token"},
-        )
+    try:
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            response = await client.post(
+                "/api/v1/agent/orchestrate",
+                json={
+                    "workspace_id": str(workspace_id),
+                    "message": "Predict churn for age 52, income 92000, tenure 5",
+                },
+                headers={"Authorization": "Bearer token"},
+            )
+    finally:
+        _agent_service._ml_service._predictor.artifact_store = orig_store
 
     assert response.status_code == 200
     data = response.json()
