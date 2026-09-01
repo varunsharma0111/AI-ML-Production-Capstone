@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock
+from uuid import uuid4
 
 import pytest
 from botocore.exceptions import ClientError
