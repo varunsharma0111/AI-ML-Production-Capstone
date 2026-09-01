@@ -10,14 +10,14 @@ from datetime import UTC, datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from uuid import UUID
 
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, generate_latest
+
 from app.core.config import get_settings
 from app.core.logging import configure_logging
 from app.core.redis import RedisManager
 from app.db.repositories.jobs import JobRepository
 from app.db.session import create_database_engine, create_session_factory
 from app.domains.jobs.types import JobStatus
-from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, generate_latest
-
 from services.worker.runner import JobRunner
 
 logger = logging.getLogger(__name__)
