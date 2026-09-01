@@ -5,7 +5,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, HttpUrl, field_validator
+from pydantic import Field, HttpUrl, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -21,6 +21,7 @@ class Settings(BaseSettings):
     app_env: Literal["local", "test", "staging", "production"] = "local"
     app_name: str = "AI/ML Production Capstone API"
     log_level: str = "INFO"
+    dev_auth_mode: bool = Field(default=False)
     database_url: str = Field(default="postgresql+asyncpg://localhost/capstone")
     database_pool_size: int = Field(default=5, ge=1, le=20)
     database_max_overflow: int = Field(default=5, ge=0, le=20)
@@ -36,6 +37,13 @@ class Settings(BaseSettings):
     )
     allowed_jwt_algorithms: tuple[str, ...] = ("RS256",)
     cors_origins: str = "*"
+
+    @model_validator(mode="after")
+    def validate_dev_auth_mode(self) -> Settings:
+        if self.app_env == "production" and self.dev_auth_mode:
+            msg = "DEV_AUTH_MODE cannot be enabled in production environment."
+            raise ValueError(msg)
+        return self
 
     # Storage & Artifact Settings
     storage_backend: Literal["local", "s3"] = "local"

@@ -2,15 +2,51 @@
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# Ensure workspace root and apps/api directory are present in sys.path
+_ROOT = Path(__file__).resolve().parent.parent.parent
+_API_DIR = _ROOT / "apps" / "api"
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+if str(_API_DIR) not in sys.path:
+    sys.path.insert(0, str(_API_DIR))
+
+# ruff: noqa: E402
+
 import asyncio
 import logging
 import signal
 import threading
 from datetime import UTC, datetime
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from typing import Any
 from uuid import UUID
 
-from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, generate_latest
+try:
+    from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, generate_latest
+    PROMETHEUS_AVAILABLE = True
+except ImportError:
+    PROMETHEUS_AVAILABLE = False
+    CONTENT_TYPE_LATEST = "text/plain"
+
+    class _DummyMetric:
+        def __init__(self, *args: object, **kwargs: object) -> None:
+            pass
+
+        def inc(self, *args: object, **kwargs: object) -> None:
+            pass
+
+        def set(self, *args: object, **kwargs: object) -> None:
+            pass
+
+    Counter = Gauge = _DummyMetric  # type: ignore[misc,assignment]
+
+    def generate_latest(registry: Any = None, escaping: str = "") -> bytes:  # type: ignore[misc]
+        return b"# prometheus_client not installed\n"
+
+
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.core.config import get_settings

@@ -2,6 +2,19 @@
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
+# Ensure workspace root and apps/api directory are present in sys.path
+_ROOT = Path(__file__).resolve().parent.parent.parent
+_API_DIR = Path(__file__).resolve().parent.parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+if str(_API_DIR) not in sys.path:
+    sys.path.insert(0, str(_API_DIR))
+
+# ruff: noqa: E402
+
 import logging
 import time
 from contextlib import asynccontextmanager
@@ -110,6 +123,7 @@ def create_app(
         await engine.dispose()
 
     app = FastAPI(title=resolved_settings.app_name, lifespan=lifespan)
+    app.state.settings = resolved_settings
     app.state.session_factory = create_session_factory(engine)
     app.state.token_verifier = token_verifier or JwtVerifier(resolved_settings)
     app.state.redis_manager = redis_manager

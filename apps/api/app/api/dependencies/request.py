@@ -40,11 +40,34 @@ def get_request_id(request: Request) -> str:
 
 
 def get_authenticated_principal(
+    request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     verifier: JwtVerifier = Depends(get_token_verifier),
 ) -> Principal:
+    settings = getattr(request.app.state, "settings", None)
+    if settings is None:
+        try:
+            from app.core.config import get_settings
+
+            settings = get_settings()
+        except Exception:
+            settings = None
+
+    is_dev_auth = (
+        settings is not None
+        and getattr(settings, "dev_auth_mode", False)
+        and getattr(settings, "app_env", "production") != "production"
+    )
+
     if credentials is None or credentials.scheme.lower() != "bearer":
+        if is_dev_auth:
+            return Principal(
+                subject="dev-user-123",
+                email="dev.user@example.com",
+                display_name="Dev Demo User",
+            )
         raise AuthenticationError("A bearer access token is required.")
+
     return verifier.verify(credentials.credentials)
 
 

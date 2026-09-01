@@ -4,9 +4,37 @@ from __future__ import annotations
 
 import time
 from collections.abc import Awaitable, Callable
+from typing import Any
 
 from fastapi import FastAPI, Request, Response
-from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, Histogram, generate_latest
+
+try:
+    from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, Histogram, generate_latest
+    PROMETHEUS_AVAILABLE = True
+except ImportError:
+    PROMETHEUS_AVAILABLE = False
+    CONTENT_TYPE_LATEST = "text/plain"
+
+    class _DummyMetric:
+        def __init__(self, *args: object, **kwargs: object) -> None:
+            pass
+
+        def inc(self, *args: object, **kwargs: object) -> None:
+            pass
+
+        def set(self, *args: object, **kwargs: object) -> None:
+            pass
+
+        def observe(self, *args: object, **kwargs: object) -> None:
+            pass
+
+        def labels(self, *args: object, **kwargs: object) -> _DummyMetric:
+            return self
+
+    Counter = Gauge = Histogram = _DummyMetric  # type: ignore[misc,assignment]
+
+    def generate_latest(registry: Any = None, escaping: str = "") -> bytes:  # type: ignore[misc]
+        return b"# prometheus_client not installed\n"
 
 # HTTP API Metrics
 HTTP_REQUESTS_TOTAL = Counter(

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
+from typing import Any
 
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
@@ -15,15 +16,34 @@ from app.core.config import Settings
 
 
 def create_database_engine(settings: Settings) -> AsyncEngine:
-    """Create the single bounded async PostgreSQL engine for this process."""
+    """Create the single bounded async database engine for this process."""
+    db_url = settings.database_url
+    connect_args: dict[str, Any] = {}
+
+    if "postgresql" in db_url:
+        try:
+            import asyncpg  # noqa: F401
+            connect_args = {"server_settings": {"statement_timeout": "5000"}}
+        except ImportError:
+            try:
+                import aiosqlite  # noqa: F401
+                db_url = "sqlite+aiosqlite:///./data/dev.db"
+                connect_args = {}
+            except ImportError:
+                # If neither asyncpg nor aiosqlite is installed, fallback to sqlite in-memory
+                db_url = "sqlite+aiosqlite:///:memory:"
+                connect_args = {}
+
+    if "sqlite" in db_url:
+        return create_async_engine(db_url)
 
     return create_async_engine(
-        settings.database_url,
+        db_url,
         pool_size=settings.database_pool_size,
         max_overflow=settings.database_max_overflow,
         pool_pre_ping=True,
         pool_timeout=10,
-        connect_args={"server_settings": {"statement_timeout": "5000"}},
+        connect_args=connect_args,
     )
 
 

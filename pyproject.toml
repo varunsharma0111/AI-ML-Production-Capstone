@@ -60,6 +60,10 @@ mypy_path = "apps/api"
 files = ["apps/api", "services", "tests"]
 exclude = ["^\\.venv/"]
 
+[[tool.mypy.overrides]]
+module = ["asyncpg.*", "boto3.*", "botocore.*"]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 pythonpath = [".", "apps/api"]
 testpaths = ["tests"]

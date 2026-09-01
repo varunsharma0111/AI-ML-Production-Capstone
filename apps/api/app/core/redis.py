@@ -34,7 +34,7 @@ class RedisManager:
         if self._client is None:
             return False
         try:
-            res = await self._client.ping()
+            res = await self._client.ping()  # type: ignore[misc]
             return bool(res)
         except Exception:
             return False
@@ -55,7 +55,7 @@ class RedisManager:
                 socket_timeout=5.0,
             )
             self._client = Redis(connection_pool=self._pool)
-            await self._client.ping()
+            await self._client.ping()  # type: ignore[misc]
             self._is_connected = True
             logger.info("Successfully connected to Redis server.")
             return True

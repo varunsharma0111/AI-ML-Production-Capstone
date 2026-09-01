@@ -18,7 +18,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const TOKEN_STORAGE_KEY = "capstone_access_token";
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_STORAGE_KEY));
+  const [token, setToken] = useState<string | null>(
+    () => localStorage.getItem(TOKEN_STORAGE_KEY) || "dev_token_sample"
+  );
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);

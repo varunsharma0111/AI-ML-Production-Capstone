@@ -40,6 +40,9 @@ OIDC_ISSUER=https://auth.auraml.com/
 OIDC_AUDIENCE=auraml-api
 OIDC_JWKS_URL=https://auth.auraml.com/.well-known/jwks.json
 
+# Development Auth Mode (Local Dev Only - Defaults to false; fails closed in production)
+DEV_AUTH_MODE=false
+
 # Security & CORS
 CORS_ORIGINS=https://app.auraml.com
 ```

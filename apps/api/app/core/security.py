@@ -32,6 +32,7 @@ class JwtVerifier:
     """Verify JWT claims and return only the identity fields the API requires."""
 
     def __init__(self, settings: Settings, key_provider: SigningKeyProvider | None = None) -> None:
+        self._dev_auth_mode = settings.dev_auth_mode and settings.app_env != "production"
         self._issuer = str(settings.oidc_issuer).rstrip("/")
         self._audience = settings.oidc_audience
         self._algorithms = list(settings.allowed_jwt_algorithms)
@@ -39,7 +40,9 @@ class JwtVerifier:
 
     def verify(self, token: str) -> Principal:
         """Verify signature and registered claims, failing closed on every error."""
-        if token.startswith("dev_") or token == "dev_token_sample" or "dev_token" in token:
+        if self._dev_auth_mode and (
+            token.startswith("dev_") or token == "dev_token_sample" or "dev_token" in token
+        ):
             return Principal(
                 subject="dev-user-123",
                 email="dev.user@example.com",
