@@ -24,8 +24,12 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self._local_buckets: dict[str, list[float]] = defaultdict(list)
 
     async def dispatch(self, request: Request, call_next: Any) -> Response:
-        # Skip health check & metrics endpoints
-        if request.url.path in ("/health/live", "/health/ready", "/metrics"):
+        # Skip health check, metrics endpoints, and OPTIONS preflight requests
+        if request.method == "OPTIONS" or request.url.path in (
+            "/health/live",
+            "/health/ready",
+            "/metrics",
+        ):
             return cast(Response, await call_next(request))
 
         # 1. Enforce payload size limit for upload requests

@@ -115,13 +115,17 @@ def create_app(
     from fastapi.middleware.cors import CORSMiddleware
 
     origins = [o.strip() for o in resolved_settings.cors_origins.split(",") if o.strip()]
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=origins,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    cors_kwargs: dict[str, Any] = {
+        "allow_credentials": True,
+        "allow_methods": ["*"],
+        "allow_headers": ["*"],
+    }
+    if "*" in origins:
+        cors_kwargs["allow_origin_regex"] = r".*"
+    else:
+        cors_kwargs["allow_origins"] = origins
+
+    app.add_middleware(CORSMiddleware, **cors_kwargs)
 
     @app.exception_handler(DomainError)
     async def handle_domain_error(request: Request, error: DomainError) -> JSONResponse:

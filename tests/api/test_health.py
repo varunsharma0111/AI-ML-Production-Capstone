@@ -80,3 +80,23 @@ async def test_readiness_endpoint_database_failure(test_settings: Settings) -> N
     assert data["code"] == "dependency_unavailable"
     assert data["status"] == 503
     assert "database" in data["detail"]
+
+
+@pytest.mark.asyncio
+async def test_cors_options_preflight_success(test_settings: Settings) -> None:
+    app = create_app(settings=test_settings)
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        response = await client.options(
+            "/api/v1/workspaces/11111111-1111-1111-1111-111111111111/operations/dashboard",
+            headers={
+                "Origin": "http://localhost:3000",
+                "Access-Control-Request-Method": "GET",
+                "Access-Control-Request-Headers": "authorization",
+            },
+        )
+
+    assert response.status_code == 200
+    assert response.headers.get("access-control-allow-origin") == "http://localhost:3000"
+    assert response.headers.get("access-control-allow-credentials") == "true"
