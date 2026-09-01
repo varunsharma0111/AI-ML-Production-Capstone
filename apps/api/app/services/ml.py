@@ -383,10 +383,16 @@ class MLService:
                 accuracy=evaluation.accuracy,
                 f1_score=evaluation.f1_score,
                 accuracy_threshold=float(
-                    cast(Any, meta.get("accuracy_threshold", DEFAULT_ACCURACY_THRESHOLD))
+                    cast(
+                        Any,
+                        meta.get("accuracy_threshold", DEFAULT_ACCURACY_THRESHOLD),
+                    )
                 ),
                 f1_threshold=float(
-                    cast(Any, meta.get("f1_threshold", DEFAULT_F1_SCORE_THRESHOLD))
+                    cast(
+                        Any,
+                        meta.get("f1_threshold", DEFAULT_F1_SCORE_THRESHOLD),
+                    )
                 ),
                 failure_reasons=cast(list[str], meta.get("failure_reasons", [])),
                 evaluated_at=evaluation.evaluated_at,

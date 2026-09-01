@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
@@ -10,8 +11,6 @@ from uuid import uuid4
 import httpx
 import pytest
 from fastapi import FastAPI
-
-from pathlib import Path
 
 from app.core.config import Settings
 from app.db.models.entities import ModelVersion, User, WorkspaceMembership
