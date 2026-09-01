@@ -60,6 +60,7 @@ export const TaskList: React.FC = () => {
   ];
 
   const fetchTasks = useCallback(async () => {
+    if (!activeWorkspace?.id) return;
     setIsLoading(true);
     setProblem(null);
     try {

@@ -66,6 +66,9 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     if (validStoredWorkspace) {
       setActiveWorkspaceState(validStoredWorkspace);
     } else {
+      if (storedId) {
+        localStorage.removeItem(STORAGE_KEY);
+      }
       const defaultWs = availableWorkspaces[0];
       setActiveWorkspaceState(defaultWs);
       localStorage.setItem(STORAGE_KEY, defaultWs.id);

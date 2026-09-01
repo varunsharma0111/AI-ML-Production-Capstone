@@ -39,6 +39,7 @@ export const ModelRegistryList: React.FC<ModelRegistryListProps> = ({ onRunInfer
   }, [activeWorkspace.id]);
 
   const fetchModels = async () => {
+    if (!activeWorkspace?.id) return;
     setIsLoading(true);
     try {
       const data = await request<ModelVersion[]>(

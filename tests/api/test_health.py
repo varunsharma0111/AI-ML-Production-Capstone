@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock
+from uuid import uuid4
 
 import httpx
 import pytest
@@ -89,7 +90,7 @@ async def test_cors_options_preflight_success(test_settings: Settings) -> None:
         transport=httpx.ASGITransport(app=app), base_url="http://test"
     ) as client:
         response = await client.options(
-            "/api/v1/workspaces/11111111-1111-1111-1111-111111111111/operations/dashboard",
+            f"/api/v1/workspaces/{uuid4()}/operations/dashboard",
             headers={
                 "Origin": "http://localhost:3000",
                 "Access-Control-Request-Method": "GET",

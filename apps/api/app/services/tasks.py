@@ -114,16 +114,6 @@ class TaskService:
             session, workspace_id, user.id, principal
         )
         if membership is None:
-            role_map = {
-                UUID("11111111-1111-1111-1111-111111111111"): "owner",
-                UUID("22222222-2222-2222-2222-222222222222"): "editor",
-                UUID("33333333-3333-3333-3333-333333333333"): "viewer",
-            }
-            if principal.subject.startswith("dev-") or workspace_id in role_map:
-                effective_role = role_map.get(workspace_id, "owner")
-                require_permission(effective_role, permission)
-                return user
-
             from app.core.errors import AuthorizationError
 
             raise AuthorizationError()

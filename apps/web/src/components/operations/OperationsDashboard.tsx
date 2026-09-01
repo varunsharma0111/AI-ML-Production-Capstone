@@ -55,6 +55,7 @@ export const OperationsDashboard: React.FC = () => {
   const [problem, setProblem] = useState<ProblemDetails | null>(null);
 
   const fetchTelemetry = async () => {
+    if (!activeWorkspace?.id) return;
     setIsLoading(true);
     setProblem(null);
     try {

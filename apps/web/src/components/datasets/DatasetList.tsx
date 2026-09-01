@@ -35,6 +35,7 @@ export const DatasetList: React.FC = () => {
   const [selectedDataset, setSelectedDataset] = useState<Dataset | null>(null);
 
   const fetchDatasets = useCallback(async () => {
+    if (!activeWorkspace?.id) return;
     setIsLoading(true);
     setProblem(null);
     try {

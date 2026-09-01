@@ -39,6 +39,7 @@ export const TrainingJobList: React.FC<TrainingJobListProps> = ({
   }, [activeWorkspace.id, refreshTrigger]);
 
   const fetchJobs = async () => {
+    if (!activeWorkspace?.id) return;
     try {
       const data = await request<JobListResponse>(
         `/api/v1/workspaces/${activeWorkspace.id}/jobs?offset=0&limit=50`,
