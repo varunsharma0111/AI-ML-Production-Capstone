@@ -63,7 +63,7 @@ async def test_current_user_success(test_settings: Settings) -> None:
     mock_principal = Principal(
         subject="sub_999", email="user999@example.com", display_name="User Nine Nine Nine"
     )
-    mock_verifier.verify.return_value = mock_principal
+    mock_verifier.verify = AsyncMock(return_value=mock_principal)
 
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
 
