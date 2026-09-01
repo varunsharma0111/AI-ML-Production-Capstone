@@ -86,7 +86,7 @@ async def test_current_user_success(test_settings: Settings) -> None:
     mock_user_result.scalar_one_or_none.return_value = db_user
 
     mock_mem_result = MagicMock()
-    mock_mem_result.scalars.return_value.all.return_value = []
+    mock_mem_result.scalars.return_value.all.return_value = [MagicMock(role="owner")]
 
     mock_ws_result = MagicMock()
     mock_ws_result.all.return_value = []

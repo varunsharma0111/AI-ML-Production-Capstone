@@ -46,13 +46,29 @@ class IdentityRepository:
                 select(WorkspaceMembership).where(WorkspaceMembership.user_id == user.id)
             )
             memberships = mem_result.scalars().all()
-            updated = False
-            for m in memberships:
-                if m.role != "owner":
-                    m.role = "owner"
-                    updated = True
-            if updated:
+            if not memberships:
+                ws_result = await session.execute(select(Workspace))
+                workspaces = ws_result.scalars().all()
+                if not workspaces:
+                    new_ws = Workspace(slug="default", name="Default Workspace")
+                    session.add(new_ws)
+                    await session.flush()
+                    await session.refresh(new_ws)
+                    workspaces = [new_ws]
+
+                for ws in workspaces:
+                    session.add(
+                        WorkspaceMembership(workspace_id=ws.id, user_id=user.id, role="owner")
+                    )
                 await session.flush()
+            else:
+                updated = False
+                for m in memberships:
+                    if m.role != "owner":
+                        m.role = "owner"
+                        updated = True
+                if updated:
+                    await session.flush()
 
         return user
 

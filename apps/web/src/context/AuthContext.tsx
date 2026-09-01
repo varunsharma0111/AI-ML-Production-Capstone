@@ -31,6 +31,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     subject: "dev-user-123",
     email: "dev.user@example.com",
     display_name: "Dev Demo User",
+    workspaces: [
+      {
+        id: "22222222-2222-2222-2222-222222222222",
+        slug: "default",
+        name: "Default Workspace",
+        role: "owner",
+      },
+    ],
   };
 
   const fetchCurrentUser = async (authToken: string) => {
