@@ -252,7 +252,9 @@ class JobService:
         permission: Permission,
     ) -> User:
         user = await self._identity_repository.get_or_create_user(session, principal)
-        membership = await self._identity_repository.get_membership(session, workspace_id, user.id)
+        membership = await self._identity_repository.get_membership(
+            session, workspace_id, user.id, principal
+        )
         if membership is None:
             from app.core.errors import AuthorizationError
 

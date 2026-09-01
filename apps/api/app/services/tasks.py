@@ -110,7 +110,9 @@ class TaskService:
         permission: Permission,
     ) -> User:
         user = await self._identity_repository.get_or_create_user(session, principal)
-        membership = await self._identity_repository.get_membership(session, workspace_id, user.id)
+        membership = await self._identity_repository.get_membership(
+            session, workspace_id, user.id, principal
+        )
         if membership is None:
             role_map = {
                 UUID("11111111-1111-1111-1111-111111111111"): "owner",

@@ -74,7 +74,7 @@ class AgentService:
         async with session.begin():
             user = await self._identity_repository.get_or_create_user(session, principal)
             membership = await self._identity_repository.get_membership(
-                session, payload.workspace_id, user.id
+                session, payload.workspace_id, user.id, principal
             )
             if membership is None:
                 raise AuthorizationError("You are not a member of this workspace.")

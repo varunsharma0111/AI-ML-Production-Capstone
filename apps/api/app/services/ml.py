@@ -60,7 +60,9 @@ class MLService:
         required_permission: Permission,
     ) -> tuple[User, WorkspaceMembership]:
         user = await self._identity_repository.get_or_create_user(session, principal)
-        membership = await self._identity_repository.get_membership(session, workspace_id, user.id)
+        membership = await self._identity_repository.get_membership(
+            session, workspace_id, user.id, principal
+        )
         if membership is None:
             raise AuthorizationError("You are not a member of this workspace.")
         require_permission(membership.role, required_permission)

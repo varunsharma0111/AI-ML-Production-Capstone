@@ -22,11 +22,18 @@ from app.db.models.entities import (
     User,
     WorkspaceMembership,
 )
+from app.db.repositories.identity import IdentityRepository
 from app.domains.identity.policy import Permission, require_permission
 from app.domains.identity.principal import Principal
 
 
 class OperationsService:
+    def __init__(
+        self,
+        identity_repository: IdentityRepository | None = None,
+    ) -> None:
+        self._identity_repository = identity_repository or IdentityRepository()
+
     async def _authorized_user(
         self,
         session: AsyncSession,
@@ -34,20 +41,10 @@ class OperationsService:
         workspace_id: UUID,
         required_permission: Permission = Permission.WORKSPACE_READ,
     ) -> tuple[User, WorkspaceMembership]:
-        user_result = await session.execute(
-            select(User).where(User.oidc_subject == principal.subject)
+        user = await self._identity_repository.get_or_create_user(session, principal)
+        membership = await self._identity_repository.get_membership(
+            session, workspace_id, user.id, principal
         )
-        user = user_result.scalar_one_or_none()
-        if user is None:
-            raise AuthorizationError("User profile not found.")
-
-        membership_result = await session.execute(
-            select(WorkspaceMembership).where(
-                WorkspaceMembership.workspace_id == workspace_id,
-                WorkspaceMembership.user_id == user.id,
-            )
-        )
-        membership = membership_result.scalar_one_or_none()
         if membership is None:
             raise AuthorizationError("Access denied: Not a member of workspace.")
 
