@@ -56,7 +56,7 @@ async def test_identity_repository_get_or_create_user_new() -> None:
     assert user.email == "new@example.com"
     assert user.display_name == "New User"
     mock_session.add.assert_called_once_with(user)
-    mock_session.flush.assert_awaited_once()
+    assert mock_session.flush.await_count == 2
 
 
 @pytest.mark.asyncio
