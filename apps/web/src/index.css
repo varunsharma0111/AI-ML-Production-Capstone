@@ -626,7 +626,13 @@ code, pre {
   animation: spin 0.8s linear infinite;
 }
 
-/* Mobile Responsiveness */
+/* Mobile & Laptop Responsiveness */
+@media (min-width: 901px) {
+  .mobile-menu-toggle {
+    display: none !important;
+  }
+}
+
 @media (max-width: 900px) {
   .aura-sidebar {
     position: fixed;
@@ -642,7 +648,44 @@ code, pre {
     transform: translateX(0);
   }
 
+  .aura-sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    top: 60px;
+    z-index: 44;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    animation: fadeIn 150ms ease-out;
+  }
+
   .aura-main {
     padding: 1.25rem;
   }
 }
+
+@media (max-width: 640px) {
+  .aura-modal-backdrop {
+    padding: 0.5rem;
+  }
+
+  .aura-modal {
+    max-height: 96vh;
+    border-radius: var(--radius-md);
+  }
+
+  .header-role-badge,
+  .header-workspace-label,
+  .header-subtitle {
+    display: none !important;
+  }
+
+  .aura-main {
+    padding: 0.875rem 0.625rem;
+  }
+
+  .aura-table-container {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+

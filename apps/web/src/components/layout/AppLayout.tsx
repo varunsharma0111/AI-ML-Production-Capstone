@@ -144,6 +144,15 @@ export const AppLayout: React.FC = () => {
       />
 
       <div style={{ display: "flex", flex: 1, position: "relative" }}>
+        {/* Mobile Sidebar Backdrop Overlay */}
+        {isMobileMenuOpen && (
+          <div
+            className="aura-sidebar-backdrop"
+            onClick={() => setIsMobileMenuOpen(false)}
+            aria-hidden="true"
+          />
+        )}
+
         {/* Left Sidebar Navigation */}
         <aside
           aria-label="Main Platform Sidebar Navigation"
@@ -223,7 +232,7 @@ export const AppLayout: React.FC = () => {
                 <IconChevronRight size={14} />
               </li>
               <li style={{ color: "var(--text-secondary)", fontWeight: 500 }}>
-                {activeWorkspace.name}
+                {activeWorkspace?.name || "Workspace"}
               </li>
               <li>
                 <IconChevronRight size={14} />
@@ -236,27 +245,41 @@ export const AppLayout: React.FC = () => {
           </nav>
 
           {/* Section Renderers */}
-          {activeSection === "overview" && <OperationsDashboard />}
-          {activeSection === "datasets" && <DatasetList />}
-          {activeSection === "training" && (
-            <TrainingJobList
-              onOpenTrainModal={() => setIsTrainModalOpen(true)}
-              refreshTrigger={refreshTrigger}
-            />
-          )}
-          {activeSection === "models" && <ModelRegistryList onRunInference={handleOpenSandbox} />}
-          {activeSection === "compare" && <ModelComparisonView />}
-          {activeSection === "sandbox" && <InferenceSandbox initialModelId={selectedSandboxModelId} />}
-          {activeSection === "predictions" && <PredictionHistory />}
-          {activeSection === "agent" && <AgentWorkspace />}
-          {activeSection === "tasks" && <TaskList />}
-          {activeSection === "audit" && <AuditLogViewer />}
+          {!activeWorkspace ? (
+            <div className="aura-empty-state" style={{ marginTop: "2rem" }}>
+              <div className="aura-empty-icon">
+                <IconBox size={24} />
+              </div>
+              <h3 style={{ margin: 0, color: "var(--text-primary)" }}>No Workspace Membership Found</h3>
+              <p style={{ margin: 0, maxWidth: "460px", textAlign: "center", color: "var(--text-secondary)" }}>
+                You are authenticated, but not currently assigned to any active workspaces. Contact your administrator or check system settings.
+              </p>
+            </div>
+          ) : (
+            <>
+              {activeSection === "overview" && <OperationsDashboard />}
+              {activeSection === "datasets" && <DatasetList />}
+              {activeSection === "training" && (
+                <TrainingJobList
+                  onOpenTrainModal={() => setIsTrainModalOpen(true)}
+                  refreshTrigger={refreshTrigger}
+                />
+              )}
+              {activeSection === "models" && <ModelRegistryList onRunInference={handleOpenSandbox} />}
+              {activeSection === "compare" && <ModelComparisonView />}
+              {activeSection === "sandbox" && <InferenceSandbox initialModelId={selectedSandboxModelId} />}
+              {activeSection === "predictions" && <PredictionHistory />}
+              {activeSection === "agent" && <AgentWorkspace />}
+              {activeSection === "tasks" && <TaskList />}
+              {activeSection === "audit" && <AuditLogViewer />}
 
-          <TrainingFormModal
-            isOpen={isTrainModalOpen}
-            onClose={() => setIsTrainModalOpen(false)}
-            onJobSubmitted={handleJobSubmitted}
-          />
+              <TrainingFormModal
+                isOpen={isTrainModalOpen}
+                onClose={() => setIsTrainModalOpen(false)}
+                onJobSubmitted={handleJobSubmitted}
+              />
+            </>
+          )}
         </main>
       </div>
     </div>

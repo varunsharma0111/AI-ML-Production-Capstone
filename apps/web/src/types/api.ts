@@ -22,6 +22,7 @@ export interface User {
   subject: string;
   email: string | null;
   display_name: string | null;
+  workspaces?: Workspace[];
 }
 
 export interface Workspace {

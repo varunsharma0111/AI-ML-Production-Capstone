@@ -1,11 +1,10 @@
-"""Data access for external users and workspace memberships."""
-
+from typing import Any
 from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.models.entities import User, WorkspaceMembership
+from app.db.models.entities import User, Workspace, WorkspaceMembership
 from app.domains.identity.principal import Principal
 
 
@@ -22,6 +21,23 @@ class IdentityRepository:
             session.add(user)
             await session.flush()
             await session.refresh(user)
+
+            # Auto-assign initial user memberships to available workspaces if any exist
+            ws_result = await session.execute(select(Workspace))
+            workspaces = ws_result.scalars().all()
+            if not workspaces:
+                # Create a default workspace for the user if database has none
+                new_ws = Workspace(slug="default", name="Default Workspace")
+                session.add(new_ws)
+                await session.flush()
+                await session.refresh(new_ws)
+                workspaces = [new_ws]
+
+            for ws in workspaces:
+                role = "owner" if ws.slug == "engineering" or ws.slug == "default" else ("editor" if ws.slug == "ml-research" else "viewer")
+                session.add(WorkspaceMembership(workspace_id=ws.id, user_id=user.id, role=role))
+            await session.flush()
+
         return user
 
     async def get_membership(
@@ -38,3 +54,23 @@ class IdentityRepository:
             )
         )
         return result.scalar_one_or_none()
+
+    async def get_user_workspaces(
+        self, session: AsyncSession, user_id: UUID
+    ) -> list[dict[str, Any]]:
+        stmt = (
+            select(Workspace.id, Workspace.slug, Workspace.name, WorkspaceMembership.role)
+            .join(WorkspaceMembership, Workspace.id == WorkspaceMembership.workspace_id)
+            .where(WorkspaceMembership.user_id == user_id)
+        )
+        result = await session.execute(stmt)
+        return [
+            {
+                "id": row[0],
+                "slug": row[1],
+                "name": row[2],
+                "role": row[3],
+            }
+            for row in result.all()
+        ]
+

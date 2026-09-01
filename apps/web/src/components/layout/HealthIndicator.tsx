@@ -15,8 +15,15 @@ export const HealthIndicator: React.FC = () => {
           setStatus(res.status === "ok" ? "ready" : "unavailable");
         }
       } catch {
-        if (isMounted) {
-          setStatus("unavailable");
+        try {
+          const liveRes = await request<HealthCheckResponse>("/health/live");
+          if (isMounted) {
+            setStatus(liveRes.status === "ok" ? "ready" : "unavailable");
+          }
+        } catch {
+          if (isMounted) {
+            setStatus("unavailable");
+          }
         }
       }
     };

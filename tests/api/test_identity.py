@@ -82,9 +82,13 @@ async def test_current_user_success(test_settings: Settings) -> None:
     begin_cm.__aexit__ = AsyncMock(return_value=None)
     mock_session.begin = MagicMock(return_value=begin_cm)
 
-    mock_result = MagicMock()
-    mock_result.scalar_one_or_none.return_value = db_user
-    mock_session.execute.return_value = mock_result
+    mock_user_result = MagicMock()
+    mock_user_result.scalar_one_or_none.return_value = db_user
+
+    mock_ws_result = MagicMock()
+    mock_ws_result.all.return_value = []
+
+    mock_session.execute.side_effect = [mock_user_result, mock_ws_result]
 
     mock_context = MagicMock()
     mock_context.__aenter__ = AsyncMock(return_value=mock_session)
@@ -103,3 +107,4 @@ async def test_current_user_success(test_settings: Settings) -> None:
     assert data["subject"] == "sub_999"
     assert data["email"] == "user999@example.com"
     assert data["display_name"] == "User Nine Nine Nine"
+    assert "workspaces" in data

@@ -1,33 +1,15 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { Permission, Workspace, WorkspaceRole } from "../types/api";
+import { useAuth } from "./AuthContext";
 
 interface WorkspaceContextType {
-  activeWorkspace: Workspace;
+  activeWorkspace: Workspace | null;
   availableWorkspaces: Workspace[];
   setActiveWorkspace: (workspace: Workspace) => void;
   hasPermission: (permission: Permission) => boolean;
 }
 
-const DEFAULT_WORKSPACES: Workspace[] = [
-  {
-    id: "11111111-1111-1111-1111-111111111111",
-    slug: "engineering",
-    name: "Engineering Workspace (Owner)",
-    role: "owner",
-  },
-  {
-    id: "22222222-2222-2222-2222-222222222222",
-    slug: "ml-research",
-    name: "ML Research Workspace (Editor)",
-    role: "editor",
-  },
-  {
-    id: "33333333-3333-3333-3333-333333333333",
-    slug: "auditors",
-    name: "Audit Workspace (Viewer)",
-    role: "viewer",
-  },
-];
+const STORAGE_KEY = "auraml_selected_workspace_id";
 
 const ROLE_PERMISSIONS: Record<WorkspaceRole, Set<Permission>> = {
   owner: new Set<Permission>([
@@ -37,6 +19,9 @@ const ROLE_PERMISSIONS: Record<WorkspaceRole, Set<Permission>> = {
     "task:update",
     "dataset:create",
     "dataset:read",
+    "model:evaluate",
+    "model:promote",
+    "model:read",
   ]),
   editor: new Set<Permission>([
     "workspace:read",
@@ -45,16 +30,52 @@ const ROLE_PERMISSIONS: Record<WorkspaceRole, Set<Permission>> = {
     "task:update",
     "dataset:create",
     "dataset:read",
+    "model:evaluate",
+    "model:promote",
+    "model:read",
   ]),
-  viewer: new Set<Permission>(["workspace:read", "task:read", "dataset:read"]),
+  viewer: new Set<Permission>(["workspace:read", "task:read", "dataset:read", "model:read"]),
 };
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
 
 export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [activeWorkspace, setActiveWorkspace] = useState<Workspace>(DEFAULT_WORKSPACES[0]);
+  const { user } = useAuth();
+  const availableWorkspaces = user?.workspaces || [];
+
+  const [activeWorkspace, setActiveWorkspaceState] = useState<Workspace | null>(null);
+
+  useEffect(() => {
+    if (!availableWorkspaces || availableWorkspaces.length === 0) {
+      setActiveWorkspaceState(null);
+      return;
+    }
+
+    const storedId = localStorage.getItem(STORAGE_KEY);
+    const validStoredWorkspace = storedId
+      ? availableWorkspaces.find((w) => w.id === storedId)
+      : null;
+
+    if (validStoredWorkspace) {
+      setActiveWorkspaceState(validStoredWorkspace);
+    } else {
+      const defaultWs = availableWorkspaces[0];
+      setActiveWorkspaceState(defaultWs);
+      localStorage.setItem(STORAGE_KEY, defaultWs.id);
+    }
+  }, [user?.id, JSON.stringify(availableWorkspaces)]);
+
+  const setActiveWorkspace = (workspace: Workspace) => {
+    // Security check: Verify workspace belongs to user's memberships before activating
+    const isValid = availableWorkspaces.some((w) => w.id === workspace.id);
+    if (isValid) {
+      setActiveWorkspaceState(workspace);
+      localStorage.setItem(STORAGE_KEY, workspace.id);
+    }
+  };
 
   const hasPermission = (permission: Permission): boolean => {
+    if (!activeWorkspace) return false;
     const permissions = ROLE_PERMISSIONS[activeWorkspace.role];
     return permissions ? permissions.has(permission) : false;
   };
@@ -63,7 +84,7 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     <WorkspaceContext.Provider
       value={{
         activeWorkspace,
-        availableWorkspaces: DEFAULT_WORKSPACES,
+        availableWorkspaces,
         setActiveWorkspace,
         hasPermission,
       }}

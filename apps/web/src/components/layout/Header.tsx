@@ -52,6 +52,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateHome, onToggleMobileMe
           {onToggleMobileMenu && (
             <button
               onClick={onToggleMobileMenu}
+              className="mobile-menu-toggle"
               aria-label="Toggle Navigation Menu"
               style={{
                 background: "transparent",
@@ -117,7 +118,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateHome, onToggleMobileMe
                   Enterprise
                 </span>
               </div>
-              <span style={{ fontSize: "0.71875rem", color: "var(--text-muted)", display: "block", marginTop: "-1px" }}>
+              <span className="header-subtitle" style={{ fontSize: "0.71875rem", color: "var(--text-muted)", display: "block", marginTop: "-1px" }}>
                 AI/ML Production Platform
               </span>
             </div>
@@ -129,12 +130,12 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateHome, onToggleMobileMe
           <HealthIndicator />
 
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <label htmlFor="header-workspace-select" style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 600 }}>
+            <label htmlFor="header-workspace-select" className="header-workspace-label" style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontWeight: 600 }}>
               Workspace:
             </label>
             <select
               id="header-workspace-select"
-              value={activeWorkspace.id}
+              value={activeWorkspace?.id || ""}
               onChange={(e) => {
                 const ws = availableWorkspaces.find((w) => w.id === e.target.value);
                 if (ws) setActiveWorkspace(ws);
@@ -155,9 +156,13 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateHome, onToggleMobileMe
             </select>
           </div>
 
-          <Badge variant={activeWorkspace.role} size="sm">
-            Role: {activeWorkspace.role}
-          </Badge>
+          {activeWorkspace && (
+            <div className="header-role-badge">
+              <Badge variant={activeWorkspace.role} size="sm">
+                Role: {activeWorkspace.role}
+              </Badge>
+            </div>
+          )}
 
           {/* Dark / Light Theme Toggle */}
           <button

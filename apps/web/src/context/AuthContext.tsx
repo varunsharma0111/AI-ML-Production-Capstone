@@ -37,20 +37,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     setError(null);
 
-    // Dev tokens bypass the API entirely for instant demo login
-    if (isDevToken(authToken)) {
-      setUser(DEV_USER);
-      setIsLoading(false);
-      return;
-    }
-
     try {
       const currentUser = await request<User>("/api/v1/me", { token: authToken });
       setUser(currentUser);
     } catch (err: unknown) {
-      console.error("Failed to authenticate principal:", err);
-      setError("Session expired or token invalid.");
-      logout();
+      console.error("Failed to authenticate principal via /me:", err);
+      // Fallback for dev demonstration if API is unreachable
+      if (isDevToken(authToken)) {
+        setUser(DEV_USER);
+      } else {
+        setError("Session expired or token invalid.");
+        logout();
+      }
     } finally {
       setIsLoading(false);
     }
