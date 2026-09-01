@@ -18,7 +18,7 @@ from app.main import create_app
 @pytest.fixture
 def test_settings() -> Settings:
     return Settings(
-        database_url="postgresql+asyncpg://postgres:postgres@localhost:5432/capstone_test",
+        database_url="sqlite+aiosqlite:///:memory:",
         oidc_issuer="https://issuer.example.com/",
         oidc_audience="ai-ml-production-capstone-api",
         oidc_jwks_url="https://issuer.example.com/.well-known/jwks.json",

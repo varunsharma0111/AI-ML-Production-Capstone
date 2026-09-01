@@ -62,8 +62,12 @@ class Settings(BaseSettings):
         elif value.startswith("postgresql://"):
             value = value.replace("postgresql://", "postgresql+asyncpg://", 1)
 
-        if not value.startswith("postgresql+asyncpg://"):
-            msg = "DATABASE_URL must use the postgresql+asyncpg scheme."
+        if not (
+            value.startswith("postgresql+asyncpg://")
+            or value.startswith("sqlite+aiosqlite://")
+            or value.startswith("sqlite://")
+        ):
+            msg = "DATABASE_URL must use postgresql+asyncpg or sqlite+aiosqlite scheme."
             raise ValueError(msg)
         if "sslmode=" in value:
             value = value.replace("sslmode=", "ssl=")

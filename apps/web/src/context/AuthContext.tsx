@@ -19,29 +19,11 @@ const TOKEN_STORAGE_KEY = "capstone_access_token";
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(
-    () => localStorage.getItem(TOKEN_STORAGE_KEY) || "dev_token_sample"
+    () => localStorage.getItem(TOKEN_STORAGE_KEY)
   );
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
-  const isDevToken = (t: string): boolean =>
-    t.startsWith("dev_") || t === "dev_token_sample" || t.includes("dev_token");
-
-  const DEV_USER: User = {
-    id: "00000000-0000-0000-0000-000000000001",
-    subject: "dev-user-123",
-    email: "dev.user@example.com",
-    display_name: "Dev Demo User",
-    workspaces: [
-      {
-        id: "22222222-2222-2222-2222-222222222222",
-        slug: "default",
-        name: "Default Workspace",
-        role: "owner",
-      },
-    ],
-  };
 
   const fetchCurrentUser = async (authToken: string) => {
     setIsLoading(true);
@@ -51,14 +33,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const currentUser = await request<User>("/api/v1/me", { token: authToken });
       setUser(currentUser);
     } catch (err: unknown) {
-      console.error("Failed to authenticate principal via /me:", err);
-      // Fallback for dev demonstration if API is unreachable
-      if (isDevToken(authToken)) {
-        setUser(DEV_USER);
-      } else {
-        setError("Session expired or token invalid.");
-        logout();
-      }
+      console.warn("Authentication via /me failed:", err);
+      setError("Session expired or token invalid.");
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+      setToken(null);
+      setUser(null);
     } finally {
       setIsLoading(false);
     }

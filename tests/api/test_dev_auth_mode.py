@@ -20,7 +20,7 @@ def test_production_fails_closed_when_dev_auth_mode_enabled() -> None:
         Settings(
             app_env="production",
             dev_auth_mode=True,
-            database_url="postgresql+asyncpg://postgres:postgres@localhost:5432/capstone_test",
+            database_url="sqlite+aiosqlite:///:memory:",
             oidc_issuer="https://issuer.example.com/",
             oidc_audience="ai-ml-production-capstone-api",
             oidc_jwks_url="https://issuer.example.com/.well-known/jwks.json",
@@ -31,7 +31,7 @@ def test_dev_auth_mode_defaults_to_false() -> None:
     """Verify DEV_AUTH_MODE defaults to False."""
     settings = Settings(
         app_env="local",
-        database_url="postgresql+asyncpg://postgres:postgres@localhost:5432/capstone_test",
+        database_url="sqlite+aiosqlite:///:memory:",
         oidc_issuer="https://issuer.example.com/",
         oidc_audience="ai-ml-production-capstone-api",
         oidc_jwks_url="https://issuer.example.com/.well-known/jwks.json",
@@ -45,7 +45,7 @@ async def test_production_mode_rejects_unauthenticated_request() -> None:
     settings = Settings(
         app_env="local",
         dev_auth_mode=False,
-        database_url="postgresql+asyncpg://postgres:postgres@localhost:5432/capstone_test",
+        database_url="sqlite+aiosqlite:///:memory:",
         oidc_issuer="https://issuer.example.com/",
         oidc_audience="ai-ml-production-capstone-api",
         oidc_jwks_url="https://issuer.example.com/.well-known/jwks.json",
@@ -68,7 +68,7 @@ async def test_dev_auth_mode_resolves_deterministic_user() -> None:
     settings = Settings(
         app_env="local",
         dev_auth_mode=True,
-        database_url="postgresql+asyncpg://postgres:postgres@localhost:5432/capstone_test",
+        database_url="sqlite+aiosqlite:///:memory:",
         oidc_issuer="https://issuer.example.com/",
         oidc_audience="ai-ml-production-capstone-api",
         oidc_jwks_url="https://issuer.example.com/.well-known/jwks.json",
@@ -101,7 +101,7 @@ async def test_dev_auth_mode_non_member_workspace_access_returns_403() -> None:
     settings = Settings(
         app_env="local",
         dev_auth_mode=True,
-        database_url="postgresql+asyncpg://postgres:postgres@localhost:5432/capstone_test",
+        database_url="sqlite+aiosqlite:///:memory:",
         oidc_issuer="https://issuer.example.com/",
         oidc_audience="ai-ml-production-capstone-api",
         oidc_jwks_url="https://issuer.example.com/.well-known/jwks.json",

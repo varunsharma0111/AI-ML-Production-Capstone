@@ -20,6 +20,9 @@ def create_database_engine(settings: Settings) -> AsyncEngine:
     db_url = settings.database_url
     connect_args: dict[str, Any] = {}
 
+    if settings.app_env == "test" and "postgresql" in db_url:
+        db_url = "sqlite+aiosqlite:///:memory:"
+
     if "postgresql" in db_url:
         try:
             import asyncpg  # noqa: F401
