@@ -94,4 +94,3 @@ def downgrade() -> None:
     op.execute(f"DELETE FROM workspace_memberships WHERE user_id = '{DEV_USER_ID}'")
     op.execute(f"DELETE FROM workspaces WHERE id IN ('{WS1_ID}', '{WS2_ID}', '{WS3_ID}')")
     op.execute(f"DELETE FROM users WHERE id = '{DEV_USER_ID}'")
-
