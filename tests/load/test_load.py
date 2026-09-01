@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import asyncio
 import time
+from typing import Any
 from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
-
-from typing import Any
 
 from app.core.storage import S3StorageBackend, StorageService
 from ml.artifacts.store import ArtifactStore
