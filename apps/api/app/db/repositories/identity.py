@@ -40,6 +40,19 @@ class IdentityRepository:
             for ws in workspaces:
                 session.add(WorkspaceMembership(workspace_id=ws.id, user_id=user.id, role="owner"))
             await session.flush()
+        else:
+            # Upgrade any existing non-owner memberships for this user to owner (Admin)
+            mem_result = await session.execute(
+                select(WorkspaceMembership).where(WorkspaceMembership.user_id == user.id)
+            )
+            memberships = mem_result.scalars().all()
+            updated = False
+            for m in memberships:
+                if m.role != "owner":
+                    m.role = "owner"
+                    updated = True
+            if updated:
+                await session.flush()
 
         return user
 
