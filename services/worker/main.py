@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
 import asyncio
 import logging
 import signal
@@ -12,7 +11,6 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from uuid import UUID
 
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, generate_latest
-
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.core.config import get_settings

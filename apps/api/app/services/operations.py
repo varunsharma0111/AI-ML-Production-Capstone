@@ -12,6 +12,7 @@ from app.api.schemas.operations import (
     OperationsDashboardResponse,
     SystemMetricsSummary,
 )
+from app.core.errors import AuthorizationError
 from app.db.models.entities import (
     AuditEvent,
     Dataset,
@@ -21,7 +22,6 @@ from app.db.models.entities import (
     User,
     WorkspaceMembership,
 )
-from app.core.errors import AuthorizationError
 from app.domains.identity.policy import Permission, require_permission
 from app.domains.identity.principal import Principal
 
