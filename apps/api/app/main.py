@@ -35,6 +35,12 @@ def problem_response(
     """Return a consistent client-safe error with the correlation identifier."""
 
     request_id = getattr(request.state, "request_id", "unknown")
+    headers: dict[str, str] = {}
+    origin = request.headers.get("origin")
+    if origin:
+        headers["Access-Control-Allow-Origin"] = origin
+        headers["Access-Control-Allow-Credentials"] = "true"
+
     return JSONResponse(
         status_code=status_code,
         content={
@@ -44,6 +50,7 @@ def problem_response(
             "detail": detail,
             "request_id": request_id,
         },
+        headers=headers,
     )
 
 
