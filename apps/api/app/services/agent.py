@@ -538,8 +538,7 @@ class AgentService:
                 )
                 m_list = res.get("models", [])
                 m_lines = [
-                    f"- **{m['name']}** (`{m['version_tag']}`)"
-                    f" — Status: `{m['status']}`"
+                    f"- **{m['name']}** (`{m['version_tag']}`) — Status: `{m['status']}`"
                     for m in m_list
                 ]
                 answer = f"**Workspace Models ({res.get('count', 0)})**:\n\n" + (

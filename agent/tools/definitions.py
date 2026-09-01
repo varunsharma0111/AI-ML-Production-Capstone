@@ -89,8 +89,7 @@ REGISTERED_TOOLS: dict[str, ToolDefinition] = {
     "run_prediction": ToolDefinition(
         name="run_prediction",
         description=(
-            "Executes real-time model inference using the"
-            " platform's controlled inference engine."
+            "Executes real-time model inference using the platform's controlled inference engine."
         ),
         required_permission="model:read",
     ),
