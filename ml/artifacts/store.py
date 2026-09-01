@@ -101,10 +101,18 @@ class ArtifactStore:
 
         if isinstance(raw_data, dict) and "sha256" in raw_data:
             expected_hash = raw_data.get("sha256")
-            if "payload" in raw_data and "data" in raw_data and raw_data["payload"] != raw_data["data"]:
-                raise ValueError("Artifact integrity check failed: Mismatch between payload and data structures.")
+            if (
+                "payload" in raw_data
+                and "data" in raw_data
+                and raw_data["payload"] != raw_data["data"]
+            ):
+                raise ValueError(
+                    "Artifact integrity check failed: Mismatch between payload and data structures."
+                )
 
-            inner_data = raw_data.get("payload") if "payload" in raw_data else raw_data.get("data", {})
+            inner_data = (
+                raw_data.get("payload") if "payload" in raw_data else raw_data.get("data", {})
+            )
             recalculated_hash = hashlib.sha256(
                 json.dumps(inner_data, indent=2, sort_keys=True).encode("utf-8")
             ).hexdigest()
