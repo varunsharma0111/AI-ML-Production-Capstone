@@ -48,6 +48,9 @@ extend-exclude = [".venv"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]
 
+[tool.ruff.lint.isort]
+known-first-party = ["app", "services", "ml", "agent", "messaging"]
+
 [tool.mypy]
 python_version = "3.11"
 strict = true
