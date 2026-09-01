@@ -13,6 +13,7 @@ Requires-Dist: prometheus-client==0.21.1
 Requires-Dist: pydantic-settings==2.10.1
 Requires-Dist: PyJWT[crypto]==2.10.1
 Requires-Dist: redis==5.2.1
+Requires-Dist: python-multipart==0.0.20
 Requires-Dist: scikit-learn==1.6.1
 Requires-Dist: SQLAlchemy==2.0.43
 Requires-Dist: uvicorn[standard]==0.34.0

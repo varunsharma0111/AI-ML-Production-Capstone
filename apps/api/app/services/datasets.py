@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.errors import AuthorizationError, ResourceNotFoundError, ValidationError
 from app.core.redis import RedisManager
 from app.core.storage import StorageService
-from app.db.models.entities import AuditEvent, Dataset, Job, User
+from app.db.models.entities import AuditEvent, Dataset, DatasetProfile, Job, User
 from app.db.repositories.datasets import DatasetRepository
 from app.db.repositories.identity import IdentityRepository
 from app.db.repositories.jobs import JobRepository
@@ -192,7 +192,7 @@ class DatasetService:
         principal: Principal,
         workspace_id: UUID,
         dataset_id: UUID,
-    ):
+    ) -> DatasetProfile:
         """Retrieve profile statistics for dataset with workspace isolation."""
         async with session.begin():
             await self._authorized_user(session, principal, workspace_id, Permission.DATASET_READ)

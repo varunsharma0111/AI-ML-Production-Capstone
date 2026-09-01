@@ -31,6 +31,13 @@ class ArtifactStore:
         else:
             self.backend = get_storage_backend()
 
+    @property
+    def base_dir(self) -> Path:
+        """Return base directory for local storage backend or default."""
+        if isinstance(self.backend, LocalStorageBackend):
+            return self.backend.base_dir
+        return DEFAULT_ARTIFACT_DIR
+
     def save_artifact(
         self,
         model_name: str,
@@ -44,6 +51,7 @@ class ArtifactStore:
 
         payload = {
             "sha256": sha256_hash,
+            "payload": artifact_data,
             "data": artifact_data,
         }
 
@@ -87,20 +95,26 @@ class ArtifactStore:
             raise FileNotFoundError(f"Artifact not found: {artifact_path}")
 
         try:
-            payload = json.loads(content_bytes.decode("utf-8"))
+            raw_data = json.loads(content_bytes.decode("utf-8"))
         except json.JSONDecodeError as err:
             raise ValueError(f"Corrupted JSON payload in artifact: {err}") from err
 
-        expected_hash = payload.get("sha256")
-        data = payload.get("data", {})
-        recalculated_hash = hashlib.sha256(
-            json.dumps(data, indent=2, sort_keys=True).encode("utf-8")
-        ).hexdigest()
+        if isinstance(raw_data, dict) and "sha256" in raw_data:
+            expected_hash = raw_data.get("sha256")
+            if "payload" in raw_data and "data" in raw_data and raw_data["payload"] != raw_data["data"]:
+                raise ValueError("Artifact integrity check failed: Mismatch between payload and data structures.")
 
-        if expected_hash and expected_hash != recalculated_hash:
-            raise ValueError("Artifact integrity check failed: Hash mismatch.")
+            inner_data = raw_data.get("payload") if "payload" in raw_data else raw_data.get("data", {})
+            recalculated_hash = hashlib.sha256(
+                json.dumps(inner_data, indent=2, sort_keys=True).encode("utf-8")
+            ).hexdigest()
 
-        return cast(dict[str, Any], data)
+            if expected_hash != recalculated_hash:
+                raise ValueError("Artifact integrity check failed: Hash mismatch.")
+
+            return cast(dict[str, Any], inner_data)
+
+        return cast(dict[str, Any], raw_data)
 
 
 def model_path_fallback(rel_path: str) -> Path:

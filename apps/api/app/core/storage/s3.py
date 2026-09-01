@@ -137,3 +137,12 @@ class S3StorageBackend(StorageBackend):
             return False
         except BotoCoreError:
             return False
+
+    def save_file(self, key: str, content: bytes) -> str:
+        return self.put_object(key, content)
+
+    def read_file(self, key: str) -> bytes:
+        return self.get_object(key)
+
+    def delete_file(self, key: str) -> bool:
+        return self.delete_object(key)

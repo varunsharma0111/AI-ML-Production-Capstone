@@ -42,6 +42,7 @@ apps/api/app/core/storage/base.py
 apps/api/app/core/storage/factory.py
 apps/api/app/core/storage/local.py
 apps/api/app/core/storage/s3.py
+apps/api/app/core/storage/service.py
 apps/api/app/db/session.py
 apps/api/app/db/models/__init__.py
 apps/api/app/db/models/base.py

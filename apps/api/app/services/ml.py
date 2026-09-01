@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Any, cast
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -367,9 +368,9 @@ class MLService:
                     passed_gate=passed,
                     accuracy=acc,
                     f1_score=f1,
-                    accuracy_threshold=meta["accuracy_threshold"],
-                    f1_threshold=meta["f1_threshold"],
-                    failure_reasons=meta["failure_reasons"],
+                    accuracy_threshold=float(meta["accuracy_threshold"]),
+                    f1_threshold=float(meta["f1_threshold"]),
+                    failure_reasons=cast(list[str], meta.get("failure_reasons", [])),
                     evaluated_at=model.created_at,
                 )
 
@@ -385,7 +386,7 @@ class MLService:
                     meta.get("accuracy_threshold", DEFAULT_ACCURACY_THRESHOLD)
                 ),
                 f1_threshold=float(meta.get("f1_threshold", DEFAULT_F1_SCORE_THRESHOLD)),
-                failure_reasons=list(meta.get("failure_reasons", [])),
+                failure_reasons=cast(list[str], meta.get("failure_reasons", [])),
                 evaluated_at=evaluation.evaluated_at,
             )
 

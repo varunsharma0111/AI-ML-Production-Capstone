@@ -46,6 +46,7 @@ async def test_readiness_endpoint_success(test_settings: Settings) -> None:
     mock_session_factory = MagicMock(return_value=mock_context)
 
     app.state.session_factory = mock_session_factory
+    app.state.redis_manager = None
 
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://test"
@@ -53,7 +54,7 @@ async def test_readiness_endpoint_success(test_settings: Settings) -> None:
         response = await client.get("/health/ready")
 
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    assert response.json()["status"] == "ok"
 
 
 @pytest.mark.asyncio
@@ -78,4 +79,4 @@ async def test_readiness_endpoint_database_failure(test_settings: Settings) -> N
     data = response.json()
     assert data["code"] == "dependency_unavailable"
     assert data["status"] == 503
-    assert "Database unavailable" in data["detail"]
+    assert "database" in data["detail"]

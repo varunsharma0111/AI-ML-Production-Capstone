@@ -69,11 +69,18 @@ def setup_mock_agent_db(
     membership_result = MagicMock()
     membership_result.scalar_one_or_none.return_value = membership
 
-    models_result = MagicMock()
-    models_result.scalars.return_value.all.return_value = models or []
+    model_get_result = MagicMock()
+    model_get_result.scalar_one_or_none.return_value = models[0] if models else None
+
+    models_list_result = MagicMock()
+    models_list_result.scalars.return_value = models or []
+    models_list_result.scalar_one_or_none.return_value = models[0] if models else None
 
     datasets_result = MagicMock()
-    datasets_result.scalars.return_value.all.return_value = []
+    datasets_result.scalars.return_value = []
+
+    eval_result = MagicMock()
+    eval_result.scalar_one_or_none.return_value = None
 
     def execute_side_effect(query: object) -> MagicMock:
         query_str = str(query)
@@ -82,7 +89,11 @@ def setup_mock_agent_db(
         if "FROM workspace_memberships" in query_str:
             return membership_result
         if "FROM model_versions" in query_str:
-            return models_result
+            if "ORDER BY" in query_str or "workspace_id" in query_str:
+                return models_list_result
+            return model_get_result
+        if "FROM model_evaluations" in query_str:
+            return eval_result
         if "FROM datasets" in query_str:
             return datasets_result
         return MagicMock()
@@ -320,7 +331,7 @@ async def test_real_agent_prediction_end_to_end(
 
     setup_mock_agent_db(app, user=user, membership=membership, models=[model])
 
-    from app.services.agent import _agent_service
+    from app.api.routers.agent import _agent_service
 
     orig_store = _agent_service._ml_service._predictor.artifact_store
     _agent_service._ml_service._predictor.artifact_store = store

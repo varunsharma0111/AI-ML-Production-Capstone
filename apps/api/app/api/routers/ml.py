@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Any, cast
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, Query, status
@@ -109,7 +110,7 @@ async def predict(
         model_id=model_id,
         model_version=version_tag,
         prediction=str(res.get("prediction", "unknown")),
-        confidence=float(res.get("confidence", 0.0)),
+        confidence=float(cast(Any, res.get("confidence", 0.0))),
         latency_ms=latency_ms,
     )
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Any
 import asyncio
 import logging
 import signal
@@ -11,6 +12,8 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from uuid import UUID
 
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, generate_latest
+
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.core.config import get_settings
 from app.core.logging import configure_logging
@@ -67,7 +70,7 @@ def _start_metrics_server(port: int = 8000) -> HTTPServer:
 
 
 async def process_job_by_id(
-    session_factory,
+    session_factory: async_sessionmaker[AsyncSession],
     redis_manager: RedisManager,
     job_runner: JobRunner,
     job_repo: JobRepository,

@@ -25,14 +25,16 @@ def test_trainer_produces_artifact() -> None:
         trainer = ModelTrainer(artifact_store=store)
 
         path = trainer.train_model("test_model", "v1.0", {"learning_rate": 0.01})
-        assert Path(path).exists()
+        assert (Path(store.base_dir) / path).exists()
 
 
 def test_evaluator_quality_gate() -> None:
     evaluator = ModelEvaluator()
 
     # Passing thresholds (accuracy >= 0.85, f1 >= 0.80)
-    passed, metadata = evaluator.evaluate(0.88, 0.85, 12.5)
+    passed, metadata = evaluator.evaluate(
+        0.88, 0.85, 12.5, accuracy_threshold=0.85, f1_threshold=0.80
+    )
     assert passed is True
     assert metadata["status"] == "APPROVED"
 

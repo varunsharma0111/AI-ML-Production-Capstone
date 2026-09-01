@@ -3,7 +3,7 @@
 from ml.evaluation.evaluator import ModelEvaluator
 
 
-def test_quality_gate_pass_default_thresholds():
+def test_quality_gate_pass_default_thresholds() -> None:
     evaluator = ModelEvaluator()
     passed, metadata = evaluator.evaluate(accuracy=0.92, f1_score=0.88)
 
@@ -16,7 +16,7 @@ def test_quality_gate_pass_default_thresholds():
     assert metadata["f1_threshold"] == 0.85
 
 
-def test_quality_gate_fail_accuracy_threshold():
+def test_quality_gate_fail_accuracy_threshold() -> None:
     evaluator = ModelEvaluator()
     passed, metadata = evaluator.evaluate(accuracy=0.87, f1_score=0.89)
 
@@ -28,7 +28,7 @@ def test_quality_gate_fail_accuracy_threshold():
     assert "Accuracy (87.0%) is below required threshold" in metadata["failure_reasons"][0]
 
 
-def test_quality_gate_fail_f1_threshold():
+def test_quality_gate_fail_f1_threshold() -> None:
     evaluator = ModelEvaluator()
     passed, metadata = evaluator.evaluate(accuracy=0.95, f1_score=0.81)
 
@@ -40,7 +40,7 @@ def test_quality_gate_fail_f1_threshold():
     assert "F1 score (81.0%) is below required threshold" in metadata["failure_reasons"][0]
 
 
-def test_quality_gate_fail_multiple_criteria():
+def test_quality_gate_fail_multiple_criteria() -> None:
     evaluator = ModelEvaluator()
     passed, metadata = evaluator.evaluate(accuracy=0.82, f1_score=0.75)
 
@@ -51,7 +51,7 @@ def test_quality_gate_fail_multiple_criteria():
     assert len(metadata["failure_reasons"]) == 2
 
 
-def test_quality_gate_configurable_workspace_thresholds():
+def test_quality_gate_configurable_workspace_thresholds() -> None:
     evaluator = ModelEvaluator()
     # High strict thresholds
     passed, metadata = evaluator.evaluate(

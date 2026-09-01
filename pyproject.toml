@@ -18,6 +18,7 @@ dependencies = [
   "pydantic-settings==2.10.1",
   "PyJWT[crypto]==2.10.1",
   "redis==5.2.1",
+  "python-multipart==0.0.20",
   "scikit-learn==1.6.1",
   "SQLAlchemy==2.0.43",
   "uvicorn[standard]==0.34.0",

@@ -10,8 +10,14 @@ from app.core.storage.base import StorageBackend
 class LocalStorageBackend(StorageBackend):
     """Stores files on the local filesystem relative to a base path."""
 
-    def __init__(self, base_dir: Path | str = "./data/storage") -> None:
-        self.base_dir = Path(base_dir).resolve()
+    def __init__(
+        self,
+        base_dir: Path | str | None = None,
+        base_directory: Path | str | None = None,
+        **kwargs: object,
+    ) -> None:
+        path = base_dir or base_directory or "./data/storage"
+        self.base_dir = Path(path).resolve()
         self.base_dir.mkdir(parents=True, exist_ok=True)
 
     def _get_target_path(self, key: str) -> Path:
@@ -20,7 +26,7 @@ class LocalStorageBackend(StorageBackend):
         try:
             target.relative_to(self.base_dir)
         except ValueError as err:
-            raise ValueError("Path traversal attempt detected.") from err
+            raise ValueError("Path traversal outside base directory detected.") from err
         return target
 
     def put_object(self, key: str, content: bytes, content_type: str | None = None) -> str:
@@ -49,3 +55,12 @@ class LocalStorageBackend(StorageBackend):
             return target_path.exists() and target_path.is_file()
         except ValueError:
             return False
+
+    def save_file(self, key: str, content: bytes) -> str:
+        return self.put_object(key, content)
+
+    def read_file(self, key: str) -> bytes:
+        return self.get_object(key)
+
+    def delete_file(self, key: str) -> bool:
+        return self.delete_object(key)

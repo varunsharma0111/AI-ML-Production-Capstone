@@ -109,7 +109,8 @@ class ModelTrainer:
                 file_obj = path.open("r", encoding="utf-8-sig", errors="replace")
             else:
                 try:
-                    content_bytes = StorageService().read_dataset_file(str(csv_file_path))
+                    storage_svc = StorageService(backend=self.artifact_store.backend)
+                    content_bytes = storage_svc.read_dataset_file(str(csv_file_path))
                     file_obj = io.StringIO(content_bytes.decode("utf-8-sig", errors="replace"))
                 except Exception as err:
                     raise FileNotFoundError(f"Dataset CSV file not found: {csv_file_path}") from err

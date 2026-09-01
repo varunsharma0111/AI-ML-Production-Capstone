@@ -21,16 +21,12 @@ from app.db.models.entities import (
     User,
     WorkspaceMembership,
 )
-from app.domains.identity.policy import Permission, PolicyEngine
+from app.core.errors import AuthorizationError
+from app.domains.identity.policy import Permission, require_permission
 from app.domains.identity.principal import Principal
-from app.domains.identity.types import WorkspaceRole
-from app.domains.shared.errors import AuthorizationError
 
 
 class OperationsService:
-    def __init__(self, policy_engine: PolicyEngine | None = None) -> None:
-        self._policy_engine = policy_engine or PolicyEngine()
-
     async def _authorized_user(
         self,
         session: AsyncSession,
@@ -55,11 +51,7 @@ class OperationsService:
         if membership is None:
             raise AuthorizationError("Access denied: Not a member of workspace.")
 
-        role = WorkspaceRole(membership.role)
-        if not self._policy_engine.has_permission(role, required_permission):
-            raise AuthorizationError(
-                "Insufficient permissions for operational workspace telemetry."
-            )
+        require_permission(membership.role, required_permission)
 
         return user, membership
 

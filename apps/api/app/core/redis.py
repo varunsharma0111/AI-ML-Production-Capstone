@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import inspect
 import json
 import logging
 from typing import Any
 
 from redis.asyncio import ConnectionPool, Redis
+from redis.asyncio.client import PubSub
 from redis.exceptions import RedisError
 
 from app.core.config import get_settings
@@ -26,6 +28,16 @@ class RedisManager:
     @property
     def is_connected(self) -> bool:
         return self._is_connected
+
+    async def ping(self) -> bool:
+        """Ping Redis instance if connected."""
+        if self._client is None:
+            return False
+        try:
+            res = await self._client.ping()
+            return bool(res)
+        except Exception:
+            return False
 
     async def connect(self) -> bool:
         """Initialize connection pool and ping Redis server. Fails closed gracefully."""
@@ -59,7 +71,9 @@ class RedisManager:
             await self._client.aclose()  # type: ignore[attr-defined]
             self._client = None
         if self._pool:
-            await self._pool.disconnect()
+            disc = self._pool.disconnect()
+            if inspect.isawaitable(disc):
+                await disc
             self._pool = None
         logger.info("Redis connection closed.")
 
@@ -121,7 +135,7 @@ class RedisManager:
             logger.error("Failed to publish Pub/Sub event to channel %s: %s", channel, exc)
             return False
 
-    def subscribe_workspace_jobs(self, workspace_id: str):
+    def subscribe_workspace_jobs(self, workspace_id: str) -> PubSub | None:
         """Return a PubSub subscriber context subscribed to workspace channel."""
         if not self._is_connected or not self._client:
             return None

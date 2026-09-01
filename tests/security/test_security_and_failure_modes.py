@@ -99,8 +99,8 @@ async def test_redis_reconnect_resilience():
     from app.core.redis import RedisManager
 
     manager = RedisManager(redis_url="redis://localhost:6379/0")
-    manager._redis = AsyncMock()
-    manager._redis.ping.side_effect = [Exception("Transient connection reset"), True]
+    manager._client = AsyncMock()
+    manager._client.ping.side_effect = [Exception("Transient connection reset"), True]
 
     # First ping fails
     res1 = await manager.ping()

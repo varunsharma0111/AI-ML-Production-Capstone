@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, File, Form, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, Query, Response, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies.request import (
@@ -109,14 +109,14 @@ async def get_dataset_profile(
     return DatasetProfileResponse.model_validate(profile)
 
 
-@router.delete("/{dataset_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{dataset_id}", status_code=status.HTTP_204_NO_CONTENT, response_class=Response)
 async def delete_dataset(
     dataset_id: UUID,
     workspace_id: UUID = Query(...),
     principal: Principal = Depends(get_authenticated_principal),
     session: AsyncSession = Depends(get_session),
     request_id: str = Depends(get_request_id),
-) -> None:
+) -> Response:
     dataset_service = DatasetService()
     await dataset_service.delete_dataset(
         session=session,
@@ -125,3 +125,4 @@ async def delete_dataset(
         dataset_id=dataset_id,
         request_id=request_id,
     )
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

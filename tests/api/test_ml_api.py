@@ -110,8 +110,12 @@ async def test_register_model_success(test_settings: Settings, mock_principal: P
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
 
+    workspace_id = uuid4()
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    setup_mock_db(app, user=user, membership=None)
+    membership = WorkspaceMembership(
+        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor"
+    )
+    setup_mock_db(app, user=user, membership=membership)
 
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://test"
@@ -119,6 +123,7 @@ async def test_register_model_success(test_settings: Settings, mock_principal: P
         response = await client.post(
             "/api/v1/models",
             json={
+                "workspace_id": str(workspace_id),
                 "name": "sentiment_classifier",
                 "version_tag": "v1.0.0",
                 "description": "Initial draft model",
@@ -129,7 +134,7 @@ async def test_register_model_success(test_settings: Settings, mock_principal: P
     assert response.status_code == 201
     data = response.json()
     assert data["name"] == "sentiment_classifier"
-    assert data["status"] == "draft"
+    assert data["status"] == "candidate"
 
 
 @pytest.mark.asyncio
@@ -141,27 +146,38 @@ async def test_evaluate_model_quality_gate_approved(
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
 
     model_id = uuid4()
+    workspace_id = uuid4()
     now = datetime.now(UTC)
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
+    membership = WorkspaceMembership(
+        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor"
+    )
 
     model = ModelVersion(
         id=model_id,
+        workspace_id=workspace_id,
         name="test_model",
         version_tag="v1.0.0",
         artifact_path="artifacts/models/test_model/v1.0.0.json",
-        status="draft",
+        status="candidate",
         created_at=now,
         updated_at=now,
     )
 
-    setup_mock_db(app, user=user, membership=None, model_get=model)
+    setup_mock_db(app, user=user, membership=membership, model_get=model)
 
     async with httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://test"
     ) as client:
         response = await client.post(
             f"/api/v1/models/{model_id}/evaluate",
-            json={"accuracy": 0.92, "f1_score": 0.89, "latency_ms": 15.0},
+            json={
+                "workspace_id": str(workspace_id),
+                "accuracy": 0.92,
+                "f1_score": 0.89,
+                "latency_ms": 15.0,
+            },
+            headers={"Authorization": "Bearer token"},
         )
 
     assert response.status_code == 200

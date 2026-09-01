@@ -23,6 +23,8 @@ class Permission(StrEnum):
     MODEL_EVALUATE = "model:evaluate"
     MODEL_PROMOTE = "model:promote"
     MODEL_READ = "model:read"
+    MODEL_TRAIN = "model:train"
+    WORKSPACE_DELETE = "workspace:delete"
 
 
 ROLE_PERMISSIONS: dict[WorkspaceRole, frozenset[Permission]] = {
@@ -38,6 +40,7 @@ ROLE_PERMISSIONS: dict[WorkspaceRole, frozenset[Permission]] = {
             Permission.MODEL_EVALUATE,
             Permission.MODEL_PROMOTE,
             Permission.MODEL_READ,
+            Permission.MODEL_TRAIN,
         }
     ),
     WorkspaceRole.VIEWER: frozenset(

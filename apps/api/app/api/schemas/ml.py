@@ -12,7 +12,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class ModelCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    workspace_id: UUID
+    workspace_id: UUID | None = None
     name: str = Field(min_length=1, max_length=100)
     version_tag: str = Field(min_length=1, max_length=50)
     description: str | None = None
@@ -22,7 +22,7 @@ class ModelCreate(BaseModel):
 class ModelEvaluateRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    workspace_id: UUID
+    workspace_id: UUID | None = None
     accuracy: float | None = Field(default=None, ge=0.0, le=1.0)
     f1_score: float | None = Field(default=None, ge=0.0, le=1.0)
     latency_ms: float = Field(default=0.0, ge=0.0)
@@ -71,8 +71,8 @@ class ModelResponse(BaseModel):
     workspace_id: UUID | None = None
     dataset_id: UUID | None = None
     job_id: UUID | None = None
-    metrics_json: dict[str, Any] = Field(default_factory=dict)
-    hyperparameters_json: dict[str, Any] = Field(default_factory=dict)
+    metrics_json: dict[str, Any] | None = Field(default_factory=dict)
+    hyperparameters_json: dict[str, Any] | None = Field(default_factory=dict)
     created_at: datetime
     updated_at: datetime
 

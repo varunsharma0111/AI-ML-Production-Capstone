@@ -64,9 +64,9 @@ def test_artifact_sha256_integrity_tamper_detection():
         assert loaded["weights"] == [0.1, 0.2, 0.3]
 
         # Tamper content
-        file_path = base_dir / "clf" / "v1.0.0.json"
+        file_path = base_dir / ref_key
         content = file_path.read_text(encoding="utf-8")
-        tampered_content = content.replace("[0.1, 0.2, 0.3]", "[0.9, 0.9, 0.9]")
+        tampered_content = content.replace("0.1", "0.9")
         file_path.write_text(tampered_content, encoding="utf-8")
 
         with pytest.raises(ValueError, match="integrity check failed"):
