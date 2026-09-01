@@ -48,8 +48,8 @@ export async function request<T>(endpoint: string, options: RequestOptions = {})
     }
   }
 
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
+  if (token && token !== "null" && token !== "undefined" && token.trim() !== "") {
+    headers.set("Authorization", `Bearer ${token.trim()}`);
   }
 
   const response = await fetch(targetUrl, {

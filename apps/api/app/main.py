@@ -122,17 +122,24 @@ def create_app(
     from fastapi.middleware.cors import CORSMiddleware
 
     origins = [o.strip() for o in resolved_settings.cors_origins.split(",") if o.strip()]
-    cors_kwargs: dict[str, Any] = {
-        "allow_credentials": True,
-        "allow_methods": ["*"],
-        "allow_headers": ["*"],
-    }
+    default_allowed_origins = [
+        "https://ai-ml-production-capstone.vercel.app",
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:5173",
+    ]
     if "*" in origins:
-        cors_kwargs["allow_origin_regex"] = r".*"
-    else:
-        cors_kwargs["allow_origins"] = origins
+        origins = default_allowed_origins
 
-    app.add_middleware(CORSMiddleware, **cors_kwargs)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_origin_regex=r"^https://ai-ml-production-capstone.*\.vercel\.app$",
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
     @app.exception_handler(DomainError)
     async def handle_domain_error(request: Request, error: DomainError) -> JSONResponse:
@@ -155,9 +162,24 @@ def create_app(
     async def handle_integrity_error(request: Request, _: IntegrityError) -> JSONResponse:
         return problem_response(request, 409, "resource_conflict", "Conflict", "Resource conflict.")
 
+    from starlette.exceptions import HTTPException as StarletteHTTPException
+
+    @app.exception_handler(StarletteHTTPException)
+    async def handle_http_exception(
+        request: Request, error: StarletteHTTPException
+    ) -> JSONResponse:
+        return problem_response(
+            request,
+            error.status_code,
+            "http_error",
+            "HTTP Error",
+            str(error.detail),
+        )
+
     @app.exception_handler(Exception)
     async def handle_unexpected_error(request: Request, error: Exception) -> JSONResponse:
-        logger.exception("unexpected_error", extra={"request_id": request.state.request_id})
+        request_id = getattr(request.state, "request_id", "unknown")
+        logger.exception("unexpected_error", extra={"request_id": request_id})
         return problem_response(
             request, 500, "internal_error", "Internal Server Error", "An unexpected error occurred."
         )

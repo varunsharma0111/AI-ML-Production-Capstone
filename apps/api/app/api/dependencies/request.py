@@ -43,19 +43,8 @@ def get_authenticated_principal(
     verifier: JwtVerifier = Depends(get_token_verifier),
 ) -> Principal:
     if credentials is None or credentials.scheme.lower() != "bearer":
-        return Principal(
-            subject="dev-user-123",
-            email="dev.user@example.com",
-            display_name="Dev Demo User",
-        )
-    token = credentials.credentials
-    if not token or token in ("null", "undefined", "none", "dev_token_sample"):
-        return Principal(
-            subject="dev-user-123",
-            email="dev.user@example.com",
-            display_name="Dev Demo User",
-        )
-    return verifier.verify(token)
+        raise AuthenticationError("A bearer access token is required.")
+    return verifier.verify(credentials.credentials)
 
 
 def get_redis_manager(request: Request) -> RedisManager | None:
