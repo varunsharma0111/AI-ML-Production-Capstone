@@ -676,8 +676,15 @@ code, pre {
 
   .header-role-badge,
   .header-workspace-label,
-  .header-subtitle {
+  .header-subtitle,
+  .header-theme-text {
     display: none !important;
+  }
+
+  #header-workspace-select {
+    max-width: 130px;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.4rem;
   }
 
   .aura-main {
@@ -687,5 +694,21 @@ code, pre {
   .aura-table-container {
     -webkit-overflow-scrolling: touch;
   }
+}
+
+#header-workspace-select {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  width: auto;
+  max-width: 220px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
 }
 

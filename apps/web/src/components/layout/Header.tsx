@@ -141,18 +141,22 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateHome, onToggleMobileMe
                 if (ws) setActiveWorkspace(ws);
               }}
               className="aura-select"
-              style={{
-                padding: "0.35rem 0.65rem",
-                fontSize: "0.8125rem",
-                width: "auto",
-                fontWeight: 500,
-              }}
             >
-              {availableWorkspaces.map((ws) => (
-                <option key={ws.id} value={ws.id}>
-                  {ws.name}
+              {availableWorkspaces && availableWorkspaces.length > 0 ? (
+                availableWorkspaces.map((ws) => (
+                  <option key={ws.id} value={ws.id}>
+                    {ws.name}
+                  </option>
+                ))
+              ) : activeWorkspace?.id ? (
+                <option value={activeWorkspace.id}>
+                  {activeWorkspace.name || "Default Workspace"}
                 </option>
-              ))}
+              ) : (
+                <option value="" disabled>
+                  Default Workspace
+                </option>
+              )}
             </select>
           </div>
 
@@ -183,7 +187,7 @@ export const Header: React.FC<HeaderProps> = ({ onNavigateHome, onToggleMobileMe
             }}
           >
             {theme === "dark" ? <IconSun size={15} color="#F59E0B" /> : <IconMoon size={15} color="#8B5CF6" />}
-            <span style={{ fontSize: "0.75rem", fontWeight: 500 }}>
+            <span className="header-theme-text" style={{ fontSize: "0.75rem", fontWeight: 500 }}>
               {theme === "dark" ? "Light" : "Dark"}
             </span>
           </button>
