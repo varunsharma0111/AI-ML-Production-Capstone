@@ -312,10 +312,10 @@ class JobRunner:
 
                     from app.db.models.entities import AuditEvent
 
-                    ws_id = UUID(str(job.payload_json.get("workspace_id")))
+                    ws_uuid = UUID(str(job.payload_json.get("workspace_id")))
                     audit_event_fail = AuditEvent(
                         actor_user_id=job.created_by_user_id,
-                        workspace_id=ws_id,
+                        workspace_id=ws_uuid,
                         action="training.failed",
                         resource_type="job",
                         resource_id=job.id,

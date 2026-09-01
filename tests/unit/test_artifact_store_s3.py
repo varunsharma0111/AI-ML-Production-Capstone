@@ -17,8 +17,24 @@ from ml.artifacts.store import ArtifactStore
 from services.ml_inference.predictor import ControlledInferencePredictor
 
 
+from pathlib import Path
+from typing import Any
+from unittest.mock import MagicMock
+from uuid import uuid4
+
+import pytest
+from botocore.exceptions import ClientError
+
+from app.core.config import Settings
+from app.core.errors import DomainError
+from app.core.storage.local import LocalStorageBackend
+from app.core.storage.s3 import S3StorageBackend
+from ml.artifacts.store import ArtifactStore
+from services.ml_inference.predictor import ControlledInferencePredictor
+
+
 @pytest.fixture
-def temp_local_backend(tmp_path) -> LocalStorageBackend:
+def temp_local_backend(tmp_path: Path) -> LocalStorageBackend:
     return LocalStorageBackend(base_dir=tmp_path / "storage")
 
 
@@ -57,8 +73,8 @@ def test_2_s3_artifact_store_save_and_load(
     # Mock get_object response
     saved_bytes: list[bytes] = []
 
-    def fake_put_object(Bucket, Key, Body, **kwargs):
-        saved_bytes.append(Body)
+    def fake_put_object(Bucket: str, Key: str, Body: bytes | str, **kwargs: Any) -> None:
+        saved_bytes.append(Body if isinstance(Body, bytes) else Body.encode("utf-8"))
 
     mock_s3_client.put_object.side_effect = fake_put_object
 
@@ -176,8 +192,8 @@ def test_11_inference_using_s3_backed_artifact(
     # Save to mock s3
     saved_bytes: list[bytes] = []
 
-    def fake_put_object(Bucket, Key, Body, **kwargs):
-        saved_bytes.append(Body)
+    def fake_put_object(Bucket: str, Key: str, Body: bytes | str, **kwargs: Any) -> None:
+        saved_bytes.append(Body if isinstance(Body, bytes) else Body.encode("utf-8"))
 
     mock_s3_client.put_object.side_effect = fake_put_object
 
@@ -199,7 +215,7 @@ def test_11_inference_using_s3_backed_artifact(
     assert latency >= 0.0
 
 
-def test_12_existing_local_development_behavior(tmp_path) -> None:
+def test_12_existing_local_development_behavior(tmp_path: Path) -> None:
     """Verify default Settings with local storage backend works seamlessly."""
     cfg = Settings(storage_backend="local", storage_path=str(tmp_path / "dev_storage"))
     backend = LocalStorageBackend(base_dir=cfg.storage_path)

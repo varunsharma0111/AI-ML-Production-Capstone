@@ -9,6 +9,8 @@ from uuid import uuid4
 
 import pytest
 
+from typing import Any
+
 from app.core.storage import S3StorageBackend, StorageService
 from ml.artifacts.store import ArtifactStore
 from services.ml_inference.predictor import ControlledInferencePredictor
@@ -22,10 +24,10 @@ async def test_concurrent_s3_storage_load(mock_s3_client: MagicMock) -> None:
 
     s3_store: dict[str, bytes] = {}
 
-    def fake_put_object(Bucket, Key, Body, **kwargs):
+    def fake_put_object(Bucket: str, Key: str, Body: bytes | str, **kwargs: Any) -> None:
         s3_store[Key] = Body if isinstance(Body, bytes) else Body.encode("utf-8")
 
-    def fake_get_object(Bucket, Key):
+    def fake_get_object(Bucket: str, Key: str) -> dict[str, Any]:
         mock_body = MagicMock()
         mock_body.read.return_value = s3_store[Key]
         return {"Body": mock_body}
@@ -75,10 +77,10 @@ async def test_concurrent_inference_predictions(mock_s3_client: MagicMock) -> No
 
     s3_store: dict[str, bytes] = {}
 
-    def fake_put_object(Bucket, Key, Body, **kwargs):
+    def fake_put_object(Bucket: str, Key: str, Body: bytes | str, **kwargs: Any) -> None:
         s3_store[Key] = Body if isinstance(Body, bytes) else Body.encode("utf-8")
 
-    def fake_get_object(Bucket, Key):
+    def fake_get_object(Bucket: str, Key: str) -> dict[str, Any]:
         mock_body = MagicMock()
         mock_body.read.return_value = s3_store[Key]
         return {"Body": mock_body}

@@ -19,7 +19,14 @@ from app.core.errors import (
     ResourceNotFoundError,
     ValidationError,
 )
-from app.db.models.entities import AuditEvent, InferenceLog, ModelEvaluation, ModelVersion
+from app.db.models.entities import (
+    AuditEvent,
+    InferenceLog,
+    ModelEvaluation,
+    ModelVersion,
+    User,
+    WorkspaceMembership,
+)
 from app.db.repositories.identity import IdentityRepository
 from app.db.repositories.ml import ModelRepository
 from app.domains.identity.policy import Permission, WorkspaceRole, require_permission
@@ -51,7 +58,7 @@ class MLService:
         principal: Principal,
         workspace_id: UUID,
         required_permission: Permission,
-    ):
+    ) -> tuple[User, WorkspaceMembership]:
         user = await self._identity_repository.get_or_create_user(session, principal)
         membership = await self._identity_repository.get_membership(session, workspace_id, user.id)
         if membership is None:
@@ -63,6 +70,8 @@ class MLService:
         self, session: AsyncSession, principal: Principal, payload: ModelCreate
     ) -> ModelVersion:
         async with session.begin():
+            if payload.workspace_id is None:
+                raise ValidationError("workspace_id is required to register a model.")
             user, _ = await self._authorized_user(
                 session, principal, payload.workspace_id, Permission.MODEL_EVALUATE
             )
@@ -118,13 +127,22 @@ class MLService:
         request_id: str = "unknown",
     ) -> tuple[ModelVersion, ModelEvaluation]:
         async with session.begin():
-            user, _ = await self._authorized_user(
-                session, principal, payload.workspace_id, Permission.MODEL_EVALUATE
-            )
-
-            model = await self._model_repository.get_model_version(session, model_id)
-            if model is None:
-                raise ResourceNotFoundError("Model version not found.")
+            if payload.workspace_id is not None:
+                user, _ = await self._authorized_user(
+                    session, principal, payload.workspace_id, Permission.MODEL_EVALUATE
+                )
+                model = await self._model_repository.get_model_version(session, model_id)
+                if model is None:
+                    raise ResourceNotFoundError("Model version not found.")
+            else:
+                model = await self._model_repository.get_model_version(session, model_id)
+                if model is None:
+                    raise ResourceNotFoundError("Model version not found.")
+                if model.workspace_id is None:
+                    raise ValidationError("workspace_id is required to evaluate a model.")
+                user, _ = await self._authorized_user(
+                    session, principal, model.workspace_id, Permission.MODEL_EVALUATE
+                )
 
             session.add(
                 AuditEvent(

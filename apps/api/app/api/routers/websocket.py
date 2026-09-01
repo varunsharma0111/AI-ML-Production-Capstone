@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+from typing import Any
 from uuid import UUID
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
@@ -59,7 +60,7 @@ async def workspace_jobs_websocket(websocket: WebSocket, workspace_id: UUID) -> 
     )
 
     redis_manager: RedisManager | None = getattr(websocket.app.state, "redis_manager", None)
-    pubsub_task: asyncio.Task | None = None
+    pubsub_task: asyncio.Task[Any] | None = None
 
     if redis_manager and redis_manager.is_connected:
         pubsub = redis_manager.subscribe_workspace_jobs(str(workspace_id))

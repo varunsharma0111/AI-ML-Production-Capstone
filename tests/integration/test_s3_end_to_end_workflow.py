@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Any
 from unittest.mock import MagicMock
 from uuid import uuid4
 
@@ -25,10 +26,10 @@ def test_milestone7_s3_end_to_end_workflow(mock_s3_client: MagicMock) -> None:
     # In-memory mock storage for S3 client calls
     s3_objects: dict[str, bytes] = {}
 
-    def fake_put_object(Bucket, Key, Body, **kwargs):
+    def fake_put_object(Bucket: str, Key: str, Body: bytes | str, **kwargs: Any) -> None:
         s3_objects[Key] = Body if isinstance(Body, bytes) else Body.encode("utf-8")
 
-    def fake_get_object(Bucket, Key):
+    def fake_get_object(Bucket: str, Key: str) -> dict[str, Any]:
         if Key not in s3_objects:
             from botocore.exceptions import ClientError
 

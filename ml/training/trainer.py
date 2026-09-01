@@ -196,11 +196,12 @@ class ModelTrainer:
 
         # 4. Train Model & Predict
         y_pred: list[int] = []
+        feature_weights: list[float] = []
 
         try:
-            from sklearn.ensemble import RandomForestClassifier
-            from sklearn.linear_model import LogisticRegression
-            from sklearn.tree import DecisionTreeClassifier
+            from sklearn.ensemble import RandomForestClassifier  # type: ignore[import-untyped]
+            from sklearn.linear_model import LogisticRegression  # type: ignore[import-untyped]
+            from sklearn.tree import DecisionTreeClassifier  # type: ignore[import-untyped]
 
             if model_type == "logistic_regression":
                 clf = LogisticRegression(random_state=random_seed, max_iter=200)
@@ -215,19 +216,19 @@ class ModelTrainer:
             y_pred = [int(p) for p in clf.predict(X_test)]
             trained_weights = getattr(clf, "feature_importances_", None)
             if trained_weights is not None:
-                weights = [round(float(w), 4) for w in trained_weights]
+                feature_weights = [round(float(w), 4) for w in trained_weights]
             else:
-                weights = [1.0 / max(1, len(feature_names))] * len(feature_names)
+                feature_weights = [1.0 / max(1, len(feature_names))] * len(feature_names)
 
         except ImportError:
             # Standalone fallback decision logic
-            weights = [round(1.0 / max(1, len(feature_names)), 4) for _ in feature_names]
+            feature_weights = [round(1.0 / max(1, len(feature_names)), 4) for _ in feature_names]
 
             # Simple decision boundary fallback
             y_pred = []
-            for row in X_test:
+            for test_row in X_test:
                 # Deterministic prediction based on majority class & weighted sum
-                s = sum(r * w for r, w in zip(row, weights))
+                s = sum(r * w for r, w in zip(test_row, feature_weights))
                 pred_cls = target_classes[int(math.floor(abs(s))) % len(target_classes)]
                 y_pred.append(target_to_label[pred_cls])
 
@@ -257,7 +258,7 @@ class ModelTrainer:
             "feature_names": feature_names,
             "hyperparameters": params,
             "metrics": metrics,
-            "weights": weights,
+            "weights": feature_weights,
         }
 
         artifact_path = self.artifact_store.save_artifact(

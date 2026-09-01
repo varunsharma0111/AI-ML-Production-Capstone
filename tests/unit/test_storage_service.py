@@ -1,7 +1,7 @@
 """Unit tests for StorageService and StorageBackend implementations."""
 
-from __future__ import annotations
-
+from pathlib import Path
+from typing import Any
 from unittest.mock import MagicMock
 from uuid import uuid4
 
@@ -10,7 +10,7 @@ import pytest
 from app.core.storage import LocalStorageBackend, S3StorageBackend, StorageService
 
 
-def test_storage_service_save_and_read_local(tmp_path) -> None:
+def test_storage_service_save_and_read_local(tmp_path: Path) -> None:
     backend = LocalStorageBackend(base_dir=tmp_path / "uploads")
     service = StorageService(backend=backend)
 
@@ -35,8 +35,8 @@ def test_storage_service_save_and_read_s3(mock_s3_client: MagicMock) -> None:
 
     saved_bytes: list[bytes] = []
 
-    def fake_put_object(Bucket, Key, Body, **kwargs):
-        saved_bytes.append(Body)
+    def fake_put_object(Bucket: str, Key: str, Body: bytes | str, **kwargs: Any) -> None:
+        saved_bytes.append(Body if isinstance(Body, bytes) else Body.encode("utf-8"))
 
     mock_s3_client.put_object.side_effect = fake_put_object
 
@@ -51,7 +51,7 @@ def test_storage_service_save_and_read_s3(mock_s3_client: MagicMock) -> None:
     assert read_bytes == content
 
 
-def test_storage_service_path_traversal_prevention(tmp_path) -> None:
+def test_storage_service_path_traversal_prevention(tmp_path: Path) -> None:
     backend = LocalStorageBackend(base_dir=tmp_path / "uploads")
     service = StorageService(backend=backend)
     ws_id = uuid4()

@@ -1,6 +1,8 @@
 """Unit tests for ControlledInferencePredictor feature validation and prediction execution."""
 
 import json
+from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -10,8 +12,8 @@ from services.ml_inference.predictor import ControlledInferencePredictor
 
 
 def create_test_artifact(
-    tmp_path, model_name: str, version_tag: str, model_type: str = "random_forest"
-):
+    tmp_path: Path, model_name: str, version_tag: str, model_type: str = "random_forest"
+) -> tuple[ArtifactStore, str]:
     store = ArtifactStore(base_dir=tmp_path)
     payload = {
         "model_name": model_name,
@@ -28,7 +30,7 @@ def create_test_artifact(
     return store, key
 
 
-def test_predictor_success_production_model(tmp_path):
+def test_predictor_success_production_model(tmp_path: Path) -> None:
     store, key = create_test_artifact(tmp_path, "churn-model", "v1.0.0")
     predictor = ControlledInferencePredictor(artifact_store=store)
 
@@ -42,7 +44,7 @@ def test_predictor_success_production_model(tmp_path):
     assert latency_ms > 0.0
 
 
-def test_predictor_blocked_candidate_or_rejected(tmp_path):
+def test_predictor_blocked_candidate_or_rejected(tmp_path: Path) -> None:
     store, key = create_test_artifact(tmp_path, "churn-model", "v1.0.0")
     predictor = ControlledInferencePredictor(artifact_store=store)
 
@@ -57,7 +59,7 @@ def test_predictor_blocked_candidate_or_rejected(tmp_path):
     assert exc_info_rejected.value.status_code == 400
 
 
-def test_predictor_missing_required_feature(tmp_path):
+def test_predictor_missing_required_feature(tmp_path: Path) -> None:
     store, key = create_test_artifact(tmp_path, "churn-model", "v1.0.0")
     predictor = ControlledInferencePredictor(artifact_store=store)
 
@@ -68,7 +70,7 @@ def test_predictor_missing_required_feature(tmp_path):
     assert "Missing required input feature: 'tenure'" in str(exc_info.value)
 
 
-def test_predictor_invalid_feature_type(tmp_path):
+def test_predictor_invalid_feature_type(tmp_path: Path) -> None:
     store, key = create_test_artifact(tmp_path, "churn-model", "v1.0.0")
     predictor = ControlledInferencePredictor(artifact_store=store)
 
@@ -79,7 +81,7 @@ def test_predictor_invalid_feature_type(tmp_path):
     assert "Invalid non-numeric value for feature 'age'" in str(exc_info.value)
 
 
-def test_predictor_target_column_rejected(tmp_path):
+def test_predictor_target_column_rejected(tmp_path: Path) -> None:
     store, key = create_test_artifact(tmp_path, "churn-model", "v1.0.0")
     predictor = ControlledInferencePredictor(artifact_store=store)
 
@@ -95,7 +97,7 @@ def test_predictor_target_column_rejected(tmp_path):
     assert "Target column 'target' cannot be passed as an input feature" in str(exc_info.value)
 
 
-def test_predictor_corrupted_sha256_artifact(tmp_path):
+def test_predictor_corrupted_sha256_artifact(tmp_path: Path) -> None:
     store, key = create_test_artifact(tmp_path, "churn-model", "v1.0.0")
     predictor = ControlledInferencePredictor(artifact_store=store)
 

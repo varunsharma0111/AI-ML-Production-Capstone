@@ -31,12 +31,12 @@ class StorageService:
             raise ValueError("Invalid filename with path traversal characters.")
         ext = filename.split(".")[-1] if "." in filename else "csv"
         key = f"workspaces/{workspace_id}/datasets/{dataset_id}.{ext}"
-        return self.backend.save_file(key, content)
+        return self.backend.put_object(key, content)
 
     def read_dataset_file(self, file_path_or_key: str) -> bytes:
         """Retrieve dataset bytes using active storage backend."""
-        return self.backend.read_file(file_path_or_key)
+        return self.backend.get_object(file_path_or_key)
 
     def delete_dataset_file(self, file_path_or_key: str) -> None:
         """Delete dataset file from active storage backend."""
-        self.backend.delete_file(file_path_or_key)
+        self.backend.delete_object(file_path_or_key)

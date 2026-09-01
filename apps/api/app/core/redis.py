@@ -68,7 +68,11 @@ class RedisManager:
         """Close Redis client and connection pool."""
         self._is_connected = False
         if self._client:
-            await self._client.aclose()  # type: ignore[attr-defined]
+            ac = getattr(self._client, "aclose", None)
+            if callable(ac):
+                res = ac()
+                if inspect.isawaitable(res):
+                    await res
             self._client = None
         if self._pool:
             disc = self._pool.disconnect()
@@ -86,7 +90,10 @@ class RedisManager:
         if not self._is_connected or not self._client:
             return False
         try:
-            return bool(await self._client.ping())
+            res = self._client.ping()
+            if inspect.isawaitable(res):
+                res = await res
+            return bool(res)
         except RedisError:
             self._is_connected = False
             return False
@@ -96,7 +103,9 @@ class RedisManager:
         if not self._is_connected or not self._client:
             return False
         try:
-            await self._client.lpush(queue_name, job_id)
+            res = self._client.lpush(queue_name, job_id)
+            if inspect.isawaitable(res):
+                await res
             logger.debug("Enqueued job %s to Redis queue '%s'", job_id, queue_name)
             return True
         except RedisError as exc:
@@ -110,7 +119,8 @@ class RedisManager:
         if not self._is_connected or not self._client:
             return None
         try:
-            result = await self._client.brpop(queue_name, timeout=timeout)
+            res = self._client.brpop([queue_name], timeout=timeout)
+            result = await res if inspect.isawaitable(res) else res
             if result:
                 # result is a tuple of (queue_name, popped_value)
                 return str(result[1])

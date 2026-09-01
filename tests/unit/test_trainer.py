@@ -9,7 +9,7 @@ from ml.artifacts.store import ArtifactStore
 from ml.training.trainer import ModelTrainer
 
 
-def test_train_dataset_model_all_algorithms():
+def test_train_dataset_model_all_algorithms() -> None:
     with tempfile.TemporaryDirectory() as tmp_dir:
         csv_path = Path(tmp_dir) / "sample_data.csv"
         content = (
@@ -53,7 +53,7 @@ def test_train_dataset_model_all_algorithms():
             assert loaded["model_type"] == model_type
 
 
-def test_artifact_sha256_integrity_tamper_detection():
+def test_artifact_sha256_integrity_tamper_detection() -> None:
     with tempfile.TemporaryDirectory() as tmp_dir:
         base_dir = Path(tmp_dir) / "artifacts"
         artifact_store = ArtifactStore(base_dir=base_dir)
@@ -73,7 +73,7 @@ def test_artifact_sha256_integrity_tamper_detection():
             artifact_store.load_artifact(ref_key)
 
 
-def test_train_dataset_model_missing_target_column():
+def test_train_dataset_model_missing_target_column() -> None:
     with tempfile.TemporaryDirectory() as tmp_dir:
         csv_path = Path(tmp_dir) / "sample_data.csv"
         csv_path.write_text("feature1,feature2\n1,2\n3,4\n", encoding="utf-8")
@@ -88,7 +88,7 @@ def test_train_dataset_model_missing_target_column():
             )
 
 
-def test_train_dataset_model_insufficient_rows():
+def test_train_dataset_model_insufficient_rows() -> None:
     with tempfile.TemporaryDirectory() as tmp_dir:
         csv_path = Path(tmp_dir) / "sample_data.csv"
         csv_path.write_text("feature1,target\n1,yes\n", encoding="utf-8")
@@ -103,7 +103,7 @@ def test_train_dataset_model_insufficient_rows():
             )
 
 
-def test_train_dataset_model_file_not_found():
+def test_train_dataset_model_file_not_found() -> None:
     trainer = ModelTrainer()
     with pytest.raises(FileNotFoundError):
         trainer.train_dataset_model(

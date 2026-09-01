@@ -361,7 +361,7 @@ class AgentService:
             if "compare" in msg_lower:
                 tool_name = "compare_models"
                 m1_match = re.search(r"v\d+", msg_lower)
-                args = {
+                args: dict[str, Any] = {
                     "model_name_1": "v1.0.0" if not m1_match else m1_match.group(0),
                     "model_name_2": "v2.0.0",
                 }

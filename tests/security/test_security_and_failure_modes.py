@@ -7,6 +7,8 @@ from uuid import uuid4
 
 import pytest
 
+from pathlib import Path
+
 from app.core.errors import AuthorizationError, DomainError
 from app.core.storage import LocalStorageBackend, S3StorageBackend, StorageService
 from app.domains.identity.policy import Permission, require_permission
@@ -14,7 +16,7 @@ from ml.artifacts.store import ArtifactStore
 from services.ml_inference.predictor import ControlledInferencePredictor
 
 
-def test_rbac_permission_checks():
+def test_rbac_permission_checks() -> None:
     """Verify RBAC policy correctly allows and denies permissions by role."""
     # Viewer role
     with pytest.raises(AuthorizationError):
@@ -33,7 +35,7 @@ def test_rbac_permission_checks():
     require_permission("owner", Permission.WORKSPACE_DELETE)
 
 
-def test_path_traversal_prevention(tmp_path):
+def test_path_traversal_prevention(tmp_path: Path) -> None:
     """Verify LocalStorageBackend and StorageService reject path traversal attempts."""
     backend = LocalStorageBackend(base_directory=str(tmp_path))
     service = StorageService(backend=backend)
@@ -48,7 +50,7 @@ def test_path_traversal_prevention(tmp_path):
         backend.put_object("../../outside.txt", b"malicious content")
 
 
-def test_corrupted_artifact_integrity_rejection(mock_s3_client: MagicMock):
+def test_corrupted_artifact_integrity_rejection(mock_s3_client: MagicMock) -> None:
     """Verify predictor rejects artifacts with tampered payload / SHA-256 mismatch."""
     backend = S3StorageBackend(bucket_name="auraml-test-bucket", s3_client=mock_s3_client)
     store = ArtifactStore(backend=backend)
@@ -79,7 +81,7 @@ def test_corrupted_artifact_integrity_rejection(mock_s3_client: MagicMock):
     assert exc_info.value.status_code == 400
 
 
-def test_unapproved_model_inference_denied():
+def test_unapproved_model_inference_denied() -> None:
     """Verify inference is denied for models not in approved, staging, or production status."""
     predictor = ControlledInferencePredictor()
     with pytest.raises(DomainError) as exc_info:
@@ -94,7 +96,7 @@ def test_unapproved_model_inference_denied():
 
 
 @pytest.mark.asyncio
-async def test_redis_reconnect_resilience():
+async def test_redis_reconnect_resilience() -> None:
     """Verify RedisManager handles transient connection failures gracefully."""
     from app.core.redis import RedisManager
 

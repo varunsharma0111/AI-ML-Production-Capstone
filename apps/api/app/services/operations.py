@@ -70,7 +70,7 @@ class OperationsService:
                 .where(Dataset.workspace_id == workspace_id)
                 .group_by(Dataset.status)
             )
-            ds_counts = dict(ds_result.all())
+            ds_counts: dict[str, int] = {str(row[0]): int(row[1]) for row in ds_result.all()}
 
             # Jobs count
             job_result = await session.execute(
@@ -78,7 +78,7 @@ class OperationsService:
                 .where(Job.workspace_id == workspace_id)
                 .group_by(Job.status)
             )
-            job_counts = dict(job_result.all())
+            job_counts: dict[str, int] = {str(row[0]): int(row[1]) for row in job_result.all()}
 
             # Model count
             model_result = await session.execute(
@@ -86,7 +86,7 @@ class OperationsService:
                 .where(ModelVersion.workspace_id == workspace_id)
                 .group_by(ModelVersion.status)
             )
-            model_counts = dict(model_result.all())
+            model_counts: dict[str, int] = {str(row[0]): int(row[1]) for row in model_result.all()}
 
             # Inference count & avg latency
             inf_result = await session.execute(
