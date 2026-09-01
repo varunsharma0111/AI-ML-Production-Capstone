@@ -17,12 +17,14 @@ jobs:
     name: Deploy Web Frontend to Vercel
     runs-on: ubuntu-latest
     environment: demo
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
 
       - name: Deploy to Vercel
-        if: ${{ secrets.VERCEL_TOKEN != '' }}
+        if: ${{ env.VERCEL_TOKEN != '' }}
         uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
@@ -32,19 +34,21 @@ jobs:
           vercel-args: '--prod'
 
       - name: Dry Run Notice (Vercel credentials missing)
-        if: ${{ secrets.VERCEL_TOKEN == '' }}
+        if: ${{ env.VERCEL_TOKEN == '' }}
         run: echo "Vercel deployment skipped: VERCEL_TOKEN secret is not set."
 
   deploy-demo-api:
     name: Trigger Render Backend Deployment
     runs-on: ubuntu-latest
     environment: demo
+    env:
+      RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
     steps:
       - name: Trigger Render Deploy Hook
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_URL != '' }}
+        if: ${{ env.RENDER_DEPLOY_HOOK_URL != '' }}
         run: |
-          curl -s -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+          curl -s -X POST "$RENDER_DEPLOY_HOOK_URL"
 
       - name: Dry Run Notice (Render deploy hook missing)
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_URL == '' }}
+        if: ${{ env.RENDER_DEPLOY_HOOK_URL == '' }}
         run: echo "Render deployment skipped: RENDER_DEPLOY_HOOK_URL secret is not set."
