@@ -9,6 +9,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.core.errors import AuthenticationError
+from app.core.redis import RedisManager
 from app.core.security import JwtVerifier
 from app.db.session import session_from_factory
 from app.domains.identity.principal import Principal
@@ -45,9 +46,6 @@ def get_authenticated_principal(
     if credentials is None or credentials.scheme.lower() != "bearer":
         raise AuthenticationError("A bearer access token is required.")
     return verifier.verify(credentials.credentials)
-
-
-from app.core.redis import RedisManager
 
 
 def get_redis_manager(request: Request) -> RedisManager | None:

@@ -70,7 +70,7 @@ class AgentService:
         principal: Principal,
         payload: ToolExecuteRequest,
         request_id: str = "unknown",
-    ) -> tuple[dict[str, object], float]:
+    ) -> tuple[dict[str, Any], float]:
         async with session.begin():
             user = await self._identity_repository.get_or_create_user(session, principal)
             membership = await self._identity_repository.get_membership(
@@ -157,7 +157,7 @@ class AgentService:
 
             elif payload.tool_name == "list_datasets":
                 datasets = await self._dataset_repository.list_datasets_for_workspace(
-                    session, payload.workspace_id
+                    session, payload.workspace_id, offset=0, limit=50
                 )
                 context["datasets"] = [
                     {
@@ -243,7 +243,7 @@ class AgentService:
 
             elif payload.tool_name == "summarize_dataset":
                 datasets = await self._dataset_repository.list_datasets_for_workspace(
-                    session, payload.workspace_id
+                    session, payload.workspace_id, offset=0, limit=50
                 )
                 target = str(payload.arguments.get("dataset_id_or_name", "")).lower()
                 matched_ds = None
@@ -256,7 +256,9 @@ class AgentService:
                 if not matched_ds:
                     raise ResourceNotFoundError("Requested dataset was not found.")
 
-                profile = await self._dataset_repository.get_dataset_profile(session, matched_ds.id)
+                profile = await self._dataset_repository.get_profile_by_dataset_id(
+                    session, matched_ds.id
+                )
                 context["dataset"] = {
                     "id": matched_ds.id,
                     "original_filename": matched_ds.original_filename,
@@ -379,19 +381,25 @@ class AgentService:
                 exp = res.get("explanation", "")
                 m1_data = res.get("model_1", {})
                 m2_data = res.get("model_2", {})
+                m1_name = m1_data.get("name", "v1")
+                m1_tag = m1_data.get("version_tag", "v1")
+                m1_acc = float(m1_data.get("accuracy", 0.0)) * 100
+                m1_f1 = float(m1_data.get("f1_score", 0.0)) * 100
+                m1_st = m1_data.get("status")
+
+                m2_name = m2_data.get("name", "v2")
+                m2_tag = m2_data.get("version_tag", "v2")
+                m2_acc = float(m2_data.get("accuracy", 0.0)) * 100
+                m2_f1 = float(m2_data.get("f1_score", 0.0)) * 100
+                m2_st = m2_data.get("status")
+
                 answer = (
                     f"**Model Comparison Analysis**:\n\n"
                     f"Winner: Version **{better}** performs better!\n\n"
-                    f"- **{m1_data.get('name', 'v1')}"
-                    f" ({m1_data.get('version_tag', 'v1')})**:"
-                    f" Accuracy = {m1_data.get('accuracy', 0) * 100:.1f}%,"
-                    f" F1 = {m1_data.get('f1_score', 0) * 100:.1f}%"
-                    f" (Status: {m1_data.get('status')})\n"
-                    f"- **{m2_data.get('name', 'v2')}"
-                    f" ({m2_data.get('version_tag', 'v2')})**:"
-                    f" Accuracy = {m2_data.get('accuracy', 0) * 100:.1f}%,"
-                    f" F1 = {m2_data.get('f1_score', 0) * 100:.1f}%"
-                    f" (Status: {m2_data.get('status')})\n\n"
+                    f"- **{m1_name} ({m1_tag})**: Accuracy = {m1_acc:.1f}%, "
+                    f"F1 = {m1_f1:.1f}% (Status: {m1_st})\n"
+                    f"- **{m2_name} ({m2_tag})**: Accuracy = {m2_acc:.1f}%, "
+                    f"F1 = {m2_f1:.1f}% (Status: {m2_st})\n\n"
                     f"_{exp}_"
                 )
 
@@ -414,24 +422,21 @@ class AgentService:
                 reasons = res.get("failure_reasons", [])
                 reasons_str = (
                     "\n".join([f"- {r}" for r in reasons])
-                    if reasons
+                    if isinstance(reasons, list) and reasons
                     else "- All evaluation criteria passed successfully."
                 )
+                m_name = res.get("model_name")
+                v_tag = res.get("version_tag")
+                act_acc = float(res.get("actual_accuracy", 0.0)) * 100
+                req_acc = float(res.get("required_accuracy", 0.0)) * 100
+                act_f1 = float(res.get("actual_f1_score", 0.0)) * 100
+                req_f1 = float(res.get("required_f1_score", 0.0)) * 100
                 answer = (
-                    f"**Quality Gate Diagnostics for"
-                    f" {res.get('model_name')}"
-                    f" ({res.get('version_tag')})**:\n\n"
+                    f"**Quality Gate Diagnostics for {m_name} ({v_tag})**:\n\n"
                     f"Final Decision: **{decision}**\n\n"
                     f"Metrics Breakdown:\n"
-                    f"- Accuracy: "
-                    f"{res.get('actual_accuracy', 0) * 100:.1f}%"
-                    f" (Required: "
-                    f"{res.get('required_accuracy', 0) * 100:.1f}%)\n"
-                    f"- F1 Score: "
-                    f"{res.get('actual_f1_score', 0) * 100:.1f}%"
-                    f" (Required: "
-                    f"{res.get('required_f1_score', 0) * 100:.1f}%)"
-                    f"\n\n"
+                    f"- Accuracy: {act_acc:.1f}% (Required: {req_acc:.1f}%)\n"
+                    f"- F1 Score: {act_f1:.1f}% (Required: {req_f1:.1f}%)\n\n"
                     f"Evaluation Diagnostics:\n{reasons_str}"
                 )
 

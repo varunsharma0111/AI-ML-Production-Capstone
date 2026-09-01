@@ -1,4 +1,4 @@
-"""REST endpoints for model versioning, quality gate evaluation, model promotion, controlled inference, and prediction history."""
+"""REST endpoints for model versions, quality gates, promotion, and inference."""
 
 from __future__ import annotations
 

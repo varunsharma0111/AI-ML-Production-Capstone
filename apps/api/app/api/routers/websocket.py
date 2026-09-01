@@ -72,7 +72,7 @@ async def workspace_jobs_websocket(websocket: WebSocket, workspace_id: UUID) -> 
                         if message and message.get("type") == "message":
                             data_raw = message.get("data")
                             if data_raw:
-                                if isinstance(data_raw, (bytes, bytearray)):
+                                if isinstance(data_raw, bytes | bytearray):
                                     data_raw = data_raw.decode("utf-8")
                                 payload = json.loads(data_raw)
                                 await websocket.send_json(payload)
