@@ -10,15 +10,15 @@ export const HealthIndicator: React.FC = () => {
     let isMounted = true;
     const checkHealth = async () => {
       try {
-        const res = await request<HealthCheckResponse>("/health/ready");
+        const res = await request<HealthCheckResponse>("/api/v1/system/status");
         if (isMounted) {
           setStatus(res.status === "ok" ? "ready" : "unavailable");
         }
       } catch {
         try {
-          const liveRes = await request<HealthCheckResponse>("/health/live");
+          const res = await request<HealthCheckResponse>("/health/ready");
           if (isMounted) {
-            setStatus(liveRes.status === "ok" ? "ready" : "unavailable");
+            setStatus(res.status === "ok" ? "ready" : "unavailable");
           }
         } catch {
           if (isMounted) {

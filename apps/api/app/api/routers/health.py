@@ -13,12 +13,14 @@ from app.core.storage import get_storage_backend
 router = APIRouter(tags=["health"])
 
 
+@router.get("/api/v1/system/live")
 @router.get("/health/live")
 async def liveness() -> dict[str, str]:
     """Liveness probe returning 200 OK if process is running."""
     return {"status": "ok"}
 
 
+@router.get("/api/v1/system/status")
 @router.get("/health/ready")
 async def readiness(request: Request) -> dict[str, Any]:
     """Readiness probe testing DB, Redis, and Storage backend connectivity."""

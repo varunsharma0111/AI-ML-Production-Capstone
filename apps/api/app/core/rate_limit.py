@@ -28,6 +28,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         if request.method == "OPTIONS" or request.url.path in (
             "/health/live",
             "/health/ready",
+            "/api/v1/system/live",
+            "/api/v1/system/status",
             "/metrics",
         ):
             return cast(Response, await call_next(request))

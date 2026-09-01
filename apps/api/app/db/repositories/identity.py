@@ -38,12 +38,7 @@ class IdentityRepository:
                 workspaces = [new_ws]
 
             for ws in workspaces:
-                role = (
-                    "owner"
-                    if ws.slug in ("engineering", "default")
-                    else ("editor" if ws.slug == "ml-research" else "viewer")
-                )
-                session.add(WorkspaceMembership(workspace_id=ws.id, user_id=user.id, role=role))
+                session.add(WorkspaceMembership(workspace_id=ws.id, user_id=user.id, role="owner"))
             await session.flush()
 
         return user
