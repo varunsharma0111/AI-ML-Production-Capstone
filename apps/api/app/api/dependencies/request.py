@@ -8,6 +8,7 @@ from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from app.core.errors import AuthenticationError
 from app.core.redis import RedisManager
 from app.core.security import JwtVerifier
 from app.db.session import session_from_factory

@@ -37,7 +37,7 @@ async def readiness(request: Request) -> dict[str, Any]:
     # 2. Redis check
     try:
         redis_mgr = getattr(request.app.state, "redis_manager", None)
-        if redis_mgr and hasattr(redis_mgr, "ping"):
+        if redis_mgr and hasattr(redis_mgr, "ping") and redis_mgr.is_connected:
             is_alive = await redis_mgr.ping()
             if is_alive:
                 checks["redis"] = "healthy"
@@ -45,7 +45,7 @@ async def readiness(request: Request) -> dict[str, Any]:
                 checks["redis"] = "unhealthy: ping returned False"
                 unhealthy.append("redis")
         else:
-            checks["redis"] = "healthy (local/disabled)"
+            checks["redis"] = "healthy (local/fallback)"
     except Exception as err:
         checks["redis"] = f"unhealthy: {err}"
         unhealthy.append("redis")
