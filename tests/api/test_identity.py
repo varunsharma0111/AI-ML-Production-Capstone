@@ -85,10 +85,13 @@ async def test_current_user_success(test_settings: Settings) -> None:
     mock_user_result = MagicMock()
     mock_user_result.scalar_one_or_none.return_value = db_user
 
+    mock_mem_result = MagicMock()
+    mock_mem_result.scalars.return_value.all.return_value = []
+
     mock_ws_result = MagicMock()
     mock_ws_result.all.return_value = []
 
-    mock_session.execute.side_effect = [mock_user_result, mock_ws_result]
+    mock_session.execute.side_effect = [mock_user_result, mock_mem_result, mock_ws_result]
 
     mock_context = MagicMock()
     mock_context.__aenter__ = AsyncMock(return_value=mock_session)
