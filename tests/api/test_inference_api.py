@@ -234,13 +234,13 @@ async def test_real_end_to_end_training_to_inference_flow(
     csv_file = tmp_path / "train_churn.csv"
     csv_file.write_text(csv_data, encoding="utf-8")
 
-    result = trainer.train_dataset_model(
-        csv_path=str(csv_file),
+    metrics, artifact_key = trainer.train_dataset_model(
+        csv_file_path=str(csv_file),
         target_column="churn",
         model_name="real-churn-model",
+        version_tag="v1.0.0",
         model_type="random_forest",
     )
-    artifact_key = result["artifact_path"]
 
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
     membership = WorkspaceMembership(
@@ -251,10 +251,10 @@ async def test_real_end_to_end_training_to_inference_flow(
         id=model_id,
         workspace_id=workspace_id,
         name="real-churn-model",
-        version_tag=result["version_tag"],
+        version_tag="v1.0.0",
         artifact_path=artifact_key,
         status="production",  # Promoted to production
-        metrics_json=result["metrics"],
+        metrics_json=metrics,
         created_at=now,
         updated_at=now,
     )

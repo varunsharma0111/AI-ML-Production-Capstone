@@ -297,10 +297,11 @@ async def test_real_agent_prediction_end_to_end(
     csv_file = tmp_path / "agent_churn.csv"
     csv_file.write_text(csv_data, encoding="utf-8")
 
-    result = trainer.train_dataset_model(
-        csv_path=str(csv_file),
+    metrics, artifact_path = trainer.train_dataset_model(
+        csv_file_path=str(csv_file),
         target_column="churn",
         model_name="real-agent-model",
+        version_tag="v1.0.0",
         model_type="random_forest",
     )
 
@@ -309,10 +310,10 @@ async def test_real_agent_prediction_end_to_end(
         id=uuid4(),
         workspace_id=workspace_id,
         name="real-agent-model",
-        version_tag=result["version_tag"],
-        artifact_path=result["artifact_path"],
+        version_tag="v1.0.0",
+        artifact_path=artifact_path,
         status="production",  # Allowed status
-        metrics_json=result["metrics"],
+        metrics_json=metrics,
         created_at=now,
         updated_at=now,
     )
