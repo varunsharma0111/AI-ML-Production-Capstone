@@ -9,7 +9,7 @@ from typing import Any
 
 
 class JsonFormatter(logging.Formatter):
-    """Emit JSON logs with correlation identifiers without serializing request bodies or credentials."""
+    """Emit JSON logs with correlation IDs, excluding request bodies."""
 
     safe_fields = {
         "request_id",

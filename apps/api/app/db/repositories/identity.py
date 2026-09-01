@@ -4,10 +4,11 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from app.db.models.entities import User, WorkspaceMembership
-from app.domains.identity.principal import Principal
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db.models.entities import User, WorkspaceMembership
+from app.domains.identity.principal import Principal
 
 
 class IdentityRepository:

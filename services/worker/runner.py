@@ -6,10 +6,11 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.db.models.entities import Job, JobAttempt
 from app.db.repositories.jobs import JobRepository
 from app.domains.jobs.types import JobStatus, JobType
-from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
@@ -156,7 +157,6 @@ class JobRunner:
 
                 from app.db.models.entities import AuditEvent, ModelVersion
                 from app.db.repositories.datasets import DatasetRepository
-
                 from ml.training.trainer import ModelTrainer
 
                 dataset_repo = DatasetRepository()

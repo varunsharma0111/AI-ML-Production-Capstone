@@ -6,8 +6,9 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from app.domains.jobs.types import JobStatus, JobType
 from pydantic import BaseModel, ConfigDict, Field
+
+from app.domains.jobs.types import JobStatus, JobType
 
 
 class JobSubmit(BaseModel):

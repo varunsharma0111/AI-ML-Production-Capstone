@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from app.db.models.entities import InferenceLog, ModelEvaluation, ModelVersion
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db.models.entities import InferenceLog, ModelEvaluation, ModelVersion
 
 
 class ModelRepository:

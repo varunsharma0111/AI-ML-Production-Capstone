@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import pytest
+from pydantic import ValidationError
+
 from app.api.schemas.jobs import JobSubmit
 from app.domains.jobs.types import JobStatus, JobType
-from pydantic import ValidationError
 
 
 def test_job_status_values() -> None:

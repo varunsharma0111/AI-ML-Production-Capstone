@@ -5,10 +5,11 @@ from __future__ import annotations
 from typing import Any, Protocol, cast
 
 import jwt
+from jwt import InvalidTokenError
+
 from app.core.config import Settings
 from app.core.errors import AuthenticationError
 from app.domains.identity.principal import Principal
-from jwt import InvalidTokenError
 
 
 class SigningKeyProvider(Protocol):

@@ -5,7 +5,6 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from app.db.models.base import Base
 from sqlalchemy import (
     Boolean,
     CheckConstraint,
@@ -20,6 +19,8 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
+
+from app.db.models.base import Base
 
 
 class User(Base):

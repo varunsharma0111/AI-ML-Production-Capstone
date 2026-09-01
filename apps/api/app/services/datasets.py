@@ -5,6 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 from uuid import UUID, uuid4
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.errors import AuthorizationError, ResourceNotFoundError, ValidationError
 from app.core.redis import RedisManager
 from app.core.storage import StorageService
@@ -16,8 +18,6 @@ from app.domains.datasets.types import DatasetStatus
 from app.domains.identity.policy import Permission, require_permission
 from app.domains.identity.principal import Principal
 from app.domains.jobs.types import JobStatus, JobType
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from services.worker.runner import JobRunner
 
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
@@ -78,7 +78,8 @@ class DatasetService:
             raise ValidationError("Uploaded file is empty.")
         if file_size > MAX_FILE_SIZE_BYTES:
             raise ValidationError(
-                f"File size ({file_size} bytes) exceeds maximum limit of {MAX_FILE_SIZE_BYTES} bytes."
+                f"File size ({file_size} bytes) exceeds"
+                f" maximum limit of {MAX_FILE_SIZE_BYTES} bytes."
             )
 
         async with session.begin():

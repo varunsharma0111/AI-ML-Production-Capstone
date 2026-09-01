@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.api.dependencies.request import (
     get_authenticated_principal,
     get_request_id,
@@ -16,8 +19,6 @@ from app.api.schemas.agent import (
 )
 from app.domains.identity.principal import Principal
 from app.services.agent import AgentService
-from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/api/v1/agent", tags=["agent"])
 _agent_service = AgentService()

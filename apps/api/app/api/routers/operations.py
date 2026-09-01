@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from uuid import UUID
 
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.api.dependencies.request import (
     get_authenticated_principal,
     get_session,
@@ -14,8 +17,6 @@ from app.api.schemas.operations import (
 )
 from app.domains.identity.principal import Principal
 from app.services.operations import OperationsService
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/api/v1/workspaces/{workspace_id}", tags=["operations"])
 _operations_service = OperationsService()

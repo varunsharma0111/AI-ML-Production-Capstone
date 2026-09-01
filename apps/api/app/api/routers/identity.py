@@ -1,11 +1,12 @@
 """Authenticated identity endpoint."""
 
+from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.api.dependencies.request import get_authenticated_principal, get_session
 from app.api.schemas.identity import CurrentUserResponse
 from app.domains.identity.principal import Principal
 from app.services.tasks import TaskService
-from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(tags=["identity"])
 _task_service = TaskService()

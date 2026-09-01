@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from uuid import UUID
 
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.api.dependencies.request import (
     get_authenticated_principal,
     get_request_id,
@@ -12,8 +15,6 @@ from app.api.dependencies.request import (
 from app.api.schemas.tasks import TaskCreate, TaskListResponse, TaskResponse, TaskUpdate
 from app.domains.identity.principal import Principal
 from app.services.tasks import TaskService
-from fastapi import APIRouter, Depends, Query, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/workspaces/{workspace_id}/tasks", tags=["tasks"])
 _task_service = TaskService()

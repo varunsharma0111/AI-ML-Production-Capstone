@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from uuid import UUID
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.api.schemas.jobs import JobSubmit, TrainingJobCreate
 from app.core.errors import ConflictError, ResourceNotFoundError
 from app.core.redis import RedisManager
@@ -13,8 +15,6 @@ from app.db.repositories.jobs import JobRepository
 from app.domains.identity.policy import Permission, require_permission
 from app.domains.identity.principal import Principal
 from app.domains.jobs.types import JobStatus
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from services.worker.runner import JobRunner
 
 
@@ -117,7 +117,8 @@ class JobService:
 
             if dataset.status != "ready":
                 raise ValidationError(
-                    f"Dataset '{dataset.original_filename}' is not ready for training (status: {dataset.status})."
+                    f"Dataset '{dataset.original_filename}' is not"
+                    f" ready for training (status: {dataset.status})."
                 )
 
             profile = await dataset_repo.get_profile_by_dataset_id(session, dataset.id)

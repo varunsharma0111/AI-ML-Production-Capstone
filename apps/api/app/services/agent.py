@@ -1,10 +1,15 @@
-"""Transactional AI agent service with fine-grained RBAC enforcement, ML analytics orchestrator, and audit logging."""
+"""Transactional AI agent service with RBAC, ML analytics, and audit."""
 
 from __future__ import annotations
 
 import re
 from typing import Any
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from agent.tools.definitions import REGISTERED_TOOLS
+from agent.tools.sandbox import ToolSandbox
+from agent.tools.security import AgentToolSecurityGuard
 from app.api.schemas.agent import (
     AgentOrchestrateRequest,
     AgentOrchestrateResponse,
@@ -19,11 +24,6 @@ from app.db.repositories.ml import ModelRepository
 from app.domains.identity.policy import Permission, require_permission
 from app.domains.identity.principal import Principal
 from app.services.ml import MLService
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from agent.tools.definitions import REGISTERED_TOOLS
-from agent.tools.sandbox import ToolSandbox
-from agent.tools.security import AgentToolSecurityGuard
 
 TOOL_PERMISSION_MAP: dict[str, Permission] = {
     "calculator": Permission.TASK_READ,
@@ -116,7 +116,10 @@ class AgentService:
                         request_id=request_id,
                         metadata_json={
                             "tool_name": payload.tool_name,
-                            "reason": f"RBAC Authorization Denied: role '{membership.role}' lacks permission '{required_perm.value}'",
+                            "reason": (
+                                f"RBAC Denied: role '{membership.role}'"
+                                f" lacks '{required_perm.value}'"
+                            ),
                         },
                     )
                 )
@@ -296,7 +299,7 @@ class AgentService:
                     workspace_id=payload.workspace_id, input_features=features
                 )
 
-                # Execute existing MLService predict (enforces eligibility, SHA-256, feature validation)
+                # Execute MLService predict (eligibility, SHA-256, validation)
                 pred_res, latency, _ = await self._ml_service.predict(
                     session, principal, matched.id, predict_req, request_id
                 )
@@ -379,8 +382,16 @@ class AgentService:
                 answer = (
                     f"**Model Comparison Analysis**:\n\n"
                     f"Winner: Version **{better}** performs better!\n\n"
-                    f"- **{m1_data.get('name', 'v1')} ({m1_data.get('version_tag', 'v1')})**: Accuracy = {m1_data.get('accuracy', 0) * 100:.1f}%, F1 = {m1_data.get('f1_score', 0) * 100:.1f}% (Status: {m1_data.get('status')})\n"
-                    f"- **{m2_data.get('name', 'v2')} ({m2_data.get('version_tag', 'v2')})**: Accuracy = {m2_data.get('accuracy', 0) * 100:.1f}%, F1 = {m2_data.get('f1_score', 0) * 100:.1f}% (Status: {m2_data.get('status')})\n\n"
+                    f"- **{m1_data.get('name', 'v1')}"
+                    f" ({m1_data.get('version_tag', 'v1')})**:"
+                    f" Accuracy = {m1_data.get('accuracy', 0) * 100:.1f}%,"
+                    f" F1 = {m1_data.get('f1_score', 0) * 100:.1f}%"
+                    f" (Status: {m1_data.get('status')})\n"
+                    f"- **{m2_data.get('name', 'v2')}"
+                    f" ({m2_data.get('version_tag', 'v2')})**:"
+                    f" Accuracy = {m2_data.get('accuracy', 0) * 100:.1f}%,"
+                    f" F1 = {m2_data.get('f1_score', 0) * 100:.1f}%"
+                    f" (Status: {m2_data.get('status')})\n\n"
                     f"_{exp}_"
                 )
 
@@ -407,11 +418,20 @@ class AgentService:
                     else "- All evaluation criteria passed successfully."
                 )
                 answer = (
-                    f"**Quality Gate Diagnostics for {res.get('model_name')} ({res.get('version_tag')})**:\n\n"
+                    f"**Quality Gate Diagnostics for"
+                    f" {res.get('model_name')}"
+                    f" ({res.get('version_tag')})**:\n\n"
                     f"Final Decision: **{decision}**\n\n"
                     f"Metrics Breakdown:\n"
-                    f"- Accuracy: {res.get('actual_accuracy', 0) * 100:.1f}% (Required: {res.get('required_accuracy', 0) * 100:.1f}%)\n"
-                    f"- F1 Score: {res.get('actual_f1_score', 0) * 100:.1f}% (Required: {res.get('required_f1_score', 0) * 100:.1f}%)\n\n"
+                    f"- Accuracy: "
+                    f"{res.get('actual_accuracy', 0) * 100:.1f}%"
+                    f" (Required: "
+                    f"{res.get('required_accuracy', 0) * 100:.1f}%)\n"
+                    f"- F1 Score: "
+                    f"{res.get('actual_f1_score', 0) * 100:.1f}%"
+                    f" (Required: "
+                    f"{res.get('required_f1_score', 0) * 100:.1f}%)"
+                    f"\n\n"
                     f"Evaluation Diagnostics:\n{reasons_str}"
                 )
 
@@ -513,7 +533,8 @@ class AgentService:
                 )
                 m_list = res.get("models", [])
                 m_lines = [
-                    f"- **{m['name']}** (`{m['version_tag']}`) — Status: `{m['status'].toUpperCase()}`"
+                    f"- **{m['name']}** (`{m['version_tag']}`)"
+                    f" — Status: `{m['status']}`"
                     for m in m_list
                 ]
                 answer = f"**Workspace Models ({res.get('count', 0)})**:\n\n" + (

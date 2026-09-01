@@ -8,8 +8,8 @@ from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
-from app.core.storage import S3StorageBackend, StorageService
 
+from app.core.storage import S3StorageBackend, StorageService
 from ml.artifacts.store import ArtifactStore
 from services.ml_inference.predictor import ControlledInferencePredictor
 

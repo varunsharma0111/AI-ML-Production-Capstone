@@ -6,9 +6,10 @@ import json
 import logging
 from typing import Any
 
-from app.core.config import get_settings
 from redis.asyncio import ConnectionPool, Redis
 from redis.exceptions import RedisError
+
+from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -124,6 +125,5 @@ class RedisManager:
         """Return a PubSub subscriber context subscribed to workspace channel."""
         if not self._is_connected or not self._client:
             return None
-        channel = f"workspace:{workspace_id}:jobs"
         pubsub = self._client.pubsub()
         return pubsub

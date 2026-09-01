@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from uuid import UUID
 
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.api.dependencies.request import (
     get_authenticated_principal,
     get_request_id,
@@ -21,8 +24,6 @@ from app.api.schemas.ml import (
 )
 from app.domains.identity.principal import Principal
 from app.services.ml import MLService
-from fastapi import APIRouter, Depends, Query, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter(prefix="/api/v1", tags=["ml"])
 _ml_service = MLService()

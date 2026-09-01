@@ -4,6 +4,9 @@ from __future__ import annotations
 
 from uuid import UUID
 
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.api.schemas.operations import (
     AuditEventResponse,
     OperationsDashboardResponse,
@@ -22,8 +25,6 @@ from app.domains.identity.policy import Permission, PolicyEngine
 from app.domains.identity.principal import Principal
 from app.domains.identity.types import WorkspaceRole
 from app.domains.shared.errors import AuthorizationError
-from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class OperationsService:

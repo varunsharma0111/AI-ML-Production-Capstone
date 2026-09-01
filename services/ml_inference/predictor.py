@@ -6,7 +6,6 @@ import time
 from typing import Any
 
 from app.core.errors import DomainError, ValidationError
-
 from ml.artifacts.store import ArtifactStore
 
 VALID_INFERENCE_STATUSES = {"approved", "staging", "production"}

@@ -7,10 +7,11 @@ import json
 import logging
 from uuid import UUID
 
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+
 from app.core.redis import RedisManager
 from app.core.security import JwtVerifier
 from app.db.repositories.identity import IdentityRepository
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 logger = logging.getLogger(__name__)
 

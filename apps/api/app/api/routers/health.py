@@ -4,10 +4,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from app.core.errors import DomainError
-from app.core.storage import get_storage_backend
 from fastapi import APIRouter, Request
 from sqlalchemy import text
+
+from app.core.errors import DomainError
+from app.core.storage import get_storage_backend
 
 router = APIRouter(tags=["health"])
 

@@ -6,9 +6,10 @@ import time
 from collections import defaultdict
 from typing import Any, cast
 
-from app.core.errors import DomainError
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
+
+from app.core.errors import DomainError
 
 MAX_REQUESTS_PER_MINUTE = 120
 MAX_UPLOAD_BYTES = 50 * 1024 * 1024  # 50 MB
@@ -36,7 +37,10 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                         status_code=413,
                         code="payload_too_large",
                         title="Payload Too Large",
-                        detail=f"File upload size exceeds maximum limit of {MAX_UPLOAD_BYTES // (1024 * 1024)}MB.",
+                        detail=(
+                            "File upload size exceeds maximum"
+                            f" limit of {MAX_UPLOAD_BYTES // (1024 * 1024)}MB."
+                        ),
                     )
             except ValueError:
                 pass

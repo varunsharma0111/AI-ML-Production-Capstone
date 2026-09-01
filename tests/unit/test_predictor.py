@@ -3,8 +3,8 @@
 import json
 
 import pytest
-from app.core.errors import DomainError, ValidationError
 
+from app.core.errors import DomainError, ValidationError
 from ml.artifacts.store import ArtifactStore
 from services.ml_inference.predictor import ControlledInferencePredictor
 

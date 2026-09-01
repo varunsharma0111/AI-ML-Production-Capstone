@@ -7,6 +7,7 @@ from uuid import uuid4
 
 import httpx
 import pytest
+
 from app.core.config import Settings
 from app.core.errors import AuthenticationError
 from app.db.models.entities import User

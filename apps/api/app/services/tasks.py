@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from uuid import UUID
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.api.schemas.tasks import TaskCreate, TaskUpdate
 from app.core.errors import ConflictError, ResourceNotFoundError
 from app.db.models.entities import AuditEvent, Task, User
@@ -11,7 +13,6 @@ from app.db.repositories.identity import IdentityRepository
 from app.db.repositories.tasks import TaskRepository
 from app.domains.identity.policy import Permission, require_permission
 from app.domains.identity.principal import Principal
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class TaskService:

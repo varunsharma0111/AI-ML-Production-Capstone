@@ -9,12 +9,13 @@ from uuid import uuid4
 
 import httpx
 import pytest
+from fastapi import FastAPI
+
 from app.core.config import Settings
 from app.db.models.entities import Job, User, WorkspaceMembership
 from app.domains.identity.principal import Principal
 from app.domains.jobs.types import JobStatus, JobType
 from app.main import create_app
-from fastapi import FastAPI
 
 
 @pytest.fixture

@@ -1,4 +1,4 @@
-"""Prometheus metrics instrumentation middleware and registry for API, DB, Redis, Worker, S3, and Inference."""
+"""Prometheus metrics middleware and registry for API and infrastructure."""
 
 from __future__ import annotations
 

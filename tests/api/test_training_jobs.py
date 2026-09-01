@@ -1,4 +1,4 @@
-"""API and integration tests for model training job creation, worker execution, and ModelVersion registration."""
+"""Tests for model training job creation and ModelVersion registration."""
 
 from __future__ import annotations
 

@@ -6,9 +6,10 @@ import logging
 from datetime import UTC, datetime
 from uuid import UUID
 
-from app.db.models.entities import OutboxEvent
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db.models.entities import OutboxEvent
 
 logger = logging.getLogger(__name__)
 

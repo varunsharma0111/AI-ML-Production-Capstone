@@ -19,6 +19,7 @@ from app.api.routers import agent, datasets, health, identity, jobs, ml, tasks, 
 from app.core.config import Settings, get_settings
 from app.core.errors import DomainError
 from app.core.logging import configure_logging
+from app.core.redis import RedisManager
 from app.core.security import JwtVerifier
 from app.db.session import create_database_engine, create_session_factory
 
@@ -82,9 +83,6 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         return cast(Response, response)
-
-
-from app.core.redis import RedisManager
 
 
 def create_app(

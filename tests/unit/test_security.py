@@ -1,7 +1,8 @@
 """Unit tests for defensive security headers and CORS middleware."""
 
-from app.main import app
 from fastapi.testclient import TestClient
+
+from app.main import app
 
 
 def test_security_headers_present() -> None:

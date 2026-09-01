@@ -5,9 +5,9 @@ from __future__ import annotations
 from io import BytesIO
 from typing import Any
 
-from app.main import app
 from fastapi.testclient import TestClient
 
+from app.main import app
 from services.worker.main import WorkerMetricsHandler
 
 

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from uuid import UUID
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.api.schemas.ml import (
     ModelCreate,
     ModelEvaluateRequest,
@@ -22,8 +24,6 @@ from app.db.repositories.ml import ModelRepository
 from app.domains.identity.policy import Permission, WorkspaceRole, require_permission
 from app.domains.identity.principal import Principal
 from app.domains.ml.types import DEFAULT_ACCURACY_THRESHOLD, DEFAULT_F1_SCORE_THRESHOLD, ModelStatus
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from ml.evaluation.evaluator import ModelEvaluator
 from ml.training.trainer import ModelTrainer
 from services.ml_inference.predictor import ControlledInferencePredictor
