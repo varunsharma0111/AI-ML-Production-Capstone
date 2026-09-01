@@ -95,7 +95,9 @@ async def test_prevent_duplicate_worker_execution() -> None:
 
     mock_runner = AsyncMock()
 
-    async def _execute_job_side_effect(session, job):
+    async def _execute_job_side_effect(
+        session: Any, job: Any
+    ) -> tuple[JobStatus, dict[str, Any], None]:
         job.status = JobStatus.COMPLETED.value
         return (JobStatus.COMPLETED, {"records": 100}, None)
 

@@ -477,7 +477,7 @@ class AgentService:
                     "income": float(inc_m.group(1)) if inc_m else 55000.0,
                     "tenure": float(ten_m.group(1)) if ten_m else 4.0,
                 }
-                args: dict[str, Any] = {"model_id_or_name": "churn", "input_features": features}
+                args = {"model_id_or_name": "churn", "input_features": features}
                 res, duration = await self.execute_tool(
                     session,
                     principal,

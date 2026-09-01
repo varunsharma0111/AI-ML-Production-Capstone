@@ -11,6 +11,8 @@ import httpx
 import pytest
 from fastapi import FastAPI
 
+from pathlib import Path
+
 from app.core.config import Settings
 from app.db.models.entities import ModelVersion, User, WorkspaceMembership
 from app.domains.identity.principal import Principal
@@ -160,7 +162,7 @@ async def test_predict_workspace_isolation_cross_workspace(
 
 @pytest.mark.asyncio
 async def test_predict_rejected_model_blocked(
-    test_settings: Settings, mock_principal: Principal, tmp_path
+    test_settings: Settings, mock_principal: Principal, tmp_path: Path
 ) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
@@ -207,7 +209,7 @@ async def test_predict_rejected_model_blocked(
 
 @pytest.mark.asyncio
 async def test_real_end_to_end_training_to_inference_flow(
-    test_settings: Settings, mock_principal: Principal, tmp_path
+    test_settings: Settings, mock_principal: Principal, tmp_path: Path
 ) -> None:
     """Real End-to-End Test:
 

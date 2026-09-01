@@ -11,6 +11,8 @@ import httpx
 import pytest
 from fastapi import FastAPI
 
+from pathlib import Path
+
 from agent.tools.security import AgentToolSecurityGuard
 from app.core.config import Settings
 from app.core.errors import DomainError
@@ -280,7 +282,7 @@ async def test_agent_orchestrate_explain_metrics(
 
 @pytest.mark.asyncio
 async def test_real_agent_prediction_end_to_end(
-    test_settings: Settings, mock_principal: Principal, tmp_path
+    test_settings: Settings, mock_principal: Principal, tmp_path: Path
 ) -> None:
     """REAL END-TO-END TEST:
     Agent calls real inference engine on actual trained model artifact!

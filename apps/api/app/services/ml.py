@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import cast
+from typing import Any, cast
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -143,12 +143,12 @@ class MLService:
             accuracy = (
                 payload.accuracy
                 if payload.accuracy is not None
-                else float(metrics.get("accuracy", 0.0))
+                else float(cast(Any, metrics.get("accuracy", 0.0)))
             )
             f1_score = (
                 payload.f1_score
                 if payload.f1_score is not None
-                else float(metrics.get("f1_score", 0.0))
+                else float(cast(Any, metrics.get("f1_score", 0.0)))
             )
 
             acc_thresh = payload.accuracy_threshold or DEFAULT_ACCURACY_THRESHOLD
@@ -358,8 +358,8 @@ class MLService:
             if evaluation is None:
                 # Construct synthetic quality gate from metrics_json
                 metrics = model.metrics_json or {}
-                acc = float(metrics.get("accuracy", 0.0))
-                f1 = float(metrics.get("f1_score", 0.0))
+                acc = float(cast(Any, metrics.get("accuracy", 0.0)))
+                f1 = float(cast(Any, metrics.get("f1_score", 0.0)))
                 passed, meta = self._evaluator.evaluate(acc, f1)
                 return QualityGateResponse(
                     model_id=model.id,
@@ -383,9 +383,11 @@ class MLService:
                 accuracy=evaluation.accuracy,
                 f1_score=evaluation.f1_score,
                 accuracy_threshold=float(
-                    meta.get("accuracy_threshold", DEFAULT_ACCURACY_THRESHOLD)
+                    cast(Any, meta.get("accuracy_threshold", DEFAULT_ACCURACY_THRESHOLD))
                 ),
-                f1_threshold=float(meta.get("f1_threshold", DEFAULT_F1_SCORE_THRESHOLD)),
+                f1_threshold=float(
+                    cast(Any, meta.get("f1_threshold", DEFAULT_F1_SCORE_THRESHOLD))
+                ),
                 failure_reasons=cast(list[str], meta.get("failure_reasons", [])),
                 evaluated_at=evaluation.evaluated_at,
             )
