@@ -61,8 +61,12 @@ files = ["apps/api", "services", "tests"]
 exclude = ["^\\.venv/"]
 
 [[tool.mypy.overrides]]
-module = ["asyncpg.*", "boto3.*", "botocore.*"]
+module = ["asyncpg.*", "aiosqlite.*", "boto3.*", "botocore.*"]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "app.core.redis"
+warn_unused_ignores = false
 
 [tool.pytest.ini_options]
 pythonpath = [".", "apps/api"]
