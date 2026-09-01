@@ -23,10 +23,12 @@ def create_database_engine(settings: Settings) -> AsyncEngine:
     if "postgresql" in db_url:
         try:
             import asyncpg  # noqa: F401
+
             connect_args = {"server_settings": {"statement_timeout": "5000"}}
         except ImportError:
             try:
                 import aiosqlite  # noqa: F401
+
                 db_url = "sqlite+aiosqlite:///./data/dev.db"
                 connect_args = {}
             except ImportError:

@@ -10,6 +10,7 @@ from fastapi import FastAPI, Request, Response
 
 try:
     from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, Histogram, generate_latest
+
     PROMETHEUS_AVAILABLE = True
 except ImportError:
     PROMETHEUS_AVAILABLE = False
@@ -35,6 +36,7 @@ except ImportError:
 
     def generate_latest(registry: Any = None, escaping: str = "") -> bytes:  # type: ignore[misc]
         return b"# prometheus_client not installed\n"
+
 
 # HTTP API Metrics
 HTTP_REQUESTS_TOTAL = Counter(
