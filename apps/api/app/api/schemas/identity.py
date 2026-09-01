@@ -1,5 +1,7 @@
 """Transport schema for the verified current user."""
 
+from __future__ import annotations
+
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -18,4 +20,3 @@ class CurrentUserResponse(BaseModel):
     email: str | None
     display_name: str | None
     workspaces: list[WorkspaceMemberInfo] = []
-

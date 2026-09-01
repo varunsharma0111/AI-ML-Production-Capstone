@@ -3,13 +3,20 @@ import { Permission, Workspace, WorkspaceRole } from "../types/api";
 import { useAuth } from "./AuthContext";
 
 interface WorkspaceContextType {
-  activeWorkspace: Workspace | null;
+  activeWorkspace: Workspace;
   availableWorkspaces: Workspace[];
   setActiveWorkspace: (workspace: Workspace) => void;
   hasPermission: (permission: Permission) => boolean;
 }
 
 const STORAGE_KEY = "auraml_selected_workspace_id";
+
+const EMPTY_WORKSPACE: Workspace = {
+  id: "",
+  slug: "",
+  name: "No Active Workspace",
+  role: "viewer",
+};
 
 const ROLE_PERMISSIONS: Record<WorkspaceRole, Set<Permission>> = {
   owner: new Set<Permission>([
@@ -43,11 +50,11 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const { user } = useAuth();
   const availableWorkspaces = user?.workspaces || [];
 
-  const [activeWorkspace, setActiveWorkspaceState] = useState<Workspace | null>(null);
+  const [activeWorkspaceState, setActiveWorkspaceState] = useState<Workspace>(EMPTY_WORKSPACE);
 
   useEffect(() => {
     if (!availableWorkspaces || availableWorkspaces.length === 0) {
-      setActiveWorkspaceState(null);
+      setActiveWorkspaceState(EMPTY_WORKSPACE);
       return;
     }
 
@@ -75,15 +82,15 @@ export const WorkspaceProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   const hasPermission = (permission: Permission): boolean => {
-    if (!activeWorkspace) return false;
-    const permissions = ROLE_PERMISSIONS[activeWorkspace.role];
+    if (!activeWorkspaceState.id) return false;
+    const permissions = ROLE_PERMISSIONS[activeWorkspaceState.role];
     return permissions ? permissions.has(permission) : false;
   };
 
   return (
     <WorkspaceContext.Provider
       value={{
-        activeWorkspace,
+        activeWorkspace: activeWorkspaceState,
         availableWorkspaces,
         setActiveWorkspace,
         hasPermission,

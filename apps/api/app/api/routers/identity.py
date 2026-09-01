@@ -1,5 +1,7 @@
 """Authenticated identity endpoint."""
 
+from __future__ import annotations
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -26,4 +28,3 @@ async def current_user(
         display_name=user.display_name,
         workspaces=[WorkspaceMemberInfo(**w) for w in workspaces],
     )
-

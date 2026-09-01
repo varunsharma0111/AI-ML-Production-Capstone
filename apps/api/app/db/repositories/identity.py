@@ -1,3 +1,7 @@
+"""Data access for external users and workspace memberships."""
+
+from __future__ import annotations
+
 from typing import Any
 from uuid import UUID
 
@@ -34,7 +38,11 @@ class IdentityRepository:
                 workspaces = [new_ws]
 
             for ws in workspaces:
-                role = "owner" if ws.slug == "engineering" or ws.slug == "default" else ("editor" if ws.slug == "ml-research" else "viewer")
+                role = (
+                    "owner"
+                    if ws.slug in ("engineering", "default")
+                    else ("editor" if ws.slug == "ml-research" else "viewer")
+                )
                 session.add(WorkspaceMembership(workspace_id=ws.id, user_id=user.id, role=role))
             await session.flush()
 
@@ -73,4 +81,3 @@ class IdentityRepository:
             }
             for row in result.all()
         ]
-

@@ -245,7 +245,7 @@ export const AppLayout: React.FC = () => {
           </nav>
 
           {/* Section Renderers */}
-          {!activeWorkspace ? (
+          {!activeWorkspace || !activeWorkspace.id ? (
             <div className="aura-empty-state" style={{ marginTop: "2rem" }}>
               <div className="aura-empty-icon">
                 <IconBox size={24} />
