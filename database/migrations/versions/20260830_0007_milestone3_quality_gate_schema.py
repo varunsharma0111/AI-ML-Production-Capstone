@@ -17,20 +17,26 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    op.add_column(
-        "model_evaluations",
-        sa.Column(
-            "workspace_id",
-            sa.UUID(),
-            sa.ForeignKey("workspaces.id", ondelete="CASCADE"),
-            nullable=True,
-        ),
-    )
-    op.create_index(
-        "idx_model_evaluations_workspace_id",
-        "model_evaluations",
-        ["workspace_id"],
-    )
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    existing_cols = [c["name"] for c in inspector.get_columns("model_evaluations")]
+    if "workspace_id" not in existing_cols:
+        op.add_column(
+            "model_evaluations",
+            sa.Column(
+                "workspace_id",
+                sa.UUID(),
+                sa.ForeignKey("workspaces.id", ondelete="CASCADE"),
+                nullable=True,
+            ),
+        )
+    existing_indexes = [idx["name"] for idx in inspector.get_indexes("model_evaluations")]
+    if "idx_model_evaluations_workspace_id" not in existing_indexes:
+        op.create_index(
+            "idx_model_evaluations_workspace_id",
+            "model_evaluations",
+            ["workspace_id"],
+        )
 
 
 def downgrade() -> None:

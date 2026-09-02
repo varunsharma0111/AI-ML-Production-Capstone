@@ -25,6 +25,7 @@ from uuid import UUID, uuid4
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
@@ -44,31 +45,24 @@ logger = logging.getLogger(__name__)
 
 
 def run_migrations_sync(db_url: str) -> None:
-    """Run Alembic migrations synchronously to head on startup."""
-    try:
-        from alembic import command
-        from alembic.config import Config
+    """Run Alembic migrations synchronously to head on startup.
 
-        ini_path = _ROOT / "database" / "migrations" / "alembic.ini"
-        if not ini_path.exists():
-            logger.warning("alembic.ini not found at %s", ini_path)
-            return
+    If migrations fail, raise the exception so application startup halts.
+    """
+    from alembic import command
+    from alembic.config import Config
 
-        cfg = Config(str(ini_path))
-        migrations_dir = (_ROOT / "database" / "migrations").resolve()
-        cfg.set_main_option("script_location", str(migrations_dir))
-        cfg.set_main_option("sqlalchemy.url", db_url)
-        try:
-            command.upgrade(cfg, "head")
-            logger.info("Database migrations executed successfully.")
-        except Exception as exc:
-            logger.warning("Alembic upgrade warning: %s. Stamping head.", exc)
-            try:
-                command.stamp(cfg, "head")
-            except Exception as stamp_exc:
-                logger.warning("Alembic stamp warning: %s", stamp_exc)
-    except Exception as exc:
-        logger.warning("Database migration wrapper warning: %s", exc)
+    ini_path = _ROOT / "database" / "migrations" / "alembic.ini"
+    if not ini_path.exists():
+        raise RuntimeError(f"alembic.ini not found at {ini_path}")
+
+    cfg = Config(str(ini_path))
+    migrations_dir = (_ROOT / "database" / "migrations").resolve()
+    cfg.set_main_option("script_location", str(migrations_dir))
+    cfg.set_main_option("sqlalchemy.url", db_url)
+    logger.info("Executing database migrations to head...")
+    command.upgrade(cfg, "head")
+    logger.info("Database migrations executed successfully.")
 
 
 def problem_response(
@@ -147,16 +141,12 @@ def create_app(
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
         await redis_manager.connect()
-        try:
-            await asyncio.to_thread(run_migrations_sync, resolved_settings.database_url)
-        except Exception as exc:
-            logger.warning("Database migration thread error: %s", exc)
+        await asyncio.to_thread(run_migrations_sync, resolved_settings.database_url)
 
         try:
             async with engine.begin() as conn:
-                from sqlalchemy import text
-                from app.db.models.base import Base
                 import app.db.models.entities  # noqa: F401
+                from app.db.models.base import Base
 
                 await conn.run_sync(Base.metadata.create_all)
                 ddl_statements = [

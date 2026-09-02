@@ -18,71 +18,88 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    op.add_column("model_versions", sa.Column("workspace_id", sa.Uuid(), nullable=True))
-    op.add_column("model_versions", sa.Column("dataset_id", sa.Uuid(), nullable=True))
-    op.add_column("model_versions", sa.Column("job_id", sa.Uuid(), nullable=True))
-    op.add_column(
-        "model_versions",
-        sa.Column(
-            "metrics_json",
-            postgresql.JSONB(astext_type=sa.Text()),
-            server_default="{}",
-            nullable=False,
-        ),
-    )
-    op.add_column(
-        "model_versions",
-        sa.Column(
-            "hyperparameters_json",
-            postgresql.JSONB(astext_type=sa.Text()),
-            server_default="{}",
-            nullable=False,
-        ),
-    )
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    existing_cols = [c["name"] for c in inspector.get_columns("model_versions")]
 
-    op.create_foreign_key(
-        "fk_model_versions_workspace_id",
-        "model_versions",
-        "workspaces",
-        ["workspace_id"],
-        ["id"],
-        ondelete="SET NULL",
-    )
-    op.create_foreign_key(
-        "fk_model_versions_dataset_id",
-        "model_versions",
-        "datasets",
-        ["dataset_id"],
-        ["id"],
-        ondelete="SET NULL",
-    )
-    op.create_foreign_key(
-        "fk_model_versions_job_id",
-        "model_versions",
-        "jobs",
-        ["job_id"],
-        ["id"],
-        ondelete="SET NULL",
-    )
+    if "workspace_id" not in existing_cols:
+        op.add_column("model_versions", sa.Column("workspace_id", sa.Uuid(), nullable=True))
+    if "dataset_id" not in existing_cols:
+        op.add_column("model_versions", sa.Column("dataset_id", sa.Uuid(), nullable=True))
+    if "job_id" not in existing_cols:
+        op.add_column("model_versions", sa.Column("job_id", sa.Uuid(), nullable=True))
+    if "metrics_json" not in existing_cols:
+        op.add_column(
+            "model_versions",
+            sa.Column(
+                "metrics_json",
+                postgresql.JSONB(astext_type=sa.Text()),
+                server_default="{}",
+                nullable=False,
+            ),
+        )
+    if "hyperparameters_json" not in existing_cols:
+        op.add_column(
+            "model_versions",
+            sa.Column(
+                "hyperparameters_json",
+                postgresql.JSONB(astext_type=sa.Text()),
+                server_default="{}",
+                nullable=False,
+            ),
+        )
 
-    op.create_index(
-        op.f("ix_model_versions_workspace_id"),
-        "model_versions",
-        ["workspace_id"],
-        unique=False,
-    )
-    op.create_index(
-        op.f("ix_model_versions_dataset_id"),
-        "model_versions",
-        ["dataset_id"],
-        unique=False,
-    )
-    op.create_index(
-        op.f("ix_model_versions_job_id"),
-        "model_versions",
-        ["job_id"],
-        unique=False,
-    )
+    existing_fks = [fk["name"] for fk in inspector.get_foreign_keys("model_versions")]
+    if "fk_model_versions_workspace_id" not in existing_fks:
+        op.create_foreign_key(
+            "fk_model_versions_workspace_id",
+            "model_versions",
+            "workspaces",
+            ["workspace_id"],
+            ["id"],
+            ondelete="SET NULL",
+        )
+    if "fk_model_versions_dataset_id" not in existing_fks:
+        op.create_foreign_key(
+            "fk_model_versions_dataset_id",
+            "model_versions",
+            "datasets",
+            ["dataset_id"],
+            ["id"],
+            ondelete="SET NULL",
+        )
+    if "fk_model_versions_job_id" not in existing_fks:
+        op.create_foreign_key(
+            "fk_model_versions_job_id",
+            "model_versions",
+            "jobs",
+            ["job_id"],
+            ["id"],
+            ondelete="SET NULL",
+        )
+
+    existing_indexes = [idx["name"] for idx in inspector.get_indexes("model_versions")]
+    if "ix_model_versions_workspace_id" not in existing_indexes:
+        op.create_index(
+            op.f("ix_model_versions_workspace_id"),
+            "model_versions",
+            ["workspace_id"],
+            unique=False,
+        )
+    if "ix_model_versions_dataset_id" not in existing_indexes:
+        op.create_index(
+            op.f("ix_model_versions_dataset_id"),
+            "model_versions",
+            ["dataset_id"],
+            unique=False,
+        )
+    if "ix_model_versions_job_id" not in existing_indexes:
+        op.create_index(
+            op.f("ix_model_versions_job_id"),
+            "model_versions",
+            ["job_id"],
+            unique=False,
+        )
 
 
 def downgrade() -> None:
