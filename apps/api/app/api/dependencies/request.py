@@ -43,18 +43,39 @@ def get_authenticated_principal(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     verifier: JwtVerifier = Depends(get_token_verifier),
 ) -> Principal:
-    """Resolve current authenticated principal. Bypassed for testing so requests never fail with 401."""
+    """Resolve current authenticated principal with PUBLIC_TEST_MODE & DEV_AUTH_MODE support."""
+    settings = getattr(request.app.state, "settings", None)
+    public_mode = settings and getattr(settings, "public_test_mode", False)
+
     if credentials is not None and credentials.scheme.lower() == "bearer":
         try:
             return verifier.verify(credentials.credentials)
         except Exception:
-            pass
+            if public_mode:
+                return Principal(
+                    subject="public-test-user-id",
+                    email="public.test@auraml.local",
+                    display_name="Public Test User",
+                )
+            raise
 
-    return Principal(
-        subject="dev-user-123",
-        email="dev.user@example.com",
-        display_name="Dev Demo User",
-    )
+    if public_mode:
+        return Principal(
+            subject="public-test-user-id",
+            email="public.test@auraml.local",
+            display_name="Public Test User",
+        )
+
+    if settings and getattr(settings, "dev_auth_mode", False):
+        return Principal(
+            subject="dev-user-123",
+            email="dev.user@example.com",
+            display_name="Dev Demo User",
+        )
+
+    from app.core.errors import AuthenticationError
+
+    raise AuthenticationError()
 
 
 def get_redis_manager(request: Request) -> RedisManager | None:

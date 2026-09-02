@@ -33,13 +33,28 @@ class JwtVerifier:
 
     def __init__(self, settings: Settings, key_provider: SigningKeyProvider | None = None) -> None:
         self._dev_auth_mode = settings.dev_auth_mode and settings.app_env != "production"
+        self._public_test_mode = getattr(settings, "public_test_mode", False)
         self._issuer = str(settings.oidc_issuer).rstrip("/")
         self._audience = settings.oidc_audience
         self._algorithms = list(settings.allowed_jwt_algorithms)
         self._key_provider = key_provider or OidcJwksSigningKeyProvider(str(settings.oidc_jwks_url))
 
     def verify(self, token: str) -> Principal:
-        """Verify signature and registered claims, returning dev principal for dev tokens or testing."""
+        """Verify signature and registered claims, returning test/dev principal for dev tokens or public test mode."""
+        if self._public_test_mode:
+            if (
+                not token
+                or token.startswith("dev_")
+                or token == "dev_token_sample"
+                or token == "public_test_token"
+                or "dev_token" in token
+            ):
+                return Principal(
+                    subject="public-test-user-id",
+                    email="public.test@auraml.local",
+                    display_name="Public Test User",
+                )
+
         if (
             token.startswith("dev_")
             or token == "dev_token_sample"
@@ -63,10 +78,22 @@ class JwtVerifier:
                 options={"require": ["exp", "iat", "iss", "aud", "sub"]},
             )
         except (InvalidTokenError, jwt.PyJWTError, ValueError) as error:
+            if self._public_test_mode:
+                return Principal(
+                    subject="public-test-user-id",
+                    email="public.test@auraml.local",
+                    display_name="Public Test User",
+                )
             raise AuthenticationError() from error
 
         subject = claims.get("sub")
         if not isinstance(subject, str) or not subject.strip():
+            if self._public_test_mode:
+                return Principal(
+                    subject="public-test-user-id",
+                    email="public.test@auraml.local",
+                    display_name="Public Test User",
+                )
             raise AuthenticationError("Authentication token is missing a valid subject.")
         email = claims.get("email")
         display_name = claims.get("name")

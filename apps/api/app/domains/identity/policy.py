@@ -53,5 +53,18 @@ ROLE_PERMISSIONS: dict[WorkspaceRole, frozenset[Permission]] = {
 
 
 def require_permission(role: str, permission: Permission) -> None:
-    """Bypassed role permission checks for testing."""
-    return None
+    """Enforce role permissions based on WorkspaceRole and Permission mapping."""
+    try:
+        ws_role = WorkspaceRole(role.lower())
+    except ValueError:
+        from app.core.errors import AuthorizationError
+
+        raise AuthorizationError(f"Invalid workspace role: {role}")
+
+    allowed_perms = ROLE_PERMISSIONS.get(ws_role, frozenset())
+    if permission not in allowed_perms:
+        from app.core.errors import AuthorizationError
+
+        raise AuthorizationError(
+            f"Role '{role}' does not have required permission '{permission.value}'"
+        )

@@ -22,18 +22,34 @@ router = APIRouter(prefix="/ws/v1/workspaces/{workspace_id}/jobs", tags=["websoc
 @router.websocket("")
 async def workspace_jobs_websocket(websocket: WebSocket, workspace_id: UUID) -> None:
     """Stream real-time job updates over WebSocket to authorized workspace subscribers."""
-    token = websocket.query_params.get("token")
-    if not token:
-        await websocket.close(code=4001, reason="Authentication token missing")
-        return
+    settings = getattr(websocket.app.state, "settings", None)
+    public_mode = settings and getattr(settings, "public_test_mode", False)
 
-    verifier: JwtVerifier = websocket.app.state.token_verifier
-    try:
-        principal = verifier.verify(token)
-    except Exception as exc:
-        logger.warning("WebSocket authentication failed for workspace %s: %s", workspace_id, exc)
-        await websocket.close(code=4001, reason="Invalid or expired token")
-        return
+    token = websocket.query_params.get("token")
+    principal = None
+
+    if token:
+        verifier: JwtVerifier = websocket.app.state.token_verifier
+        try:
+            principal = verifier.verify(token)
+        except Exception as exc:
+            if not public_mode:
+                logger.warning("WebSocket authentication failed for workspace %s: %s", workspace_id, exc)
+                await websocket.close(code=4001, reason="Invalid or expired token")
+                return
+
+    if principal is None:
+        if public_mode or (settings and getattr(settings, "dev_auth_mode", False)):
+            from app.domains.identity.principal import Principal
+
+            principal = Principal(
+                subject="public-test-user-id" if public_mode else "dev-user-123",
+                email="public.test@auraml.local" if public_mode else "dev.user@example.com",
+                display_name="Public Test User" if public_mode else "Dev Demo User",
+            )
+        else:
+            await websocket.close(code=4001, reason="Authentication token missing")
+            return
 
     session_factory = websocket.app.state.session_factory
     async with session_factory() as session:
@@ -41,11 +57,22 @@ async def workspace_jobs_websocket(websocket: WebSocket, workspace_id: UUID) -> 
         user = await identity_repo.get_or_create_user(session, principal)
         membership = await identity_repo.get_membership(session, workspace_id, user.id)
         if membership is None:
-            logger.warning(
-                "WebSocket access denied for user %s to workspace %s", user.id, workspace_id
-            )
-            await websocket.close(code=4003, reason="Forbidden: Not a member of workspace")
-            return
+            if public_mode:
+                from app.db.models.entities import WorkspaceMembership
+
+                membership = WorkspaceMembership(
+                    workspace_id=workspace_id,
+                    user_id=user.id,
+                    role="owner",
+                )
+                session.add(membership)
+                await session.commit()
+            else:
+                logger.warning(
+                    "WebSocket access denied for user %s to workspace %s", user.id, workspace_id
+                )
+                await websocket.close(code=4003, reason="Forbidden: Not a member of workspace")
+                return
 
     await websocket.accept()
     logger.info("WebSocket connected and authenticated for workspace %s", workspace_id)

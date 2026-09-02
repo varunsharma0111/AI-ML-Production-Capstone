@@ -12,9 +12,9 @@ interface WorkspaceContextType {
 const STORAGE_KEY = "auraml_selected_workspace_id";
 
 const DEFAULT_DEV_WORKSPACE: Workspace = {
-  id: "ws-dev-default-001",
-  slug: "dev-workspace",
-  name: "Development Workspace",
+  id: "00000000-0000-4000-a000-000000000001",
+  slug: "public-test-workspace",
+  name: "Public Test Workspace",
   role: "owner",
 };
 

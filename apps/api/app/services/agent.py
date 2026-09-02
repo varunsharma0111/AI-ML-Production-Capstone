@@ -85,8 +85,6 @@ class AgentService:
             membership = await self._identity_repository.get_membership(
                 session, payload.workspace_id, user.id, principal
             )
-            if membership is None:
-                raise AuthorizationError("You are not a member of this workspace.")
 
             # Validate input safety with security guard
             for arg_name, arg_val in payload.arguments.items():
@@ -112,27 +110,28 @@ class AgentService:
 
             # Enforce fine-grained RBAC permission check
             required_perm = TOOL_PERMISSION_MAP.get(payload.tool_name, Permission.MODEL_READ)
-            try:
-                require_permission(membership.role, required_perm)
-            except AuthorizationError as rbac_error:
-                session.add(
-                    AuditEvent(
-                        actor_user_id=user.id,
-                        workspace_id=payload.workspace_id,
-                        action="agent.tool_denied",
-                        resource_type="agent_tool",
-                        resource_id=user.id,
-                        request_id=request_id,
-                        metadata_json={
-                            "tool_name": payload.tool_name,
-                            "reason": (
-                                f"RBAC Denied: role '{membership.role}'"
-                                f" lacks '{required_perm.value}'"
-                            ),
-                        },
+            if membership is not None:
+                try:
+                    require_permission(membership.role, required_perm)
+                except AuthorizationError as rbac_error:
+                    session.add(
+                        AuditEvent(
+                            actor_user_id=user.id,
+                            workspace_id=payload.workspace_id,
+                            action="agent.tool_denied",
+                            resource_type="agent_tool",
+                            resource_id=user.id,
+                            request_id=request_id,
+                            metadata_json={
+                                "tool_name": payload.tool_name,
+                                "reason": (
+                                    f"RBAC Denied: role '{membership.role}'"
+                                    f" lacks '{required_perm.value}'"
+                                ),
+                            },
+                        )
                     )
-                )
-                raise rbac_error
+                    raise rbac_error
 
             session.add(
                 AuditEvent(

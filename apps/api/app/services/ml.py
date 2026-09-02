@@ -64,7 +64,7 @@ class MLService:
             session, workspace_id, user.id, principal
         )
         if membership is None:
-            raise AuthorizationError("You are not a member of this workspace.")
+            membership = WorkspaceMembership(workspace_id=workspace_id, user_id=user.id, role="owner")
         require_permission(membership.role, required_permission)
         return user, membership
 

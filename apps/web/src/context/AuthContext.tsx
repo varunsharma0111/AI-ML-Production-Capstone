@@ -18,17 +18,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const TOKEN_STORAGE_KEY = "capstone_access_token";
 
 const DEFAULT_DEV_WORKSPACE: Workspace = {
-  id: "ws-dev-default-001",
-  slug: "dev-workspace",
-  name: "Development Workspace",
+  id: "00000000-0000-4000-a000-000000000001",
+  slug: "public-test-workspace",
+  name: "Public Test Workspace",
   role: "owner",
 };
 
 const DEFAULT_DEV_USER: User = {
-  id: "dev-user-123",
-  subject: "dev-user-123",
-  email: "dev.user@example.com",
-  display_name: "Dev Demo User",
+  id: "public-test-user-id",
+  subject: "public-test-user-id",
+  email: "public.test@auraml.local",
+  display_name: "Public Test User",
   workspaces: [DEFAULT_DEV_WORKSPACE],
 };
 

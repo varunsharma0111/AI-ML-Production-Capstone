@@ -18,12 +18,12 @@ from sqlalchemy import (
     UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import JSONB as PG_JSONB
-
-JSONB = JSON().with_variant(PG_JSONB, "postgresql")
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 
 from app.db.models.base import Base
+
+JSONB = JSON().with_variant(PG_JSONB, "postgresql")
 
 
 class User(Base):
