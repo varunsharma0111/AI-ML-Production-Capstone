@@ -17,12 +17,19 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const TOKEN_STORAGE_KEY = "capstone_access_token";
 
+const DEFAULT_DEV_WORKSPACE: Workspace = {
+  id: "ws-dev-default-001",
+  slug: "dev-workspace",
+  name: "Development Workspace",
+  role: "owner",
+};
+
 const DEFAULT_DEV_USER: User = {
   id: "dev-user-123",
   subject: "dev-user-123",
   email: "dev.user@example.com",
   display_name: "Dev Demo User",
-  workspaces: [],
+  workspaces: [DEFAULT_DEV_WORKSPACE],
 };
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
