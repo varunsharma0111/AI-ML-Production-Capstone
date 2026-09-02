@@ -87,7 +87,9 @@ class OperationsService:
                 .where(ModelVersion.workspace_id == workspace_id)
                 .group_by(ModelVersion.status)
             )
-            model_counts: dict[str, int] = {str(row[0]): int(row[1]) for row in model_result.all()}
+            model_counts: dict[str, int] = {
+                str(row[0]): int(row[1]) for row in model_result.all()
+            }
 
             # Inference count & avg latency
             inf_result = await session.execute(

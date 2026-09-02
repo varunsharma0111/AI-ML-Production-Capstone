@@ -119,7 +119,11 @@ class IdentityRepository:
                     is_public_target = (
                         settings.public_test_mode and workspace_id == PUBLIC_TEST_WORKSPACE_ID
                     )
-                    ws_slug = "public-test-workspace" if is_public_target else f"ws-{str(workspace_id)[:8]}"
+                    ws_slug = (
+                        "public-test-workspace"
+                        if is_public_target
+                        else f"ws-{str(workspace_id)[:8]}"
+                    )
                     ws_name = (
                         "Public Test Workspace"
                         if settings.public_test_mode
