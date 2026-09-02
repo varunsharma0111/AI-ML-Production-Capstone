@@ -22,8 +22,6 @@ const DEFAULT_DEV_USER: User = {
   subject: "dev-user-123",
   email: "dev.user@example.com",
   display_name: "Dev Demo User",
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
   workspaces: [],
 };
 
