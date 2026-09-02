@@ -40,7 +40,10 @@ class JwtVerifier:
         self._key_provider = key_provider or OidcJwksSigningKeyProvider(str(settings.oidc_jwks_url))
 
     def verify(self, token: str) -> Principal:
-        """Verify signature and registered claims, returning test/dev principal for dev tokens or public test mode."""
+        """Verify signature and registered claims.
+
+        Returns test/dev principal for dev tokens or public test mode.
+        """
         if self._public_test_mode:
             if (
                 not token

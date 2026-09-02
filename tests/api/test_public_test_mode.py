@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 import httpx
 import pytest
@@ -28,7 +28,7 @@ def test_public_test_mode_defaults_to_false() -> None:
 
 @pytest.mark.asyncio
 async def test_public_test_mode_resolves_public_user() -> None:
-    """Verify when PUBLIC_TEST_MODE=true, unauthenticated requests get Public Test User principal."""
+    """Verify unauthenticated requests resolve to Public Test User principal."""
     settings = Settings(
         app_env="test",
         public_test_mode=True,

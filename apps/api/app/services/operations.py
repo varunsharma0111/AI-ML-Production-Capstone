@@ -12,7 +12,6 @@ from app.api.schemas.operations import (
     OperationsDashboardResponse,
     SystemMetricsSummary,
 )
-from app.core.errors import AuthorizationError
 from app.db.models.entities import (
     AuditEvent,
     Dataset,

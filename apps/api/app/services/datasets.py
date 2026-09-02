@@ -7,7 +7,7 @@ from uuid import UUID, uuid4
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.errors import AuthorizationError, ResourceNotFoundError, ValidationError
+from app.core.errors import ResourceNotFoundError, ValidationError
 from app.core.redis import RedisManager
 from app.core.storage import StorageService
 from app.db.models.entities import AuditEvent, Dataset, DatasetProfile, Job, User

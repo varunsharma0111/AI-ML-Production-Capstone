@@ -50,7 +50,8 @@ class Settings(BaseSettings):
 
             if os.getenv("ALLOW_PUBLIC_TEST_IN_PROD", "").lower() != "true":
                 raise ValueError(
-                    "PUBLIC_TEST_MODE cannot be enabled in production without ALLOW_PUBLIC_TEST_IN_PROD=true."
+                    "PUBLIC_TEST_MODE cannot be enabled in production "
+                    "without ALLOW_PUBLIC_TEST_IN_PROD=true."
                 )
         return self
 
