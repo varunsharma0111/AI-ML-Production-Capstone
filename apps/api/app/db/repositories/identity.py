@@ -39,7 +39,9 @@ class IdentityRepository:
                 # Create a default workspace for the user if database has none
                 ws_id = PUBLIC_TEST_WORKSPACE_ID if settings.public_test_mode else uuid4()
                 ws_slug = "public-test-workspace" if settings.public_test_mode else "default"
-                ws_name = "Public Test Workspace" if settings.public_test_mode else "Default Workspace"
+                ws_name = (
+                    "Public Test Workspace" if settings.public_test_mode else "Default Workspace"
+                )
                 new_ws = Workspace(id=ws_id, slug=ws_slug, name=ws_name)
                 session.add(new_ws)
                 await session.flush()
@@ -61,7 +63,11 @@ class IdentityRepository:
                 if not workspaces:
                     ws_id = PUBLIC_TEST_WORKSPACE_ID if settings.public_test_mode else uuid4()
                     ws_slug = "public-test-workspace" if settings.public_test_mode else "default"
-                    ws_name = "Public Test Workspace" if settings.public_test_mode else "Default Workspace"
+                    ws_name = (
+                        "Public Test Workspace"
+                        if settings.public_test_mode
+                        else "Default Workspace"
+                    )
                     new_ws = Workspace(id=ws_id, slug=ws_slug, name=ws_name)
                     session.add(new_ws)
                     await session.flush()

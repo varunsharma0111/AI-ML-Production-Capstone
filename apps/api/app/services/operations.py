@@ -61,9 +61,7 @@ class OperationsService:
         workspace_id: UUID,
     ) -> OperationsDashboardResponse:
         async with session.begin():
-            await self._authorized_user(
-                session, principal, workspace_id, Permission.WORKSPACE_READ
-            )
+            await self._authorized_user(session, principal, workspace_id, Permission.WORKSPACE_READ)
 
             # Datasets count
             ds_result = await session.execute(
@@ -87,9 +85,7 @@ class OperationsService:
                 .where(ModelVersion.workspace_id == workspace_id)
                 .group_by(ModelVersion.status)
             )
-            model_counts: dict[str, int] = {
-                str(row[0]): int(row[1]) for row in model_result.all()
-            }
+            model_counts: dict[str, int] = {str(row[0]): int(row[1]) for row in model_result.all()}
 
             # Inference count & avg latency
             inf_result = await session.execute(
@@ -134,9 +130,7 @@ class OperationsService:
         limit: int = 100,
     ) -> list[AuditEventResponse]:
         async with session.begin():
-            await self._authorized_user(
-                session, principal, workspace_id, Permission.WORKSPACE_READ
-            )
+            await self._authorized_user(session, principal, workspace_id, Permission.WORKSPACE_READ)
 
             result = await session.execute(
                 select(AuditEvent)

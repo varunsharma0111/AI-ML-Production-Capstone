@@ -120,5 +120,3 @@ def test_public_test_mode_allowed_in_production_with_override(
         oidc_jwks_url="https://issuer.example.com/.well-known/jwks.json",
     )
     assert settings.public_test_mode is True
-
-
