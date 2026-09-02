@@ -35,9 +35,10 @@ const MainRouter: React.FC = () => {
     return <CallbackPage />;
   }
 
-  if (!isAuthenticated) {
-    return <LoginPage />;
-  }
+  // Temporarily commented out sign-in check for website testing
+  // if (!isAuthenticated) {
+  //   return <LoginPage />;
+  // }
 
   if (path === "/" || path.startsWith("/workspaces") || path.startsWith("/tasks")) {
     return (

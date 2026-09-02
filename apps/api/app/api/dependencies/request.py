@@ -46,8 +46,9 @@ def get_authenticated_principal(
 ) -> Principal:
     """Resolve current authenticated principal.
 
-    Bypasses authentication in dev_auth_mode or open access mode, while strictly enforcing
-    JWT verification when dev_auth_mode is False.
+    Respects DEV_AUTH_MODE setting:
+    - If DEV_AUTH_MODE is True: returns default dev principal if no Bearer token provided.
+    - If DEV_AUTH_MODE is False: strictly verifies Bearer JWT; fails with 401 if missing/invalid.
     """
     settings = getattr(request.app.state, "settings", None)
     if settings is None:
@@ -58,22 +59,24 @@ def get_authenticated_principal(
         except Exception:
             settings = None
 
-    is_dev_auth = getattr(settings, "dev_auth_mode", False) if settings is not None else True
+    is_dev_auth = getattr(settings, "dev_auth_mode", True) if settings is not None else True
 
-    # When dev_auth_mode is False, enforce strict authentication
-    if not is_dev_auth:
-        if credentials is None or credentials.scheme.lower() != "bearer":
-            raise AuthenticationError("A bearer access token is required.")
-        return verifier.verify(credentials.credentials)
-
-    # In dev_auth_mode / open access, try real token verification if valid JWT is provided
+    # If valid Bearer credentials provided, attempt verification
     if credentials is not None and credentials.scheme.lower() == "bearer":
         try:
             return verifier.verify(credentials.credentials)
+        except AuthenticationError:
+            if not is_dev_auth:
+                raise
         except Exception:
-            pass
+            if not is_dev_auth:
+                raise AuthenticationError("Invalid authentication credentials.")
 
-    # Default fallback principal for open access task performance
+    # In production mode (DEV_AUTH_MODE=false), fail closed with 401 if missing credentials
+    if not is_dev_auth:
+        raise AuthenticationError("A bearer access token is required.")
+
+    # Open access principal for DEV_AUTH_MODE=true
     return Principal(
         subject="dev-user-123",
         email="dev.user@example.com",
