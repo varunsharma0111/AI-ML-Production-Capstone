@@ -1,102 +1,199 @@
-# AuraML — Production AI/ML Lifecycle & Governance Platform
+# AuraML
 
-> **Cloud-Native Enterprise Platform for Dataset Management, Asynchronous Model Training, ML Governance, Controlled Inference, and Autonomous AI Analysis**
-
-AuraML is a production-grade AI/ML developer platform designed for data science and engineering teams to securely ingest datasets, profile data asynchronously out-of-process, execute background model training, evaluate quality through automated governance gates, promote models across isolated environments, serve controlled inferences, and inspect system telemetry—backed by S3 object storage, PostgreSQL, Redis task queues, and OIDC RBAC security.
+## Local MLOps & Machine Learning Platform
 
 ---
 
-## 🏛 System Architecture
+## Project Overview
 
-```mermaid
-graph TD
-    User([User / Browser Client]) -->|HTTPS / WSS| WebSPA[React 18 TypeScript SPA]
-    WebSPA -->|REST API / WebSockets| APINode[FastAPI API Gateway Node]
-    
-    subgraph Core Infrastructure
-        APINode -->|Auth & RBAC| AuthModule[JWT / OIDC Auth Module]
-        APINode -->|Rate Limit / Cache| Redis[Redis Broker & Queue]
-        APINode -->|Transactional Data| PostgreSQL[(PostgreSQL Database)]
-        APINode -->|Object Storage| S3[S3 Object Storage]
-    end
+AuraML is a local machine-learning platform that provides a web interface for uploading datasets, profiling data, running background ML training jobs, evaluating models, promoting approved models, and generating predictions.
 
-    subgraph Asynchronous Worker Layer
-        Redis -->|Job Queue| Worker[Async Worker Process]
-        Worker -->|Atomic Claims| PostgreSQL
-        Worker -->|Save Artifacts & SHA-256| S3
-        Worker -->|Real-time PubSub| Redis
-    end
+The platform simplifies the ML workflow by connecting dataset management, asynchronous processing, model training, evaluation, and prediction into one application.
 
-    Redis -->|WebSocket Broadcasts| WebSPA
+---
+
+## What Problem Does AuraML Solve?
+
+Building a machine-learning model is more than writing a training script.
+
+A typical workflow involves:
+
+1. Uploading a dataset
+2. Understanding the data
+3. Checking data quality
+4. Training a model
+5. Evaluating the model
+6. Deciding whether the model is good enough
+7. Using the trained model for predictions
+
+AuraML brings these steps into one application so the complete ML workflow can be demonstrated from dataset upload to prediction.
+
+This makes the project understandable to recruiters and GitHub visitors.
+
+---
+
+## Example: Customer Churn Prediction
+
+AuraML can be demonstrated using a customer churn dataset.
+
+### What is Churn?
+
+Churn means that a customer stopped using a company's service.
+
+The `churn` column is the **target variable** that the model learns to predict.
+
+- `churn = 0` → Customer did not churn
+- `churn = 1` → Customer churned
+
+The other columns provide information that the model can use to make the prediction.
+
+Example:
+
+| Customer | Age | Tenure | Contract | Late Payments | Churn |
+|---|---:|---:|---|---:|---:|
+| TEL0001 | 25 | 5 | Monthly | 3 | 1 |
+| TEL0002 | 52 | 60 | Two-Year | 0 | 0 |
+| TEL0003 | 31 | 12 | Monthly | 2 | 1 |
+
+This is a **binary classification problem** because the model predicts one of two outcomes.
+
+```text
+Customer Data
+      ↓
+   ML Model
+      ↓
+Churn Prediction
+      ↓
+0 = Stayed
+1 = Churned
+```
+
+This example demonstrates AuraML's complete workflow:
+
+Upload → Profile → Train → Evaluate → Quality Gate → Promote → Predict
+
+---
+
+## ML Workflow
+
+```text
+CSV Dataset
+     ↓
+Upload Dataset
+     ↓
+Data Profiling
+     ↓
+Quality Checks
+     ↓
+Train ML Model
+     ↓
+Evaluate Model
+     ↓
+Quality Gate
+     ↓
+Promote Model
+     ↓
+Make Predictions
+```
+
+Each step is handled by AuraML instead of requiring separate scripts or tools.
+
+---
+
+## Local Architecture
+
+```text
+                    ┌──────────────────────┐
+                    │     User / Browser    │
+                    └──────────┬───────────┘
+                               │
+                               ▼
+                    ┌──────────────────────┐
+                    │    React Frontend    │
+                    │   localhost:5173     │
+                    └──────────┬───────────┘
+                               │ HTTP
+                               ▼
+                    ┌──────────────────────┐
+                    │   FastAPI Backend    │
+                    │   localhost:8000     │
+                    └───────┬───────┬──────┘
+                            │       │
+                    Dataset │       │ Job
+                            │       │
+                            ▼       ▼
+                  ┌────────────┐  ┌────────────┐
+                  │   Local    │  │   Redis    │
+                  │  Storage   │  │   Queue    │
+                  │./data/...  │  │ :6379      │
+                  └─────┬──────┘  └─────┬──────┘
+                        │                │
+                        │                ▼
+                        │       ┌────────────────┐
+                        │       │ Background     │
+                        └──────►│ Python Worker  │
+                                └───────┬────────┘
+                                        │
+                              ┌─────────┴─────────┐
+                              ▼                   ▼
+                       ┌────────────┐      ┌─────────────┐
+                       │ PostgreSQL │      │ Scikit-learn│
+                       │   :5432    │      │ ML Training │
+                       └────────────┘      └──────┬──────┘
+                                                  │
+                                                  ▼
+                                           ┌─────────────┐
+                                           │    Model    │
+                                           │   Artifact  │
+                                           └──────┬──────┘
+                                                  │
+                                                  ▼
+                                         ┌────────────────┐
+                                         │ Prediction API │
+                                         └───────┬────────┘
+                                                 │
+                                                 ▼
+                                         ┌────────────────┐
+                                         │ Prediction     │
+                                         │ Result         │
+                                         └────────────────┘
 ```
 
 ---
 
-## 🔄 ML Lifecycle & Governance
+## Local Technology Stack
 
-```mermaid
-flowchart LR
-    A[Dataset Upload] --> B[Async Profiling]
-    B --> C[Dataset READY]
-    C --> D[Model Training Job]
-    D --> E[S3 Weights & SHA-256 Digest]
-    E --> F[Quality Gate Evaluation]
-    F -->|Metrics Passed| G[APPROVED Status]
-    G --> H[Environment Promotion]
-    H -->|STAGING / PRODUCTION| I[Controlled Inference]
-    I --> J[Prediction Log & Telemetry]
-```
+| Layer | Technology | Local Usage |
+|---|---|---|
+| Frontend | React, TypeScript, Vite | Web interface for datasets, jobs, models, and predictions |
+| Backend | FastAPI, Uvicorn, Python, Pydantic | REST API, request validation, and application logic |
+| Database | PostgreSQL, SQLAlchemy, Alembic, asyncpg | Stores datasets, jobs, models, metrics, and application records |
+| Queue | Redis | Queues background profiling and training jobs |
+| Worker | Python Worker | Processes queued jobs and performs ML/data operations |
+| ML/Data | Scikit-learn, Python CSV processing | Dataset profiling, model training, and evaluation |
+| File Storage | Local filesystem | Stores uploaded datasets and model artifacts |
+| Testing | Pytest, HTTPX | Tests the running API and end-to-end workflow |
 
 ---
 
-## 🔒 Security & Governance Architecture
+## Key Features
 
-```mermaid
-graph TB
-    ClientRequest[Client API Request] --> TokenCheck{JWT Valid?}
-    TokenCheck -- No --> DenyAuth[HTTP 401 Unauthorized]
-    TokenCheck -- Yes --> RBACCheck{Has Role Permission?}
-    RBACCheck -- No --> DenyPerm[HTTP 403 Forbidden]
-    RBACCheck -- Yes --> WorkspaceCheck{Valid Workspace ID?}
-    WorkspaceCheck -- No --> DenyIsolation[HTTP 404 Not Found]
-    WorkspaceCheck -- Yes --> ExecOperation[Execute Operation & Log Audit Event]
-```
+- **Dataset Management & Automated Profiling**: Streamlined CSV ingestion with file validation and background data profiling (row/column stats, missing values, summary stats).
+- **Asynchronous Redis Worker Engine**: Decoupled background task queue for handling dataset profiling and model training jobs off the API main thread.
+- **Local Storage Management**: Filesystem storage for uploaded CSV datasets and serialized model artifacts (`./data/uploads`).
+- **Scikit-Learn ML Lifecycle**: Automated binary classification training, performance metric evaluation (accuracy, F1 score, recall, precision), and model artifact persistence.
+- **ML Governance & Quality Gates**: Automated evaluation checks guarding model promotion from `draft` to `approved`.
+- **Prediction API**: RESTful inference endpoints for serving real-time predictions using promoted model artifacts.
+- **Web Interface**: Responsive React & TypeScript interface for datasets, job tracking, model evaluations, and single/batch predictions.
 
 ---
 
-## ✨ Key Platform Features
-
-- **Dataset Management & Automated Profiling**: Streamlined CSV ingestion with MIME-type verification, path-traversal prevention, file size limits (50MB), and asynchronous column statistics profiling.
-- **Asynchronous Redis Worker Engine**: Decoupled background task execution with connection pooling, Pub/Sub WebSocket status updates, atomic claims (`SELECT FOR UPDATE / SKIP LOCKED`), retry policy execution, and 15-minute stuck-job recovery.
-- **Cloud-Native S3 Object Storage**: Pluggable `StorageBackend` abstraction supporting AWS S3, MinIO, Cloudflare R2, and local fallback with tenant workspace prefixing (`workspaces/{workspace_id}/...`).
-- **Cryptographic SHA-256 Artifact Integrity**: Mandatory hash computation during model persistence with mandatory hash validation on loading; tampered artifacts are instantly rejected.
-- **ML Governance & Quality Gates**: Automated validation checks (accuracy threshold, F1 score, latency bounds) guarding model promotion from `draft` to `approved`, `staging`, and `production`.
-- **Controlled Inference Engine**: Schema-validated prediction endpoint strictly limited to promoted models with real-time confidence scores and inference latency tracking.
-- **Autonomous AI Agent**: Tool-augmented AI assistant capable of workspace dataset inspection, model evaluation analysis, and automated promotion recommendation using constrained tool permissions.
-- **Enterprise Security & Audit Trail**: OIDC JWT token verification, fine-grained RBAC (`viewer`, `editor`, `owner`), workspace tenant isolation, Redis rate-limiting (120 req/min), structured JSON logging with credential redaction, and audit trail logging.
-
----
-
-## 🛠 Technology Stack
-
-| Layer | Technologies |
-|---|---|
-| **API Gateway & Core** | Python 3.11, FastAPI, Uvicorn, Pydantic v2 |
-| **Database & ORM** | PostgreSQL, SQLAlchemy 2.0 (AsyncIO), Alembic |
-| **Task Queue & Cache** | Redis 5.x, `redis.asyncio` |
-| **Object Storage** | AWS S3 SDK (`boto3` / `botocore`), MinIO |
-| **ML Engine** | Scikit-Learn, NumPy, Pandas |
-| **Frontend SPA** | React 18, TypeScript, Vite, TailwindCSS |
-| **Observability** | Prometheus (`prometheus_client`), OpenTelemetry-compatible JSON Logs |
-
----
-
-## 🚀 Quickstart & Local Setup
+## Quickstart & Setup
 
 ### Prerequisites
 - Python `3.11+`
 - Node.js `20+` & `npm`
-- PostgreSQL & Redis (or Docker Compose)
+- PostgreSQL & Redis
 
 ### 1. Clone Repository & Install Dependencies
 ```bash
@@ -113,16 +210,13 @@ cd ../..
 ```
 
 ### 2. Configure Environment Variables
-Copy `.env.example` to `.env` and configure your credentials:
+Copy `.env.example` to `.env` and configure local variables:
 ```env
-APP_ENV=development
-DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/auraml_dev
+APP_ENV=local
+DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/capstone
 REDIS_URL=redis://localhost:6379/0
 STORAGE_BACKEND=local
 STORAGE_PATH=./data/uploads
-OIDC_ISSUER=https://issuer.example.com/
-OIDC_AUDIENCE=auraml-api
-OIDC_JWKS_URL=https://issuer.example.com/.well-known/jwks.json
 CORS_ORIGINS=http://localhost:5173,http://localhost:3000
 ```
 
@@ -151,7 +245,7 @@ npm run dev
 
 ---
 
-## 🧪 Quality Gates & Automated Verification
+## Testing
 
 ```bash
 # Static Analysis & Formatting
@@ -161,7 +255,7 @@ ruff format --check .
 # Strict Type Checking
 mypy --explicit-package-bases apps/api services tests
 
-# Unit, Integration, Security, and Load Tests
+# Unit & Integration Tests
 pytest -v
 
 # Frontend Production Build Verification
@@ -170,13 +264,8 @@ cd apps/web && npm run build
 
 ---
 
-## 📚 Product Documentation & Guides
+## Project Documentation
 
 - [Architecture Guide](docs/architecture.md) — Architectural design, modules, and component interactions.
-- [Deployment Guide](docs/deployment.md) — Production deployment guidelines for Vercel, Render, Neon, and AWS S3.
-- [Security Guide](docs/security.md) — Security model, RBAC policies, input sanitization, and secret protection.
-- [API Reference](docs/api.md) — Complete REST & WebSocket endpoint documentation.
-- [Live Presentation & Demo Guide](docs/demo-guide.md) — Step-by-step 5-10 minute presentation guide.
-- [Resume Project Description](docs/resume-project-description.md) — Resume bullet points and technical summary.
-- [Engineering Interview Q&A Guide](docs/interview-guide.md) — System design and technical Q&A.
-- [Portfolio Readiness Report](docs/portfolio-readiness.md) — Final portfolio verification report.
+- [Security Guide](docs/security.md) — Security model, input sanitization, and data validation.
+- [API Reference](docs/api.md) — Complete REST API endpoint documentation.
