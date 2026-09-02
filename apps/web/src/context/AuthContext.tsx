@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { request, setUnauthorizedHandler } from "../services/apiClient";
-import { User } from "../types/api";
+import { User, Workspace } from "../types/api";
 
 interface AuthContextType {
   token: string | null;
