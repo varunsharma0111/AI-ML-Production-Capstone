@@ -28,6 +28,13 @@ function generateRequestId(): string {
   return "req_" + Math.random().toString(36).substring(2, 11);
 }
 
+type UnauthorizedHandler = () => void;
+let unauthorizedHandler: UnauthorizedHandler | null = null;
+
+export function setUnauthorizedHandler(handler: UnauthorizedHandler | null): void {
+  unauthorizedHandler = handler;
+}
+
 export async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   const { token, headers: customHeaders, body, ...fetchOptions } = options;
 
@@ -59,6 +66,10 @@ export async function request<T>(endpoint: string, options: RequestOptions = {})
   });
 
   if (!response.ok) {
+    if (response.status === 401 && unauthorizedHandler) {
+      unauthorizedHandler();
+    }
+
     let problem: ProblemDetails;
     try {
       problem = await response.json();

@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { request } from "../services/apiClient";
+import React, { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { request, setUnauthorizedHandler } from "../services/apiClient";
 import { User } from "../types/api";
 
 interface AuthContextType {
@@ -25,6 +25,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  const logout = useCallback(() => {
+    localStorage.removeItem(TOKEN_STORAGE_KEY);
+    setToken(null);
+    setUser(null);
+  }, []);
+
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      logout();
+      setError("Session expired or authentication failed.");
+    });
+    return () => {
+      setUnauthorizedHandler(null);
+    };
+  }, [logout]);
+
   const fetchCurrentUser = async (authToken: string) => {
     setIsLoading(true);
     setError(null);
@@ -35,9 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err: unknown) {
       console.warn("Authentication via /me failed:", err);
       setError("Session expired or token invalid.");
-      localStorage.removeItem(TOKEN_STORAGE_KEY);
-      setToken(null);
-      setUser(null);
+      logout();
     } finally {
       setIsLoading(false);
     }
@@ -58,22 +72,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const login = () => {
-    // In production, triggers OIDC Authorization Code + PKCE redirect.
-    // For local dev demonstration, prompts for a JWT or uses a default test token.
-    const sampleToken = prompt(
-      "Enter OIDC JWT Bearer Token (or press OK for default dev token):",
-      "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.dev_token_sample"
-    );
-    if (sampleToken) {
-      loginWithDevToken(sampleToken);
+    // Production OIDC Token login prompt
+    const tokenInput = prompt("Enter your OIDC Access Token:");
+    if (tokenInput && tokenInput.trim()) {
+      loginWithDevToken(tokenInput.trim());
     }
-  };
-
-  const logout = () => {
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
-    setToken(null);
-    setUser(null);
-    setError(null);
   };
 
   return (

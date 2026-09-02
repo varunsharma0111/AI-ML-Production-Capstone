@@ -33,13 +33,14 @@ export const TrainingJobList: React.FC<TrainingJobListProps> = ({
   const canCreateJob = hasPermission("task:create");
 
   useEffect(() => {
+    if (!token || !activeWorkspace?.id) return;
     fetchJobs();
     const interval = setInterval(fetchJobs, 4000);
     return () => clearInterval(interval);
-  }, [activeWorkspace.id, refreshTrigger]);
+  }, [token, activeWorkspace?.id, refreshTrigger]);
 
   const fetchJobs = async () => {
-    if (!activeWorkspace?.id) return;
+    if (!token || !activeWorkspace?.id) return;
     try {
       const data = await request<JobListResponse>(
         `/api/v1/workspaces/${activeWorkspace.id}/jobs?offset=0&limit=50`,

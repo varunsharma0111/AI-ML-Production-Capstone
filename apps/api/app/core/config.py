@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     app_name: str = "AI/ML Production Capstone API"
     log_level: str = "INFO"
     dev_auth_mode: bool = Field(default=False)
-    database_url: str = Field(default="postgresql+asyncpg://localhost/capstone")
+    database_url: str = Field(default="postgresql+asyncpg://postgres:postgres@localhost:5432/capstone")
     database_pool_size: int = Field(default=5, ge=1, le=20)
     database_max_overflow: int = Field(default=5, ge=0, le=20)
     redis_url: str = Field(default="redis://localhost:6379/0")
@@ -41,8 +41,7 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def validate_dev_auth_mode(self) -> Settings:
         if self.app_env == "production" and self.dev_auth_mode:
-            msg = "DEV_AUTH_MODE cannot be enabled in production environment."
-            raise ValueError(msg)
+            raise ValueError("DEV_AUTH_MODE cannot be enabled in production.")
         return self
 
     # Storage & Artifact Settings
