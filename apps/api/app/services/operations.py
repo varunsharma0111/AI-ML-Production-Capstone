@@ -46,7 +46,9 @@ class OperationsService:
             session, workspace_id, user.id, principal
         )
         if membership is None:
-            membership = WorkspaceMembership(workspace_id=workspace_id, user_id=user.id, role="owner")
+            membership = WorkspaceMembership(
+                workspace_id=workspace_id, user_id=user.id, role="owner"
+            )
 
         require_permission(membership.role, required_permission)
 
@@ -59,7 +61,9 @@ class OperationsService:
         workspace_id: UUID,
     ) -> OperationsDashboardResponse:
         async with session.begin():
-            await self._authorized_user(session, principal, workspace_id, Permission.WORKSPACE_READ)
+            await self._authorized_user(
+                session, principal, workspace_id, Permission.WORKSPACE_READ
+            )
 
             # Datasets count
             ds_result = await session.execute(
@@ -128,7 +132,9 @@ class OperationsService:
         limit: int = 100,
     ) -> list[AuditEventResponse]:
         async with session.begin():
-            await self._authorized_user(session, principal, workspace_id, Permission.WORKSPACE_READ)
+            await self._authorized_user(
+                session, principal, workspace_id, Permission.WORKSPACE_READ
+            )
 
             result = await session.execute(
                 select(AuditEvent)

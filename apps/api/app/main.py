@@ -189,7 +189,7 @@ def create_app(
             error.status_code,
             "http_error",
             "HTTP Error",
-            str(error.detail),
+            error.detail if isinstance(error.detail, str) else str(error.detail),
         )
 
     @app.exception_handler(Exception)

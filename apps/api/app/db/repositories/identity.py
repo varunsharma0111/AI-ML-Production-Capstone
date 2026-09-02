@@ -102,17 +102,33 @@ class IdentityRepository:
             from app.core.config import get_settings
 
             settings = get_settings()
-            if settings.public_test_mode or settings.dev_auth_mode or settings.app_env != "production":
-                ws_res = await session.execute(select(Workspace).where(Workspace.id == workspace_id))
+            if (
+                settings.public_test_mode
+                or settings.dev_auth_mode
+                or settings.app_env != "production"
+            ):
+                ws_res = await session.execute(
+                    select(Workspace).where(Workspace.id == workspace_id)
+                )
                 ws = ws_res.scalar_one_or_none()
                 if ws is None:
                     if settings.public_test_mode and workspace_id != PUBLIC_TEST_WORKSPACE_ID:
-                        # In public test mode, do not spawn arbitrary new workspaces for non-existent workspace IDs
+                        # Do not spawn arbitrary new workspaces for non-existent workspace IDs
                         return None
+
+                    is_public_target = (
+                        settings.public_test_mode and workspace_id == PUBLIC_TEST_WORKSPACE_ID
+                    )
+                    ws_slug = "public-test-workspace" if is_public_target else f"ws-{str(workspace_id)[:8]}"
+                    ws_name = (
+                        "Public Test Workspace"
+                        if settings.public_test_mode
+                        else "Development Workspace"
+                    )
                     ws = Workspace(
                         id=workspace_id,
-                        slug="public-test-workspace" if (settings.public_test_mode and workspace_id == PUBLIC_TEST_WORKSPACE_ID) else f"ws-{str(workspace_id)[:8]}",
-                        name="Public Test Workspace" if settings.public_test_mode else "Development Workspace",
+                        slug=ws_slug,
+                        name=ws_name,
                     )
                     session.add(ws)
                     await session.flush()

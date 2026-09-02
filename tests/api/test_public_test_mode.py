@@ -94,7 +94,7 @@ async def test_public_test_mode_allows_workspace_access() -> None:
 
 
 def test_public_test_mode_fails_in_production_without_override() -> None:
-    """Verify PUBLIC_TEST_MODE cannot be enabled in production without ALLOW_PUBLIC_TEST_IN_PROD=true."""
+    """Verify PUBLIC_TEST_MODE fails in production without ALLOW_PUBLIC_TEST_IN_PROD=true."""
     with pytest.raises(ValueError, match="PUBLIC_TEST_MODE cannot be enabled in production"):
         Settings(
             app_env="production",
@@ -106,7 +106,9 @@ def test_public_test_mode_fails_in_production_without_override() -> None:
         )
 
 
-def test_public_test_mode_allowed_in_production_with_override(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_public_test_mode_allowed_in_production_with_override(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Verify PUBLIC_TEST_MODE is allowed in production when ALLOW_PUBLIC_TEST_IN_PROD=true."""
     monkeypatch.setenv("ALLOW_PUBLIC_TEST_IN_PROD", "true")
     settings = Settings(
@@ -118,4 +120,5 @@ def test_public_test_mode_allowed_in_production_with_override(monkeypatch: pytes
         oidc_jwks_url="https://issuer.example.com/.well-known/jwks.json",
     )
     assert settings.public_test_mode is True
+
 
