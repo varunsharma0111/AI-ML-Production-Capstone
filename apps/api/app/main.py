@@ -146,10 +146,20 @@ def create_app(
 
         try:
             async with engine.begin() as conn:
+                from sqlalchemy import text
                 from app.db.models.base import Base
                 import app.db.models.entities  # noqa: F401
 
                 await conn.run_sync(Base.metadata.create_all)
+                await conn.execute(
+                    text("ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS workspace_id UUID;")
+                )
+                await conn.execute(
+                    text("ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS dataset_id UUID;")
+                )
+                await conn.execute(
+                    text("ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS job_id UUID;")
+                )
         except Exception as exc:
             logger.warning("Database schema check warning: %s", exc)
         yield
