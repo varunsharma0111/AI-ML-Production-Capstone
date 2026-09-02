@@ -15,6 +15,7 @@ if str(_API_DIR) not in sys.path:
 
 # ruff: noqa: E402
 
+import asyncio
 import logging
 import time
 from contextlib import asynccontextmanager
@@ -40,6 +41,26 @@ if TYPE_CHECKING:
     from collections.abc import AsyncGenerator
 
 logger = logging.getLogger(__name__)
+
+
+def run_migrations_sync(db_url: str) -> None:
+    """Run Alembic migrations synchronously to head on startup."""
+    try:
+        from alembic import command
+        from alembic.config import Config
+
+        ini_path = _ROOT / "database" / "migrations" / "alembic.ini"
+        if not ini_path.exists():
+            logger.warning("alembic.ini not found at %s", ini_path)
+            return
+
+        cfg = Config(str(ini_path))
+        cfg.set_main_option("script_location", str(_ROOT / "database" / "migrations"))
+        cfg.set_main_option("sqlalchemy.url", db_url)
+        command.upgrade(cfg, "head")
+        logger.info("Database migrations executed successfully.")
+    except Exception as exc:
+        logger.warning("Database migration warning: %s", exc)
 
 
 def problem_response(
@@ -118,6 +139,11 @@ def create_app(
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
         await redis_manager.connect()
+        try:
+            await asyncio.to_thread(run_migrations_sync, resolved_settings.database_url)
+        except Exception as exc:
+            logger.warning("Database migration thread error: %s", exc)
+
         try:
             async with engine.begin() as conn:
                 from app.db.models.base import Base
