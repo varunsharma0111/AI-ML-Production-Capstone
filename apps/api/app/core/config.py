@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from pathlib import Path
 from typing import Any, Literal
 
 from pydantic import Field, HttpUrl, field_validator, model_validator
@@ -38,7 +39,7 @@ class Settings(BaseSettings):
     oidc_jwks_url: HttpUrl | str = Field(
         default="https://issuer.example.com/.well-known/jwks.json",
     )
-    allowed_jwt_algorithms: tuple[str, ...] = ("RS256",)
+    allowed_jwt_algorithms: str | tuple[str, ...] = ("RS256",)
     cors_origins: str = "*"
 
     @field_validator("database_url", mode="before")
@@ -74,6 +75,15 @@ class Settings(BaseSettings):
     s3_access_key_id: str | None = None
     s3_secret_access_key: str | None = None
 
+    @field_validator("storage_path", mode="after")
+    @classmethod
+    def resolve_storage_path(cls, value: str) -> str:
+        p = Path(value)
+        if not p.is_absolute():
+            project_root = Path(__file__).resolve().parents[3]
+            return str((project_root / p).resolve())
+        return value
+
     @field_validator("database_url")
     @classmethod
     def validate_database_url(cls, value: str) -> str:
@@ -95,9 +105,21 @@ class Settings(BaseSettings):
 
     @field_validator("allowed_jwt_algorithms", mode="before")
     @classmethod
-    def parse_algorithms(cls, value: str | tuple[str, ...]) -> tuple[str, ...]:
+    def parse_algorithms(cls, value: Any) -> tuple[str, ...]:
         if isinstance(value, str):
-            return tuple(item.strip() for item in value.split(",") if item.strip())
+            v = value.strip()
+            if v.startswith("[") and v.endswith("]"):
+                import json
+
+                try:
+                    parsed = json.loads(v)
+                    if isinstance(parsed, list | tuple):
+                        return tuple(str(x).strip() for x in parsed if str(x).strip())
+                except Exception:
+                    pass
+            return tuple(item.strip() for item in v.split(",") if item.strip())
+        if isinstance(value, list | tuple):
+            return tuple(str(x).strip() for x in value if str(x).strip())
         return value
 
     @field_validator("allowed_jwt_algorithms")

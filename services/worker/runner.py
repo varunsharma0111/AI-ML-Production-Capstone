@@ -111,7 +111,7 @@ class JobRunner:
                     action="dataset.profiling_started",
                     resource_type="dataset",
                     resource_id=dataset.id,
-                    request_id=f"job_{job.id}",
+                    request_id=str(job.id),
                     metadata_json={"filename": dataset.original_filename},
                 )
                 session.add(audit_event_start)
@@ -137,7 +137,7 @@ class JobRunner:
                     action="dataset.profiling_completed",
                     resource_type="dataset",
                     resource_id=dataset.id,
-                    request_id=f"job_{job.id}",
+                    request_id=str(job.id),
                     metadata_json={
                         "filename": dataset.original_filename,
                         "row_count": row_count,
@@ -171,7 +171,11 @@ class JobRunner:
                     else {}
                 )
                 hyperparameters = dict(raw_params) if isinstance(raw_params, dict) else {}
-                version_tag = str(job.payload_json.get("version_tag", f"v1.{job.attempt_count}.0"))
+                version_tag = str(
+                    job.payload_json.get(
+                        "version_tag", f"v1.{str(job.id)[:6]}.{job.attempt_count}"
+                    )
+                )
 
                 dataset = await dataset_repo.get_dataset(session, dataset_id)
                 if dataset is None or dataset.status != "ready":
@@ -183,7 +187,7 @@ class JobRunner:
                     action="training.started",
                     resource_type="job",
                     resource_id=job.id,
-                    request_id=f"job_{job.id}",
+                    request_id=str(job.id),
                     metadata_json={
                         "dataset_id": str(dataset.id),
                         "target_column": target_column,
@@ -225,7 +229,7 @@ class JobRunner:
                     action="training.completed",
                     resource_type="job",
                     resource_id=job.id,
-                    request_id=f"job_{job.id}",
+                    request_id=str(job.id),
                     metadata_json={
                         "model_version_id": str(model_version.id),
                         "metrics": metrics,
@@ -239,7 +243,7 @@ class JobRunner:
                     action="model.registered",
                     resource_type="model_version",
                     resource_id=model_version.id,
-                    request_id=f"job_{job.id}",
+                    request_id=str(job.id),
                     metadata_json={
                         "version_tag": version_tag,
                         "artifact_path": artifact_path,
@@ -278,8 +282,10 @@ class JobRunner:
             return JobStatus.COMPLETED, result, None
 
         except Exception as exc:
+            await session.rollback()
             duration_ms = int((datetime.now(UTC) - start_time).total_seconds() * 1000)
             error_str = str(exc) or "Job processing failed."
+            logger.exception("Job %s failed during execution: %s", job.id, exc)
 
             if job.job_type == JobType.DATASET_PROFILING.value and "dataset_id" in job.payload_json:
                 try:
@@ -300,7 +306,7 @@ class JobRunner:
                             action="dataset.profiling_failed",
                             resource_type="dataset",
                             resource_id=ds.id,
-                            request_id=f"job_{job.id}",
+                            request_id=str(job.id),
                             metadata_json={"error": error_str},
                         )
                         session.add(audit_event_fail)
@@ -319,7 +325,7 @@ class JobRunner:
                         action="training.failed",
                         resource_type="job",
                         resource_id=job.id,
-                        request_id=f"job_{job.id}",
+                        request_id=str(job.id),
                         metadata_json={"error": error_str},
                     )
                     session.add(audit_event_fail)

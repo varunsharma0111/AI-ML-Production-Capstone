@@ -95,7 +95,7 @@ class WorkerMetricsHandler(BaseHTTPRequestHandler):
         pass
 
 
-def _start_metrics_server(port: int = 8000) -> HTTPServer:
+def _start_metrics_server(port: int = 8001) -> HTTPServer:
     """Start threaded HTTP server for metrics scraping."""
     server = HTTPServer(("0.0.0.0", port), WorkerMetricsHandler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -124,52 +124,49 @@ async def process_job_by_id(
             if job.attempt_count is None:
                 job.attempt_count = 0
             job.attempt_count += 1
+            await session.flush()
 
-        # Broadcast state: PROCESSING
-        await redis_manager.publish_job_update(
-            str(job.workspace_id),
-            {
-                "event": "job_status",
-                "job_id": str(job.id),
-                "job_type": job.job_type,
-                "status": "processing",
-                "workspace_id": str(job.workspace_id),
-            },
-        )
-
-        async with session.begin():
             status, result, error = await job_runner.execute_job(session, job)
 
-        # Broadcast state: COMPLETED or FAILED
+            workspace_id_str = str(job.workspace_id)
+            job_type_str = str(job.job_type)
+            result_json = job.result_json
+            error_detail = job.error_detail
+            final_status = str(job.status)
+
+        # Broadcast state: COMPLETED or FAILED after commit
         await redis_manager.publish_job_update(
-            str(job.workspace_id),
+            workspace_id_str,
             {
                 "event": "job_status",
-                "job_id": str(job.id),
-                "job_type": job.job_type,
-                "status": job.status,
-                "result": job.result_json,
-                "error": job.error_detail,
-                "workspace_id": str(job.workspace_id),
+                "job_id": str(job_id),
+                "job_type": job_type_str,
+                "status": final_status,
+                "result": result_json,
+                "error": error_detail,
+                "workspace_id": workspace_id_str,
             },
         )
 
-        if status == JobStatus.COMPLETED or job.status == JobStatus.COMPLETED.value:
+        if status == JobStatus.COMPLETED or final_status == JobStatus.COMPLETED.value:
             JOBS_PROCESSED_SUCCESS.inc()
-            logger.info("Successfully finished processing job %s", job.id)
+            logger.info("Successfully finished processing job %s", job_id)
             return True
         else:
             JOB_EXECUTION_FAILURES.inc()
-            logger.warning("Job %s finished with status %s", job.id, job.status)
+            logger.warning("Job %s finished with status %s", job_id, final_status)
             return True
 
 
 async def main() -> None:
+    import os
+
     settings = get_settings()
     configure_logging(settings.log_level)
     logger.info("Starting Capstone Background Worker Service...")
 
-    metrics_server = _start_metrics_server(8000)
+    metrics_port = int(os.getenv("WORKER_METRICS_PORT", "8001"))
+    metrics_server = _start_metrics_server(metrics_port)
 
     engine = create_database_engine(settings)
     session_factory = create_session_factory(engine)

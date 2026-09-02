@@ -1,0 +1,11 @@
+age,gender,tenure_months,monthly_charges,total_charges,contract_type,support_tickets,late_payments,churn
+25,Male,1,30.5,30.5,month-to-month,3,2,1
+50,Female,48,90.0,4320.0,two-year,0,0,0
+22,Female,2,25.0,50.0,month-to-month,2,1,1
+45,Male,36,80.0,2880.0,one-year,1,0,0
+28,Male,6,35.0,210.0,month-to-month,4,2,1
+55,Female,60,95.0,5700.0,two-year,0,0,0
+30,Female,12,40.0,480.0,one-year,1,0,0
+60,Male,72,100.0,7200.0,two-year,0,0,0
+32,Male,18,42.0,756.0,month-to-month,2,1,0
+58,Female,54,98.0,5292.0,two-year,0,0,0

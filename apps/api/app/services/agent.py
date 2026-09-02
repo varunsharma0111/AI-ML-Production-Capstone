@@ -116,24 +116,24 @@ class AgentService:
             try:
                 require_permission(membership.role, required_perm)
             except AuthorizationError as rbac_error:
-                    session.add(
-                        AuditEvent(
-                            actor_user_id=user.id,
-                            workspace_id=payload.workspace_id,
-                            action="agent.tool_denied",
-                            resource_type="agent_tool",
-                            resource_id=user.id,
-                            request_id=request_id,
-                            metadata_json={
-                                "tool_name": payload.tool_name,
-                                "reason": (
-                                    f"RBAC Denied: role '{membership.role}'"
-                                    f" lacks '{required_perm.value}'"
-                                ),
-                            },
-                        )
+                session.add(
+                    AuditEvent(
+                        actor_user_id=user.id,
+                        workspace_id=payload.workspace_id,
+                        action="agent.tool_denied",
+                        resource_type="agent_tool",
+                        resource_id=user.id,
+                        request_id=request_id,
+                        metadata_json={
+                            "tool_name": payload.tool_name,
+                            "reason": (
+                                f"RBAC Denied: role '{membership.role}'"
+                                f" lacks '{required_perm.value}'"
+                            ),
+                        },
                     )
-                    raise rbac_error
+                )
+                raise rbac_error
 
             session.add(
                 AuditEvent(

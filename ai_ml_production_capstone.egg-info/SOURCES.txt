@@ -75,6 +75,8 @@ database/migrations/versions/20260830_0004_phase6_outbox_schema.py
 database/migrations/versions/20260830_0005_milestone1_datasets_schema.py
 database/migrations/versions/20260830_0006_milestone2_model_training_schema.py
 database/migrations/versions/20260830_0007_milestone3_quality_gate_schema.py
+database/migrations/versions/20260830_0008_seed_demo_workspaces.py
+database/migrations/versions/20260902_0009_seed_public_test_workspace.py
 messaging/__init__.py
 messaging/consumer.py
 messaging/publisher.py
@@ -90,13 +92,16 @@ services/ml_inference/predictor.py
 services/worker/__init__.py
 services/worker/main.py
 services/worker/runner.py
+tests/conftest.py
 tests/api/test_agent_api.py
 tests/api/test_datasets.py
+tests/api/test_dev_auth_mode.py
 tests/api/test_health.py
 tests/api/test_identity.py
 tests/api/test_inference_api.py
 tests/api/test_jobs.py
 tests/api/test_ml_api.py
+tests/api/test_public_test_mode.py
 tests/api/test_quality_gate_api.py
 tests/api/test_tasks.py
 tests/api/test_training_jobs.py
@@ -109,6 +114,7 @@ tests/load/test_load.py
 tests/security/test_security_and_failure_modes.py
 tests/unit/test_agent_security.py
 tests/unit/test_artifact_store_s3.py
+tests/unit/test_config.py
 tests/unit/test_jobs_domain.py
 tests/unit/test_messaging.py
 tests/unit/test_metrics.py

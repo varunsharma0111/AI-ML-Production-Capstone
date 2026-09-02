@@ -27,15 +27,38 @@ export const DatasetDetailsModal: React.FC<DatasetDetailsModalProps> = ({
   const [problem, setProblem] = useState<ProblemDetails | null>(null);
 
   useEffect(() => {
-    if (isOpen && dataset) {
-      setActiveTab("overview");
-      setProfile(null);
-      setProblem(null);
-      if (dataset.status === "ready") {
-        fetchProfile(dataset.id);
+    if (!isOpen || !dataset) return;
+
+    setActiveTab("overview");
+    setProblem(null);
+
+    let intervalId: any;
+
+    const loadDatasetData = async () => {
+      try {
+        const dsData = await request<Dataset>(
+          `/api/v1/datasets/${dataset.id}?workspace_id=${activeWorkspace.id}`,
+          { token }
+        );
+        if (dsData.status === "ready") {
+          fetchProfile(dsData.id);
+          if (intervalId) clearInterval(intervalId);
+        }
+      } catch (err) {
+        if (dataset.status === "ready") {
+          fetchProfile(dataset.id);
+          if (intervalId) clearInterval(intervalId);
+        }
       }
-    }
-  }, [isOpen, dataset]);
+    };
+
+    loadDatasetData();
+    intervalId = setInterval(loadDatasetData, 1500);
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [isOpen, dataset?.id, activeWorkspace?.id, token]);
 
   const fetchProfile = async (datasetId: string) => {
     setIsLoading(true);

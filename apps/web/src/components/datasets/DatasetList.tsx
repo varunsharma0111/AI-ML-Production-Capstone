@@ -64,6 +64,10 @@ export const DatasetList: React.FC = () => {
 
   useEffect(() => {
     fetchDatasets();
+    const interval = setInterval(() => {
+      fetchDatasets();
+    }, 2000);
+    return () => clearInterval(interval);
   }, [fetchDatasets]);
 
   const handleDeleteDataset = async (e: React.MouseEvent, datasetId: string, filename: string) => {

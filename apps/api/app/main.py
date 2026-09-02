@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 # Ensure workspace root and apps/api directory are present in sys.path
-_ROOT = Path(__file__).resolve().parent.parent.parent
+_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 _API_DIR = Path(__file__).resolve().parent.parent
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
@@ -52,12 +52,22 @@ def run_migrations_sync(db_url: str) -> None:
     from alembic import command
     from alembic.config import Config
 
-    ini_path = _ROOT / "database" / "migrations" / "alembic.ini"
-    if not ini_path.exists():
-        raise RuntimeError(f"alembic.ini not found at {ini_path}")
+    candidate_paths = [
+        _ROOT / "database" / "migrations" / "alembic.ini",
+        Path.cwd() / "database" / "migrations" / "alembic.ini",
+        Path(__file__).resolve().parents[3] / "database" / "migrations" / "alembic.ini",
+    ]
+    ini_path = None
+    for path in candidate_paths:
+        if path.exists():
+            ini_path = path
+            break
+
+    if ini_path is None:
+        raise RuntimeError(f"alembic.ini not found in candidate locations: {candidate_paths}")
 
     cfg = Config(str(ini_path))
-    migrations_dir = (_ROOT / "database" / "migrations").resolve()
+    migrations_dir = ini_path.parent.resolve()
     cfg.set_main_option("script_location", str(migrations_dir))
     cfg.set_main_option("sqlalchemy.url", db_url)
     logger.info("Executing database migrations to head...")
@@ -149,22 +159,23 @@ def create_app(
                 from app.db.models.base import Base
 
                 await conn.run_sync(Base.metadata.create_all)
-                ddl_statements = [
-                    "ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS workspace_id UUID;",
-                    "ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS dataset_id UUID;",
-                    "ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS job_id UUID;",
-                    (
-                        "ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS metrics_json JSONB"
-                        " DEFAULT '{}'::jsonb NOT NULL;"
-                    ),
-                    (
-                        "ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS"
-                        " hyperparameters_json JSONB DEFAULT '{}'::jsonb NOT NULL;"
-                    ),
-                    "ALTER TABLE model_evaluations ADD COLUMN IF NOT EXISTS workspace_id UUID;",
-                ]
-                for stmt in ddl_statements:
-                    await conn.execute(text(stmt))
+                if engine.dialect.name == "postgresql":
+                    ddl_statements = [
+                        "ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS workspace_id UUID;",
+                        "ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS dataset_id UUID;",
+                        "ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS job_id UUID;",
+                        (
+                            "ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS metrics_json JSONB"
+                            " DEFAULT '{}'::jsonb NOT NULL;"
+                        ),
+                        (
+                            "ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS"
+                            " hyperparameters_json JSONB DEFAULT '{}'::jsonb NOT NULL;"
+                        ),
+                        "ALTER TABLE model_evaluations ADD COLUMN IF NOT EXISTS workspace_id UUID;",
+                    ]
+                    for stmt in ddl_statements:
+                        await conn.execute(text(stmt))
         except Exception as exc:
             logger.warning("Database schema check warning: %s", exc)
         yield

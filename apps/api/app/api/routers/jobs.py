@@ -66,6 +66,7 @@ async def list_jobs(
     )
 
 
+@global_jobs_router.get("/{job_id}", response_model=JobResponse)
 @router.get("/{job_id}", response_model=JobResponse)
 async def get_job(
     workspace_id: UUID,

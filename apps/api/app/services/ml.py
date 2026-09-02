@@ -148,10 +148,14 @@ class MLService:
                     session, principal, model.workspace_id, Permission.MODEL_EVALUATE
                 )
 
+            target_ws = payload.workspace_id or model.workspace_id
+            if target_ws is None:
+                raise ValidationError("workspace_id is required to evaluate a model.")
+
             session.add(
                 AuditEvent(
                     actor_user_id=user.id,
-                    workspace_id=payload.workspace_id,
+                    workspace_id=target_ws,
                     action="model.evaluation_started",
                     resource_type="model_version",
                     resource_id=model.id,
@@ -185,12 +189,13 @@ class MLService:
             )
 
             metadata["evaluator_user_id"] = str(user.id)
-            metadata["workspace_id"] = str(payload.workspace_id)
+            metadata["workspace_id"] = str(target_ws)
             metadata["model_name"] = model.name
             metadata["version_tag"] = model.version_tag
 
             evaluation = ModelEvaluation(
                 model_version_id=model.id,
+                workspace_id=target_ws,
                 accuracy=accuracy,
                 f1_score=f1_score,
                 latency_ms=payload.latency_ms,
@@ -209,7 +214,7 @@ class MLService:
             session.add(
                 AuditEvent(
                     actor_user_id=user.id,
-                    workspace_id=payload.workspace_id,
+                    workspace_id=target_ws,
                     action=decision_action,
                     resource_type="model_version",
                     resource_id=model.id,
@@ -221,7 +226,7 @@ class MLService:
             session.add(
                 AuditEvent(
                     actor_user_id=user.id,
-                    workspace_id=payload.workspace_id,
+                    workspace_id=target_ws,
                     action="model.evaluation_completed",
                     resource_type="model_version",
                     resource_id=model.id,
@@ -231,6 +236,7 @@ class MLService:
             )
 
             await session.flush()
+            await session.refresh(model)
             return model, evaluation
 
     async def promote_model(
@@ -365,6 +371,7 @@ class MLService:
             )
 
             await session.flush()
+            await session.refresh(model)
             return model
 
     async def get_quality_gate(

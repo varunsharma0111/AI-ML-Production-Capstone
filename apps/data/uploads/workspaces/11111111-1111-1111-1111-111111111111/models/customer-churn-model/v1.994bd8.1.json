@@ -1,0 +1,93 @@
+{
+  "sha256": "4989da025c7fc8956e1006f9edd8edb25e260023cb1956d563b42f19952e2ec5",
+  "payload": {
+    "model_name": "customer-churn-model",
+    "version_tag": "v1.994bd8.1",
+    "model_type": "random_forest",
+    "target_column": "churn",
+    "target_classes": [
+      "0",
+      "1"
+    ],
+    "feature_names": [
+      "age",
+      "gender",
+      "tenure_months",
+      "monthly_charges",
+      "total_charges",
+      "contract_type",
+      "support_tickets",
+      "late_payments"
+    ],
+    "hyperparameters": {},
+    "metrics": {
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "training_duration_ms": 114.37,
+      "train_samples": 8,
+      "test_samples": 2,
+      "target_column": "churn",
+      "target_classes": [
+        "0",
+        "1"
+      ]
+    },
+    "weights": [
+      0.1851,
+      0.0206,
+      0.2132,
+      0.1868,
+      0.1802,
+      0.0753,
+      0.0597,
+      0.0791
+    ]
+  },
+  "data": {
+    "model_name": "customer-churn-model",
+    "version_tag": "v1.994bd8.1",
+    "model_type": "random_forest",
+    "target_column": "churn",
+    "target_classes": [
+      "0",
+      "1"
+    ],
+    "feature_names": [
+      "age",
+      "gender",
+      "tenure_months",
+      "monthly_charges",
+      "total_charges",
+      "contract_type",
+      "support_tickets",
+      "late_payments"
+    ],
+    "hyperparameters": {},
+    "metrics": {
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "training_duration_ms": 114.37,
+      "train_samples": 8,
+      "test_samples": 2,
+      "target_column": "churn",
+      "target_classes": [
+        "0",
+        "1"
+      ]
+    },
+    "weights": [
+      0.1851,
+      0.0206,
+      0.2132,
+      0.1868,
+      0.1802,
+      0.0753,
+      0.0597,
+      0.0791
+    ]
+  }
+}

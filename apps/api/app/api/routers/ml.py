@@ -10,9 +10,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies.request import (
     get_authenticated_principal,
+    get_redis_manager,
     get_request_id,
     get_session,
 )
+from app.api.schemas.jobs import JobResponse, TrainingJobCreate
 from app.api.schemas.ml import (
     ModelCreate,
     ModelEvaluateRequest,
@@ -23,6 +25,7 @@ from app.api.schemas.ml import (
     PredictResponse,
     QualityGateResponse,
 )
+from app.core.redis import RedisManager
 from app.domains.identity.principal import Principal
 from app.services.ml import MLService
 

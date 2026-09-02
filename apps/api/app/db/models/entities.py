@@ -98,7 +98,7 @@ class AuditEvent(Base):
     action: Mapped[str] = mapped_column(String(100), nullable=False)
     resource_type: Mapped[str] = mapped_column(String(100), nullable=False)
     resource_id: Mapped[UUID] = mapped_column(nullable=False)
-    request_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
+    request_id: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     metadata_json: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False, default=dict)
     occurred_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
