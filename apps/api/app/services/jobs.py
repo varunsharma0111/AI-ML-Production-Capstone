@@ -255,6 +255,9 @@ class JobService:
         membership = await self._identity_repository.get_membership(
             session, workspace_id, user.id, principal
         )
-        if membership is not None:
-            require_permission(membership.role, permission)
+        if membership is None:
+            from app.core.errors import AuthorizationError
+
+            raise AuthorizationError("User is not a member of the specified workspace.")
+        require_permission(membership.role, permission)
         return user

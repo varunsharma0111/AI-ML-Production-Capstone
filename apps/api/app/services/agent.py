@@ -108,12 +108,14 @@ class AgentService:
                         )
                         raise sec_error
 
+            if membership is None:
+                raise AuthorizationError("User is not a member of the specified workspace.")
+
             # Enforce fine-grained RBAC permission check
             required_perm = TOOL_PERMISSION_MAP.get(payload.tool_name, Permission.MODEL_READ)
-            if membership is not None:
-                try:
-                    require_permission(membership.role, required_perm)
-                except AuthorizationError as rbac_error:
+            try:
+                require_permission(membership.role, required_perm)
+            except AuthorizationError as rbac_error:
                     session.add(
                         AuditEvent(
                             actor_user_id=user.id,
@@ -345,6 +347,11 @@ class AgentService:
         request_id: str = "unknown",
     ) -> AgentOrchestrateResponse:
         user = await self._identity_repository.get_or_create_user(session, principal)
+        membership = await self._identity_repository.get_membership(
+            session, payload.workspace_id, user.id, principal
+        )
+        if membership is None:
+            raise AuthorizationError("User is not a member of the specified workspace.")
 
         # Log agent request audit event
         async with session.begin():
