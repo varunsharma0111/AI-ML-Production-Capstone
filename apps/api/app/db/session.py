@@ -27,7 +27,7 @@ def create_database_engine(settings: Settings) -> AsyncEngine:
         try:
             import asyncpg  # noqa: F401
 
-            connect_args = {"server_settings": {"statement_timeout": "5000"}}
+            connect_args = {"server_settings": {"statement_timeout": "30000"}}
         except ImportError:
             try:
                 import aiosqlite  # noqa: F401

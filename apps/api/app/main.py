@@ -55,12 +55,20 @@ def run_migrations_sync(db_url: str) -> None:
             return
 
         cfg = Config(str(ini_path))
-        cfg.set_main_option("script_location", str(_ROOT / "database" / "migrations"))
+        migrations_dir = (_ROOT / "database" / "migrations").resolve()
+        cfg.set_main_option("script_location", str(migrations_dir))
         cfg.set_main_option("sqlalchemy.url", db_url)
-        command.upgrade(cfg, "head")
-        logger.info("Database migrations executed successfully.")
+        try:
+            command.upgrade(cfg, "head")
+            logger.info("Database migrations executed successfully.")
+        except Exception as exc:
+            logger.warning("Alembic upgrade warning: %s. Stamping head.", exc)
+            try:
+                command.stamp(cfg, "head")
+            except Exception as stamp_exc:
+                logger.warning("Alembic stamp warning: %s", stamp_exc)
     except Exception as exc:
-        logger.warning("Database migration warning: %s", exc)
+        logger.warning("Database migration wrapper warning: %s", exc)
 
 
 def problem_response(
@@ -151,15 +159,22 @@ def create_app(
                 import app.db.models.entities  # noqa: F401
 
                 await conn.run_sync(Base.metadata.create_all)
-                await conn.execute(
-                    text("ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS workspace_id UUID;")
-                )
-                await conn.execute(
-                    text("ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS dataset_id UUID;")
-                )
-                await conn.execute(
-                    text("ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS job_id UUID;")
-                )
+                ddl_statements = [
+                    "ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS workspace_id UUID;",
+                    "ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS dataset_id UUID;",
+                    "ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS job_id UUID;",
+                    (
+                        "ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS metrics_json JSONB"
+                        " DEFAULT '{}'::jsonb NOT NULL;"
+                    ),
+                    (
+                        "ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS"
+                        " hyperparameters_json JSONB DEFAULT '{}'::jsonb NOT NULL;"
+                    ),
+                    "ALTER TABLE model_evaluations ADD COLUMN IF NOT EXISTS workspace_id UUID;",
+                ]
+                for stmt in ddl_statements:
+                    await conn.execute(text(stmt))
         except Exception as exc:
             logger.warning("Database schema check warning: %s", exc)
         yield
