@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,9 +11,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.models.entities import User, Workspace, WorkspaceMembership
 from app.domains.identity.principal import Principal
 
+PUBLIC_TEST_WORKSPACE_ID = UUID("00000000-0000-4000-a000-000000000001")
+
 
 class IdentityRepository:
     async def get_or_create_user(self, session: AsyncSession, principal: Principal) -> User:
+        from app.core.config import get_settings
+
+        settings = get_settings()
+
         result = await session.execute(select(User).where(User.oidc_subject == principal.subject))
         user = result.scalar_one_or_none()
         if user is None:
@@ -31,7 +37,10 @@ class IdentityRepository:
             workspaces = ws_result.scalars().all()
             if not workspaces:
                 # Create a default workspace for the user if database has none
-                new_ws = Workspace(slug="default", name="Default Workspace")
+                ws_id = PUBLIC_TEST_WORKSPACE_ID if settings.public_test_mode else uuid4()
+                ws_slug = "public-test-workspace" if settings.public_test_mode else "default"
+                ws_name = "Public Test Workspace" if settings.public_test_mode else "Default Workspace"
+                new_ws = Workspace(id=ws_id, slug=ws_slug, name=ws_name)
                 session.add(new_ws)
                 await session.flush()
                 await session.refresh(new_ws)
@@ -50,7 +59,10 @@ class IdentityRepository:
                 ws_result = await session.execute(select(Workspace))
                 workspaces = ws_result.scalars().all()
                 if not workspaces:
-                    new_ws = Workspace(slug="default", name="Default Workspace")
+                    ws_id = PUBLIC_TEST_WORKSPACE_ID if settings.public_test_mode else uuid4()
+                    ws_slug = "public-test-workspace" if settings.public_test_mode else "default"
+                    ws_name = "Public Test Workspace" if settings.public_test_mode else "Default Workspace"
+                    new_ws = Workspace(id=ws_id, slug=ws_slug, name=ws_name)
                     session.add(new_ws)
                     await session.flush()
                     await session.refresh(new_ws)
@@ -85,7 +97,35 @@ class IdentityRepository:
                 WorkspaceMembership.user_id == user_id,
             )
         )
-        return result.scalar_one_or_none()
+        membership = result.scalar_one_or_none()
+        if membership is None:
+            from app.core.config import get_settings
+
+            settings = get_settings()
+            if settings.public_test_mode or settings.dev_auth_mode or settings.app_env != "production":
+                ws_res = await session.execute(select(Workspace).where(Workspace.id == workspace_id))
+                ws = ws_res.scalar_one_or_none()
+                if ws is None:
+                    if settings.public_test_mode and workspace_id != PUBLIC_TEST_WORKSPACE_ID:
+                        # In public test mode, do not spawn arbitrary new workspaces for non-existent workspace IDs
+                        return None
+                    ws = Workspace(
+                        id=workspace_id,
+                        slug="public-test-workspace" if (settings.public_test_mode and workspace_id == PUBLIC_TEST_WORKSPACE_ID) else f"ws-{str(workspace_id)[:8]}",
+                        name="Public Test Workspace" if settings.public_test_mode else "Development Workspace",
+                    )
+                    session.add(ws)
+                    await session.flush()
+
+                membership = WorkspaceMembership(
+                    workspace_id=workspace_id,
+                    user_id=user_id,
+                    role="owner",
+                )
+                session.add(membership)
+                await session.flush()
+
+        return membership
 
     async def get_user_workspaces(
         self, session: AsyncSession, user_id: UUID

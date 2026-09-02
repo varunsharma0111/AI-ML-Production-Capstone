@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     app_name: str = "AI/ML Production Capstone API"
     log_level: str = "INFO"
     dev_auth_mode: bool = Field(default=False)
+    public_test_mode: bool = Field(default=False)
     database_url: str = Field(
         default="postgresql+asyncpg://postgres:postgres@localhost:5432/capstone"
     )
@@ -44,6 +45,13 @@ class Settings(BaseSettings):
     def validate_dev_auth_mode(self) -> Settings:
         if self.app_env == "production" and self.dev_auth_mode:
             raise ValueError("DEV_AUTH_MODE cannot be enabled in production.")
+        if self.app_env == "production" and self.public_test_mode:
+            import os
+
+            if os.getenv("ALLOW_PUBLIC_TEST_IN_PROD", "").lower() != "true":
+                raise ValueError(
+                    "PUBLIC_TEST_MODE cannot be enabled in production without ALLOW_PUBLIC_TEST_IN_PROD=true."
+                )
         return self
 
     # Storage & Artifact Settings
