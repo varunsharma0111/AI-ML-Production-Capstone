@@ -118,6 +118,14 @@ def create_app(
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
         await redis_manager.connect()
+        try:
+            async with engine.begin() as conn:
+                from app.db.models.base import Base
+                import app.db.models.entities  # noqa: F401
+
+                await conn.run_sync(Base.metadata.create_all)
+        except Exception as exc:
+            logger.warning("Database schema check warning: %s", exc)
         yield
         await redis_manager.close()
         await engine.dispose()
