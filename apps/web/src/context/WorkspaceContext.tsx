@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { Permission, Workspace, WorkspaceRole } from "../types/api";
+import { Permission, Workspace } from "../types/api";
 import { useAuth } from "./AuthContext";
 
 interface WorkspaceContextType {
@@ -16,44 +16,6 @@ const DEFAULT_DEV_WORKSPACE: Workspace = {
   slug: "dev-workspace",
   name: "Development Workspace",
   role: "owner",
-};
-
-const EMPTY_WORKSPACE: Workspace = DEFAULT_DEV_WORKSPACE;
-
-const ROLE_PERMISSIONS: Record<WorkspaceRole, Set<Permission>> = {
-  owner: new Set<Permission>([
-    "workspace:read",
-    "task:create",
-    "task:read",
-    "task:update",
-    "dataset:create",
-    "dataset:read",
-    "model:evaluate",
-    "model:promote",
-    "model:read",
-  ]),
-  editor: new Set<Permission>([
-    "workspace:read",
-    "task:create",
-    "task:read",
-    "task:update",
-    "dataset:create",
-    "dataset:read",
-    "model:evaluate",
-    "model:promote",
-    "model:read",
-  ]),
-  viewer: new Set<Permission>([
-    "workspace:read",
-    "task:create",
-    "task:read",
-    "task:update",
-    "dataset:create",
-    "dataset:read",
-    "model:evaluate",
-    "model:promote",
-    "model:read",
-  ]),
 };
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined);
