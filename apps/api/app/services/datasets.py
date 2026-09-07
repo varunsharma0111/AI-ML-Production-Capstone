@@ -23,6 +23,19 @@ from services.worker.runner import JobRunner
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
 
 
+import asyncio
+
+
+async def _is_in_transaction(session: AsyncSession) -> bool:
+    try:
+        res = session.in_transaction()
+        if asyncio.iscoroutine(res) or hasattr(res, "__await__"):
+            return bool(await res)
+        return bool(res)
+    except Exception:
+        return False
+
+
 class DatasetService:
     def __init__(
         self,
@@ -79,59 +92,74 @@ class DatasetService:
         if file_size > MAX_FILE_SIZE_BYTES:
             raise ValidationError(f"File size ({file_size} bytes) exceeds maximum limit of {MAX_FILE_SIZE_BYTES} bytes.")
 
+        if await _is_in_transaction(session):
+            return await self._upload_dataset_impl(session, principal, workspace_id, safe_name, file_content, content_type, file_size, request_id)
         async with session.begin():
-            user = await self._authorized_user(session, principal, workspace_id, Permission.DATASET_CREATE)
+            return await self._upload_dataset_impl(session, principal, workspace_id, safe_name, file_content, content_type, file_size, request_id)
 
-            dataset_id = uuid4()
-            storage_path = self._storage_service.save_dataset_file(
-                workspace_id=workspace_id,
-                dataset_id=dataset_id,
-                filename=safe_name,
-                content=file_content,
-            )
+    async def _upload_dataset_impl(
+        self,
+        session: AsyncSession,
+        principal: Principal,
+        workspace_id: UUID,
+        safe_name: str,
+        file_content: bytes,
+        content_type: str | None,
+        file_size: int,
+        request_id: str,
+    ) -> tuple[Dataset, Job]:
+        user = await self._authorized_user(session, principal, workspace_id, Permission.DATASET_CREATE)
 
-            dataset = Dataset(
-                id=dataset_id,
-                workspace_id=workspace_id,
-                created_by_user_id=user.id,
-                original_filename=safe_name,
-                storage_path=storage_path,
-                file_size_bytes=file_size,
-                mime_type=content_type or "text/csv",
-                format="csv",
-                status=DatasetStatus.UPLOADED.value,
-                row_count=None,
-                column_count=None,
-            )
-            await self._dataset_repository.create_dataset(session, dataset)
+        dataset_id = uuid4()
+        storage_path = self._storage_service.save_dataset_file(
+            workspace_id=workspace_id,
+            dataset_id=dataset_id,
+            filename=safe_name,
+            content=file_content,
+        )
 
-            job = Job(
-                workspace_id=workspace_id,
-                created_by_user_id=user.id,
-                job_type=JobType.DATASET_PROFILING.value,
-                payload_json={
-                    "dataset_id": str(dataset_id),
-                    "workspace_id": str(workspace_id),
-                    "filename": safe_name,
-                    "request_id": request_id,
-                },
-                status=JobStatus.QUEUED.value,
-                max_retries=3,
-                attempt_count=0,
-                version=1,
-            )
-            await self._job_repository.create_job(session, job)
+        dataset = Dataset(
+            id=dataset_id,
+            workspace_id=workspace_id,
+            created_by_user_id=user.id,
+            original_filename=safe_name,
+            storage_path=storage_path,
+            file_size_bytes=file_size,
+            mime_type=content_type or "text/csv",
+            format="csv",
+            status=DatasetStatus.UPLOADED.value,
+            row_count=None,
+            column_count=None,
+        )
+        await self._dataset_repository.create_dataset(session, dataset)
 
-            audit_event = AuditEvent(
-                actor_user_id=user.id,
-                workspace_id=workspace_id,
-                action="dataset.uploaded",
-                resource_type="dataset",
-                resource_id=dataset.id,
-                request_id=request_id,
-                metadata_json={"filename": safe_name, "file_size_bytes": file_size},
-            )
-            session.add(audit_event)
+        job = Job(
+            workspace_id=workspace_id,
+            created_by_user_id=user.id,
+            job_type=JobType.DATASET_PROFILING.value,
+            payload_json={
+                "dataset_id": str(dataset_id),
+                "workspace_id": str(workspace_id),
+                "filename": safe_name,
+                "request_id": request_id,
+            },
+            status=JobStatus.QUEUED.value,
+            max_retries=3,
+            attempt_count=0,
+            version=1,
+        )
+        await self._job_repository.create_job(session, job)
+
+        audit_event = AuditEvent(
+            actor_user_id=user.id,
+            workspace_id=workspace_id,
+            action="dataset.uploaded",
+            resource_type="dataset",
+            resource_id=dataset.id,
+            request_id=request_id,
+            metadata_json={"filename": safe_name, "file_size_bytes": file_size},
+        )
+        session.add(audit_event)
 
         # Asynchronously enqueue to Redis task queue & publish Pub/Sub notification
         if self._redis_manager:
@@ -158,9 +186,21 @@ class DatasetService:
         limit: int,
     ) -> list[Dataset]:
         """List all datasets in workspace."""
+        if await _is_in_transaction(session):
+            return await self._list_datasets_impl(session, principal, workspace_id, offset, limit)
         async with session.begin():
-            await self._authorized_user(session, principal, workspace_id, Permission.DATASET_READ)
-            return await self._dataset_repository.list_datasets_for_workspace(session, workspace_id, offset, limit)
+            return await self._list_datasets_impl(session, principal, workspace_id, offset, limit)
+
+    async def _list_datasets_impl(
+        self,
+        session: AsyncSession,
+        principal: Principal,
+        workspace_id: UUID,
+        offset: int,
+        limit: int,
+    ) -> list[Dataset]:
+        await self._authorized_user(session, principal, workspace_id, Permission.DATASET_READ)
+        return await self._dataset_repository.list_datasets_for_workspace(session, workspace_id, offset, limit)
 
     async def get_dataset(
         self,
@@ -170,12 +210,23 @@ class DatasetService:
         dataset_id: UUID,
     ) -> Dataset:
         """Retrieve single dataset with workspace isolation."""
+        if await _is_in_transaction(session):
+            return await self._get_dataset_impl(session, principal, workspace_id, dataset_id)
         async with session.begin():
-            await self._authorized_user(session, principal, workspace_id, Permission.DATASET_READ)
-            dataset = await self._dataset_repository.get_dataset_for_workspace(session, workspace_id, dataset_id)
-            if dataset is None:
-                raise ResourceNotFoundError("Dataset not found in workspace.")
-            return dataset
+            return await self._get_dataset_impl(session, principal, workspace_id, dataset_id)
+
+    async def _get_dataset_impl(
+        self,
+        session: AsyncSession,
+        principal: Principal,
+        workspace_id: UUID,
+        dataset_id: UUID,
+    ) -> Dataset:
+        await self._authorized_user(session, principal, workspace_id, Permission.DATASET_READ)
+        dataset = await self._dataset_repository.get_dataset_for_workspace(session, workspace_id, dataset_id)
+        if dataset is None:
+            raise ResourceNotFoundError("Dataset not found in workspace.")
+        return dataset
 
     async def get_profile(
         self,
@@ -185,16 +236,27 @@ class DatasetService:
         dataset_id: UUID,
     ) -> DatasetProfile:
         """Retrieve profile statistics for dataset with workspace isolation."""
+        if await _is_in_transaction(session):
+            return await self._get_profile_impl(session, principal, workspace_id, dataset_id)
         async with session.begin():
-            await self._authorized_user(session, principal, workspace_id, Permission.DATASET_READ)
-            dataset = await self._dataset_repository.get_dataset_for_workspace(session, workspace_id, dataset_id)
-            if dataset is None:
-                raise ResourceNotFoundError("Dataset not found in workspace.")
+            return await self._get_profile_impl(session, principal, workspace_id, dataset_id)
 
-            profile = await self._dataset_repository.get_profile_by_dataset_id(session, dataset_id)
-            if profile is None:
-                raise ResourceNotFoundError("Profile statistics are not ready for this dataset.")
-            return profile
+    async def _get_profile_impl(
+        self,
+        session: AsyncSession,
+        principal: Principal,
+        workspace_id: UUID,
+        dataset_id: UUID,
+    ) -> DatasetProfile:
+        await self._authorized_user(session, principal, workspace_id, Permission.DATASET_READ)
+        dataset = await self._dataset_repository.get_dataset_for_workspace(session, workspace_id, dataset_id)
+        if dataset is None:
+            raise ResourceNotFoundError("Dataset not found in workspace.")
+
+        profile = await self._dataset_repository.get_profile_by_dataset_id(session, dataset_id)
+        if profile is None:
+            raise ResourceNotFoundError("Profile statistics are not ready for this dataset.")
+        return profile
 
     async def delete_dataset(
         self,
@@ -205,25 +267,37 @@ class DatasetService:
         request_id: str = "unknown",
     ) -> None:
         """Delete dataset record and emit audit event."""
+        if await _is_in_transaction(session):
+            return await self._delete_dataset_impl(session, principal, workspace_id, dataset_id, request_id)
         async with session.begin():
-            user = await self._authorized_user(session, principal, workspace_id, Permission.DATASET_CREATE)
-            dataset = await self._dataset_repository.get_dataset_for_workspace(session, workspace_id, dataset_id)
-            if dataset is None:
-                raise ResourceNotFoundError("Dataset not found in workspace.")
+            return await self._delete_dataset_impl(session, principal, workspace_id, dataset_id, request_id)
 
-            await self._dataset_repository.delete_dataset(session, dataset)
+    async def _delete_dataset_impl(
+        self,
+        session: AsyncSession,
+        principal: Principal,
+        workspace_id: UUID,
+        dataset_id: UUID,
+        request_id: str = "unknown",
+    ) -> None:
+        user = await self._authorized_user(session, principal, workspace_id, Permission.DATASET_CREATE)
+        dataset = await self._dataset_repository.get_dataset_for_workspace(session, workspace_id, dataset_id)
+        if dataset is None:
+            raise ResourceNotFoundError("Dataset not found in workspace.")
 
-            session.add(
-                AuditEvent(
-                    actor_user_id=user.id,
-                    workspace_id=workspace_id,
-                    action="dataset.deleted",
-                    resource_type="dataset",
-                    resource_id=dataset_id,
-                    request_id=request_id,
-                    metadata_json={"filename": dataset.original_filename},
-                )
+        await self._dataset_repository.delete_dataset(session, dataset)
+
+        session.add(
+            AuditEvent(
+                actor_user_id=user.id,
+                workspace_id=workspace_id,
+                action="dataset.deleted",
+                resource_type="dataset",
+                resource_id=dataset_id,
+                request_id=request_id,
+                metadata_json={"filename": dataset.original_filename},
             )
+        )
 
     async def _authorized_user(
         self,

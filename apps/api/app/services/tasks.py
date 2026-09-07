@@ -15,6 +15,19 @@ from app.domains.identity.policy import Permission, require_permission
 from app.domains.identity.principal import Principal
 
 
+import asyncio
+
+
+async def _is_in_transaction(session: AsyncSession) -> bool:
+    try:
+        res = session.in_transaction()
+        if asyncio.iscoroutine(res) or hasattr(res, "__await__"):
+            return bool(await res)
+        return bool(res)
+    except Exception:
+        return False
+
+
 class TaskService:
     def __init__(
         self,
@@ -25,7 +38,7 @@ class TaskService:
         self._task_repository = task_repository or TaskRepository()
 
     async def current_user(self, session: AsyncSession, principal: Principal) -> User:
-        if session.in_transaction():
+        if await _is_in_transaction(session):
             return await self._identity_repository.get_or_create_user(session, principal)
         async with session.begin():
             return await self._identity_repository.get_or_create_user(session, principal)
@@ -38,19 +51,31 @@ class TaskService:
         payload: TaskCreate,
         request_id: str,
     ) -> Task:
+        if await _is_in_transaction(session):
+            return await self._create_task_impl(session, principal, workspace_id, payload, request_id)
         async with session.begin():
-            user = await self._authorized_user(session, principal, workspace_id, Permission.TASK_CREATE)
-            task = Task(
-                workspace_id=workspace_id,
-                created_by_user_id=user.id,
-                title=payload.title,
-                description=payload.description,
-                status="open",
-                version=1,
-            )
-            await self._task_repository.create(session, task)
-            await self._record_audit(session, user, workspace_id, "task.created", task, request_id)
-            return task
+            return await self._create_task_impl(session, principal, workspace_id, payload, request_id)
+
+    async def _create_task_impl(
+        self,
+        session: AsyncSession,
+        principal: Principal,
+        workspace_id: UUID,
+        payload: TaskCreate,
+        request_id: str,
+    ) -> Task:
+        user = await self._authorized_user(session, principal, workspace_id, Permission.TASK_CREATE)
+        task = Task(
+            workspace_id=workspace_id,
+            created_by_user_id=user.id,
+            title=payload.title,
+            description=payload.description,
+            status="open",
+            version=1,
+        )
+        await self._task_repository.create(session, task)
+        await self._record_audit(session, user, workspace_id, "task.created", task, request_id)
+        return task
 
     async def list_tasks(
         self,
@@ -60,17 +85,34 @@ class TaskService:
         offset: int,
         limit: int,
     ) -> list[Task]:
+        if await _is_in_transaction(session):
+            return await self._list_tasks_impl(session, principal, workspace_id, offset, limit)
         async with session.begin():
-            await self._authorized_user(session, principal, workspace_id, Permission.TASK_READ)
-            return await self._task_repository.list_for_workspace(session, workspace_id, offset, limit)
+            return await self._list_tasks_impl(session, principal, workspace_id, offset, limit)
+
+    async def _list_tasks_impl(
+        self,
+        session: AsyncSession,
+        principal: Principal,
+        workspace_id: UUID,
+        offset: int,
+        limit: int,
+    ) -> list[Task]:
+        await self._authorized_user(session, principal, workspace_id, Permission.TASK_READ)
+        return await self._task_repository.list_for_workspace(session, workspace_id, offset, limit)
 
     async def get_task(self, session: AsyncSession, principal: Principal, workspace_id: UUID, task_id: UUID) -> Task:
+        if await _is_in_transaction(session):
+            return await self._get_task_impl(session, principal, workspace_id, task_id)
         async with session.begin():
-            await self._authorized_user(session, principal, workspace_id, Permission.TASK_READ)
-            task = await self._task_repository.get_for_workspace(session, workspace_id, task_id)
-            if task is None:
-                raise ResourceNotFoundError()
-            return task
+            return await self._get_task_impl(session, principal, workspace_id, task_id)
+
+    async def _get_task_impl(self, session: AsyncSession, principal: Principal, workspace_id: UUID, task_id: UUID) -> Task:
+        await self._authorized_user(session, principal, workspace_id, Permission.TASK_READ)
+        task = await self._task_repository.get_for_workspace(session, workspace_id, task_id)
+        if task is None:
+            raise ResourceNotFoundError()
+        return task
 
     async def update_task(
         self,
@@ -81,20 +123,33 @@ class TaskService:
         payload: TaskUpdate,
         request_id: str,
     ) -> Task:
+        if await _is_in_transaction(session):
+            return await self._update_task_impl(session, principal, workspace_id, task_id, payload, request_id)
         async with session.begin():
-            user = await self._authorized_user(session, principal, workspace_id, Permission.TASK_UPDATE)
-            task = await self._task_repository.get_for_workspace(session, workspace_id, task_id)
-            if task is None:
-                raise ResourceNotFoundError()
-            if task.version != payload.version:
-                raise ConflictError()
-            for field, value in payload.model_dump(exclude_unset=True, exclude={"version"}).items():
-                setattr(task, field, value)
-            task.version += 1
-            await session.flush()
-            await session.refresh(task)
-            await self._record_audit(session, user, workspace_id, "task.updated", task, request_id)
-            return task
+            return await self._update_task_impl(session, principal, workspace_id, task_id, payload, request_id)
+
+    async def _update_task_impl(
+        self,
+        session: AsyncSession,
+        principal: Principal,
+        workspace_id: UUID,
+        task_id: UUID,
+        payload: TaskUpdate,
+        request_id: str,
+    ) -> Task:
+        user = await self._authorized_user(session, principal, workspace_id, Permission.TASK_UPDATE)
+        task = await self._task_repository.get_for_workspace(session, workspace_id, task_id)
+        if task is None:
+            raise ResourceNotFoundError()
+        if task.version != payload.version:
+            raise ConflictError()
+        for field, value in payload.model_dump(exclude_unset=True, exclude={"version"}).items():
+            setattr(task, field, value)
+        task.version += 1
+        await session.flush()
+        await session.refresh(task)
+        await self._record_audit(session, user, workspace_id, "task.updated", task, request_id)
+        return task
 
     async def _authorized_user(
         self,
