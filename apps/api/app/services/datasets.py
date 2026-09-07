@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from pathlib import Path
 from uuid import UUID, uuid4
 
@@ -21,9 +22,6 @@ from app.domains.jobs.types import JobStatus, JobType
 from services.worker.runner import JobRunner
 
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB
-
-
-import asyncio
 
 
 async def _is_in_transaction(session: AsyncSession) -> bool:
