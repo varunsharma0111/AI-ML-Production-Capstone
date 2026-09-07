@@ -1,10 +1,10 @@
-# Render Service Blueprint for $0 Demo Deployment (Profile B)
+# Render Service Blueprint for Production Deployment
 services:
   - type: web
     name: capstone-demo-api
     env: python
     buildCommand: "pip install -e ."
-    startCommand: "cd apps/api && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    startCommand: "alembic -c database/migrations/alembic.ini upgrade head && cd apps/api && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
     envVars:
       - key: PYTHON_VERSION
         value: "3.11.0"
@@ -14,6 +14,11 @@ services:
         value: INFO
       - key: DATABASE_URL
         sync: false # Set in Render dashboard to Neon connection string
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: capstone-demo-redis
+          property: connectionString
       - key: OIDC_ISSUER
         sync: false
       - key: OIDC_AUDIENCE
@@ -22,3 +27,27 @@ services:
         sync: false
       - key: CORS_ORIGINS
         sync: false # Set to Vercel app URL (e.g. https://ai-ml-production-capstone.vercel.app)
+
+  - type: worker
+    name: capstone-demo-worker
+    env: python
+    buildCommand: "pip install -e ."
+    startCommand: "python services/worker/main.py"
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+      - key: APP_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: DATABASE_URL
+        sync: false # Set in Render dashboard to Neon connection string (SAME AS API)
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: capstone-demo-redis
+          property: connectionString
+
+  - type: redis
+    name: capstone-demo-redis
+    plan: free
