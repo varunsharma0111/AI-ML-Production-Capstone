@@ -108,8 +108,10 @@ def setup_mock_agent_db(
 
 
 @pytest.mark.asyncio
-async def test_agent_orchestrate_unauthenticated(test_settings: Settings) -> None:
-    app = create_app(settings=test_settings)
+async def test_agent_orchestrate_unauthenticated(test_settings: Settings, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that unauthenticated requests to the agent are rejected."""
+    app = create_app(settings=test_settings, token_verifier=MagicMock())
+
     workspace_id = uuid4()
 
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:

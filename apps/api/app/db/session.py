@@ -40,7 +40,13 @@ def create_database_engine(settings: Settings) -> AsyncEngine:
                 connect_args = {}
 
     if "sqlite" in db_url:
-        return create_async_engine(db_url)
+        from sqlalchemy.pool import StaticPool
+
+        return create_async_engine(
+            db_url,
+            poolclass=StaticPool,
+            connect_args={"check_same_thread": False},
+        )
 
     return create_async_engine(
         db_url,

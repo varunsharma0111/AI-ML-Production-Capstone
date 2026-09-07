@@ -182,22 +182,18 @@ def create_app(settings: Settings | None = None, token_verifier: JwtVerifier | N
         except Exception as exc:
             logger.warning("Database schema check warning: %s", exc)
 
-        if resolved_settings.app_env in ("production", "staging", "local", "development"):
+        if resolved_settings.app_env in ("production", "staging", "local", "development") and "sqlite" not in resolved_settings.database_url:
             logger.info("Starting integrated background worker process...")
             env = os.environ.copy()
             env["DATABASE_URL"] = resolved_settings.database_url
             env["WORKER_METRICS_PORT"] = "0"
             try:
-                worker_process = subprocess.Popen(
-                    [sys.executable, "-m", "services.worker.main"],
-                    cwd=str(_ROOT),
-                    env=env
-                )
+                worker_process = subprocess.Popen([sys.executable, "-m", "services.worker.main"], cwd=str(_ROOT), env=env)
             except Exception as e:
                 logger.error("Failed to start integrated worker: %s", e)
 
         yield
-        
+
         if worker_process:
             logger.info("Terminating integrated background worker...")
             worker_process.terminate()

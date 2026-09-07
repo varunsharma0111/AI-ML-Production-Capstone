@@ -129,7 +129,7 @@ class IdentityRepository:
         settings = get_settings()
 
         stmt = select(Workspace.id, Workspace.slug, Workspace.name, WorkspaceMembership.role).join(WorkspaceMembership, Workspace.id == WorkspaceMembership.workspace_id).where(WorkspaceMembership.user_id == user_id)
-        
+
         if settings.public_test_mode:
             stmt = stmt.where(Workspace.id == PUBLIC_TEST_WORKSPACE_ID)
 
