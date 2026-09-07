@@ -32,9 +32,7 @@ def test_evaluator_quality_gate() -> None:
     evaluator = ModelEvaluator()
 
     # Passing thresholds (accuracy >= 0.85, f1 >= 0.80)
-    passed, metadata = evaluator.evaluate(
-        0.88, 0.85, 12.5, accuracy_threshold=0.85, f1_threshold=0.80
-    )
+    passed, metadata = evaluator.evaluate(0.88, 0.85, 12.5, accuracy_threshold=0.85, f1_threshold=0.80)
     assert passed is True
     assert metadata["status"] == "APPROVED"
 

@@ -54,15 +54,11 @@ def test_quality_gate_fail_multiple_criteria() -> None:
 def test_quality_gate_configurable_workspace_thresholds() -> None:
     evaluator = ModelEvaluator()
     # High strict thresholds
-    passed, metadata = evaluator.evaluate(
-        accuracy=0.91, f1_score=0.86, accuracy_threshold=0.95, f1_threshold=0.90
-    )
+    passed, metadata = evaluator.evaluate(accuracy=0.91, f1_score=0.86, accuracy_threshold=0.95, f1_threshold=0.90)
     assert passed is False
     assert metadata["status"] == "REJECTED"
 
     # Relaxed thresholds
-    passed_relaxed, metadata_relaxed = evaluator.evaluate(
-        accuracy=0.82, f1_score=0.80, accuracy_threshold=0.80, f1_threshold=0.75
-    )
+    passed_relaxed, metadata_relaxed = evaluator.evaluate(accuracy=0.82, f1_score=0.80, accuracy_threshold=0.80, f1_threshold=0.75)
     assert passed_relaxed is True
     assert metadata_relaxed["status"] == "APPROVED"

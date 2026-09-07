@@ -66,9 +66,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("dataset_id", name="uq_dataset_profiles_dataset_id"),
     )
-    op.create_index(
-        op.f("ix_dataset_profiles_dataset_id"), "dataset_profiles", ["dataset_id"], unique=True
-    )
+    op.create_index(op.f("ix_dataset_profiles_dataset_id"), "dataset_profiles", ["dataset_id"], unique=True)
 
 
 def downgrade() -> None:

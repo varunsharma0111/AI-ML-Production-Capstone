@@ -31,9 +31,7 @@ def test_settings() -> Settings:
 
 @pytest.fixture
 def mock_principal() -> Principal:
-    return Principal(
-        subject="user_sub_001", email="editor@example.com", display_name="Workspace Editor"
-    )
+    return Principal(subject="user_sub_001", email="editor@example.com", display_name="Workspace Editor")
 
 
 def setup_mock_db(
@@ -120,9 +118,7 @@ async def test_submit_job_unauthenticated(test_settings: Settings) -> None:
     app = create_app(settings=test_settings)
     workspace_id = uuid4()
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             f"/api/v1/workspaces/{workspace_id}/jobs",
             json={"job_type": "sample_ml_ingestion", "payload": {}},
@@ -139,15 +135,11 @@ async def test_submit_job_success(test_settings: Settings, mock_principal: Princ
 
     workspace_id = uuid4()
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor")
 
     setup_mock_db(app, user=user, membership=membership)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             f"/api/v1/workspaces/{workspace_id}/jobs",
             json={
@@ -174,9 +166,7 @@ async def test_list_jobs_success(test_settings: Settings, mock_principal: Princi
     workspace_id = uuid4()
     now = datetime.now(UTC)
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer")
 
     existing_jobs = [
         Job(
@@ -196,9 +186,7 @@ async def test_list_jobs_success(test_settings: Settings, mock_principal: Princi
 
     setup_mock_db(app, user=user, membership=membership, job_list=existing_jobs)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get(
             f"/api/v1/workspaces/{workspace_id}/jobs?offset=0&limit=10",
             headers={"Authorization": "Bearer token"},
@@ -221,9 +209,7 @@ async def test_cancel_job_success(test_settings: Settings, mock_principal: Princ
     now = datetime.now(UTC)
 
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="owner"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="owner")
 
     existing_job = Job(
         id=job_id,
@@ -241,9 +227,7 @@ async def test_cancel_job_success(test_settings: Settings, mock_principal: Princ
 
     setup_mock_db(app, user=user, membership=membership, job_get=existing_job)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             f"/api/v1/workspaces/{workspace_id}/jobs/{job_id}/cancel",
             headers={"Authorization": "Bearer token"},

@@ -41,9 +41,7 @@ async def list_tasks(
     session: AsyncSession = Depends(get_session),
 ) -> TaskListResponse:
     tasks = await _task_service.list_tasks(session, principal, workspace_id, offset, limit)
-    return TaskListResponse(
-        items=[TaskResponse.model_validate(task) for task in tasks], offset=offset, limit=limit
-    )
+    return TaskListResponse(items=[TaskResponse.model_validate(task) for task in tasks], offset=offset, limit=limit)
 
 
 @router.get("/{task_id}", response_model=TaskResponse)
@@ -66,7 +64,5 @@ async def update_task(
     session: AsyncSession = Depends(get_session),
     request_id: str = Depends(get_request_id),
 ) -> TaskResponse:
-    task = await _task_service.update_task(
-        session, principal, workspace_id, task_id, payload, request_id
-    )
+    task = await _task_service.update_task(session, principal, workspace_id, task_id, payload, request_id)
     return TaskResponse.model_validate(task)

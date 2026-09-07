@@ -24,9 +24,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     dev_auth_mode: bool = Field(default=False)
     public_test_mode: bool = Field(default=False)
-    database_url: str = Field(
-        default="postgresql+asyncpg://postgres:postgres@localhost:5432/capstone"
-    )
+    database_url: str = Field(default="postgresql+asyncpg://postgres:postgres@localhost:5432/capstone")
     database_pool_size: int = Field(default=5, ge=1, le=20)
     database_max_overflow: int = Field(default=5, ge=0, le=20)
     redis_url: str = Field(default="redis://localhost:6379/0")
@@ -60,10 +58,7 @@ class Settings(BaseSettings):
             import os
 
             if os.getenv("ALLOW_PUBLIC_TEST_IN_PROD", "").lower() != "true":
-                raise ValueError(
-                    "PUBLIC_TEST_MODE cannot be enabled in production "
-                    "without ALLOW_PUBLIC_TEST_IN_PROD=true."
-                )
+                raise ValueError("PUBLIC_TEST_MODE cannot be enabled in production without ALLOW_PUBLIC_TEST_IN_PROD=true.")
         return self
 
     # Storage & Artifact Settings
@@ -92,11 +87,7 @@ class Settings(BaseSettings):
         elif value.startswith("postgresql://"):
             value = value.replace("postgresql://", "postgresql+asyncpg://", 1)
 
-        if not (
-            value.startswith("postgresql+asyncpg://")
-            or value.startswith("sqlite+aiosqlite://")
-            or value.startswith("sqlite://")
-        ):
+        if not (value.startswith("postgresql+asyncpg://") or value.startswith("sqlite+aiosqlite://") or value.startswith("sqlite://")):
             msg = "DATABASE_URL must use postgresql+asyncpg or sqlite+aiosqlite scheme."
             raise ValueError(msg)
         if "sslmode=" in value:

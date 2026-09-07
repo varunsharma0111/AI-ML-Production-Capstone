@@ -25,4 +25,3 @@ def test_settings_allowed_jwt_algorithms_invalid() -> None:
     msg = "ALLOWED_JWT_ALGORITHMS must contain supported asymmetric algorithms"
     with pytest.raises(ValueError, match=msg):
         Settings(allowed_jwt_algorithms="INVALID_ALG")
-

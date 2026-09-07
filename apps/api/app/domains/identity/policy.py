@@ -65,6 +65,4 @@ def require_permission(role: str, permission: Permission) -> None:
     if permission not in allowed_perms:
         from app.core.errors import AuthorizationError
 
-        raise AuthorizationError(
-            f"Role '{role}' does not have required permission '{permission.value}'"
-        )
+        raise AuthorizationError(f"Role '{role}' does not have required permission '{permission.value}'")

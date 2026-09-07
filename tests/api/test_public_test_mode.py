@@ -47,9 +47,7 @@ async def test_public_test_mode_resolves_public_user() -> None:
     )
     setup_mock_db(app, user=public_user, membership=None)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/api/v1/me")
 
     assert response.status_code == 200
@@ -85,9 +83,7 @@ async def test_public_test_mode_allows_workspace_access() -> None:
     )
     setup_mock_db(app, user=public_user, membership=membership)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get(f"/api/v1/workspaces/{workspace_id}/tasks")
 
     assert response.status_code == 200

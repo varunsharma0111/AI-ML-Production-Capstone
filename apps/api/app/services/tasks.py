@@ -39,9 +39,7 @@ class TaskService:
         request_id: str,
     ) -> Task:
         async with session.begin():
-            user = await self._authorized_user(
-                session, principal, workspace_id, Permission.TASK_CREATE
-            )
+            user = await self._authorized_user(session, principal, workspace_id, Permission.TASK_CREATE)
             task = Task(
                 workspace_id=workspace_id,
                 created_by_user_id=user.id,
@@ -64,13 +62,9 @@ class TaskService:
     ) -> list[Task]:
         async with session.begin():
             await self._authorized_user(session, principal, workspace_id, Permission.TASK_READ)
-            return await self._task_repository.list_for_workspace(
-                session, workspace_id, offset, limit
-            )
+            return await self._task_repository.list_for_workspace(session, workspace_id, offset, limit)
 
-    async def get_task(
-        self, session: AsyncSession, principal: Principal, workspace_id: UUID, task_id: UUID
-    ) -> Task:
+    async def get_task(self, session: AsyncSession, principal: Principal, workspace_id: UUID, task_id: UUID) -> Task:
         async with session.begin():
             await self._authorized_user(session, principal, workspace_id, Permission.TASK_READ)
             task = await self._task_repository.get_for_workspace(session, workspace_id, task_id)
@@ -88,9 +82,7 @@ class TaskService:
         request_id: str,
     ) -> Task:
         async with session.begin():
-            user = await self._authorized_user(
-                session, principal, workspace_id, Permission.TASK_UPDATE
-            )
+            user = await self._authorized_user(session, principal, workspace_id, Permission.TASK_UPDATE)
             task = await self._task_repository.get_for_workspace(session, workspace_id, task_id)
             if task is None:
                 raise ResourceNotFoundError()
@@ -112,9 +104,7 @@ class TaskService:
         permission: Permission,
     ) -> User:
         user = await self._identity_repository.get_or_create_user(session, principal)
-        membership = await self._identity_repository.get_membership(
-            session, workspace_id, user.id, principal
-        )
+        membership = await self._identity_repository.get_membership(session, workspace_id, user.id, principal)
         if membership is None:
             from app.core.errors import AuthorizationError
 

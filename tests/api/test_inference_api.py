@@ -33,9 +33,7 @@ def test_settings() -> Settings:
 
 @pytest.fixture
 def mock_principal() -> Principal:
-    return Principal(
-        subject="user_sub_001", email="user@example.com", display_name="Workspace User"
-    )
+    return Principal(subject="user_sub_001", email="user@example.com", display_name="Workspace User")
 
 
 def setup_mock_inference_db(
@@ -97,9 +95,7 @@ async def test_predict_unauthenticated(test_settings: Settings) -> None:
     model_id = uuid4()
     workspace_id = uuid4()
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             f"/api/v1/models/{model_id}/predict",
             json={
@@ -112,9 +108,7 @@ async def test_predict_unauthenticated(test_settings: Settings) -> None:
 
 
 @pytest.mark.asyncio
-async def test_predict_workspace_isolation_cross_workspace(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_predict_workspace_isolation_cross_workspace(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -125,9 +119,7 @@ async def test_predict_workspace_isolation_cross_workspace(
     now = datetime.now(UTC)
 
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=user_ws_id, user_id=user.id, role="viewer"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=user_ws_id, user_id=user.id, role="viewer")
 
     # Model belongs to OTHER workspace
     model = ModelVersion(
@@ -143,9 +135,7 @@ async def test_predict_workspace_isolation_cross_workspace(
 
     setup_mock_inference_db(app, user=user, membership=membership, model_get=model)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             f"/api/v1/models/{model_id}/predict",
             json={
@@ -160,9 +150,7 @@ async def test_predict_workspace_isolation_cross_workspace(
 
 
 @pytest.mark.asyncio
-async def test_predict_rejected_model_blocked(
-    test_settings: Settings, mock_principal: Principal, tmp_path: Path
-) -> None:
+async def test_predict_rejected_model_blocked(test_settings: Settings, mock_principal: Principal, tmp_path: Path) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -172,9 +160,7 @@ async def test_predict_rejected_model_blocked(
     now = datetime.now(UTC)
 
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer")
 
     # Model is REJECTED
     model = ModelVersion(
@@ -190,9 +176,7 @@ async def test_predict_rejected_model_blocked(
 
     setup_mock_inference_db(app, user=user, membership=membership, model_get=model)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             f"/api/v1/models/{model_id}/predict",
             json={
@@ -207,9 +191,7 @@ async def test_predict_rejected_model_blocked(
 
 
 @pytest.mark.asyncio
-async def test_real_end_to_end_training_to_inference_flow(
-    test_settings: Settings, mock_principal: Principal, tmp_path: Path
-) -> None:
+async def test_real_end_to_end_training_to_inference_flow(test_settings: Settings, mock_principal: Principal, tmp_path: Path) -> None:
     """Real End-to-End Test:
 
     Ingest CSV -> Train RandomForest -> Save SHA-256 Artifact -> Promote to Production ->
@@ -227,12 +209,7 @@ async def test_real_end_to_end_training_to_inference_flow(
     store = ArtifactStore(base_dir=tmp_path)
     trainer = ModelTrainer(artifact_store=store)
 
-    csv_data = (
-        "age,income,tenure,churn\n"
-        "25,30000,1,0\n50,90000,5,1\n22,25000,1,0\n45,80000,4,1\n"
-        "28,35000,2,0\n55,95000,6,1\n30,40000,3,0\n60,100000,7,1\n"
-        "32,42000,3,0\n58,98000,6,1\n"
-    )
+    csv_data = "age,income,tenure,churn\n25,30000,1,0\n50,90000,5,1\n22,25000,1,0\n45,80000,4,1\n28,35000,2,0\n55,95000,6,1\n30,40000,3,0\n60,100000,7,1\n32,42000,3,0\n58,98000,6,1\n"
     csv_file = tmp_path / "train_churn.csv"
     csv_file.write_text(csv_data, encoding="utf-8")
 
@@ -245,9 +222,7 @@ async def test_real_end_to_end_training_to_inference_flow(
     )
 
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor")
 
     model = ModelVersion(
         id=model_id,
@@ -268,9 +243,7 @@ async def test_real_end_to_end_training_to_inference_flow(
     orig_store = _ml_service._predictor.artifact_store
     _ml_service._predictor.artifact_store = store
     try:
-        async with httpx.AsyncClient(
-            transport=httpx.ASGITransport(app=app), base_url="http://test"
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
                 f"/api/v1/models/{model_id}/predict",
                 json={

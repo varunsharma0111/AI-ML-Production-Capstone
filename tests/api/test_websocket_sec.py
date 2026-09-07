@@ -57,9 +57,7 @@ def test_websocket_authorized_success(test_settings: Settings) -> None:
     workspace_id = uuid4()
     user_id = uuid4()
     user = User(id=user_id, oidc_subject=principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user_id, role="editor"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user_id, role="editor")
 
     mock_session = AsyncMock()
     user_res = MagicMock()
@@ -84,9 +82,7 @@ def test_websocket_authorized_success(test_settings: Settings) -> None:
     app.state.session_factory = mock_factory
 
     client = TestClient(app)
-    with client.websocket_connect(
-        f"/ws/v1/workspaces/{workspace_id}/jobs?token=valid_token"
-    ) as websocket:
+    with client.websocket_connect(f"/ws/v1/workspaces/{workspace_id}/jobs?token=valid_token") as websocket:
         data = websocket.receive_json()
         assert data["event"] == "connection_established"
         assert data["workspace_id"] == str(workspace_id)

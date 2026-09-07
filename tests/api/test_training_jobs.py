@@ -32,9 +32,7 @@ def test_settings() -> Settings:
 
 @pytest.fixture
 def mock_principal() -> Principal:
-    return Principal(
-        subject="user_sub_001", email="editor@example.com", display_name="Workspace Editor"
-    )
+    return Principal(subject="user_sub_001", email="editor@example.com", display_name="Workspace Editor")
 
 
 def setup_mock_training_db(
@@ -106,9 +104,7 @@ async def test_submit_training_job_unauthenticated(test_settings: Settings) -> N
     workspace_id = uuid4()
     dataset_id = uuid4()
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/api/v1/jobs/train",
             json={
@@ -123,9 +119,7 @@ async def test_submit_training_job_unauthenticated(test_settings: Settings) -> N
 
 
 @pytest.mark.asyncio
-async def test_submit_training_job_viewer_forbidden(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_submit_training_job_viewer_forbidden(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -133,15 +127,11 @@ async def test_submit_training_job_viewer_forbidden(
     workspace_id = uuid4()
     dataset_id = uuid4()
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer")
 
     setup_mock_training_db(app, user=user, membership=membership)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/api/v1/jobs/train",
             json={
@@ -157,9 +147,7 @@ async def test_submit_training_job_viewer_forbidden(
 
 
 @pytest.mark.asyncio
-async def test_submit_training_job_dataset_not_found(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_submit_training_job_dataset_not_found(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -167,15 +155,11 @@ async def test_submit_training_job_dataset_not_found(
     workspace_id = uuid4()
     dataset_id = uuid4()
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor")
 
     setup_mock_training_db(app, user=user, membership=membership, dataset_get=None)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/api/v1/jobs/train",
             json={
@@ -191,9 +175,7 @@ async def test_submit_training_job_dataset_not_found(
 
 
 @pytest.mark.asyncio
-async def test_submit_training_job_dataset_not_ready(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_submit_training_job_dataset_not_ready(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -202,9 +184,7 @@ async def test_submit_training_job_dataset_not_ready(
     dataset_id = uuid4()
     now = datetime.now(UTC)
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor")
 
     unready_dataset = Dataset(
         id=dataset_id,
@@ -222,9 +202,7 @@ async def test_submit_training_job_dataset_not_ready(
 
     setup_mock_training_db(app, user=user, membership=membership, dataset_get=unready_dataset)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/api/v1/jobs/train",
             json={
@@ -241,9 +219,7 @@ async def test_submit_training_job_dataset_not_ready(
 
 
 @pytest.mark.asyncio
-async def test_submit_training_job_invalid_target_column(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_submit_training_job_invalid_target_column(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -252,9 +228,7 @@ async def test_submit_training_job_invalid_target_column(
     dataset_id = uuid4()
     now = datetime.now(UTC)
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor")
 
     dataset = Dataset(
         id=dataset_id,
@@ -282,13 +256,9 @@ async def test_submit_training_job_invalid_target_column(
         created_at=now,
     )
 
-    setup_mock_training_db(
-        app, user=user, membership=membership, dataset_get=dataset, profile_get=profile
-    )
+    setup_mock_training_db(app, user=user, membership=membership, dataset_get=dataset, profile_get=profile)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/api/v1/jobs/train",
             json={
@@ -305,9 +275,7 @@ async def test_submit_training_job_invalid_target_column(
 
 
 @pytest.mark.asyncio
-async def test_submit_training_job_success(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_submit_training_job_success(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -316,9 +284,7 @@ async def test_submit_training_job_success(
     dataset_id = uuid4()
     now = datetime.now(UTC)
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor")
 
     with tempfile.TemporaryDirectory() as tmp_dir:
         csv_file = Path(tmp_dir) / "data.csv"
@@ -350,13 +316,9 @@ async def test_submit_training_job_success(
             created_at=now,
         )
 
-        setup_mock_training_db(
-            app, user=user, membership=membership, dataset_get=dataset, profile_get=profile
-        )
+        setup_mock_training_db(app, user=user, membership=membership, dataset_get=dataset, profile_get=profile)
 
-        async with httpx.AsyncClient(
-            transport=httpx.ASGITransport(app=app), base_url="http://test"
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
                 "/api/v1/jobs/train",
                 json={

@@ -30,9 +30,7 @@ def test_settings() -> Settings:
 
 @pytest.fixture
 def mock_principal() -> Principal:
-    return Principal(
-        subject="user_sub_001", email="editor@example.com", display_name="Workspace Editor"
-    )
+    return Principal(subject="user_sub_001", email="editor@example.com", display_name="Workspace Editor")
 
 
 def setup_mock_db(
@@ -112,14 +110,10 @@ async def test_register_model_success(test_settings: Settings, mock_principal: P
 
     workspace_id = uuid4()
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor")
     setup_mock_db(app, user=user, membership=membership)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/api/v1/models",
             json={
@@ -138,9 +132,7 @@ async def test_register_model_success(test_settings: Settings, mock_principal: P
 
 
 @pytest.mark.asyncio
-async def test_evaluate_model_quality_gate_approved(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_evaluate_model_quality_gate_approved(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -149,9 +141,7 @@ async def test_evaluate_model_quality_gate_approved(
     workspace_id = uuid4()
     now = datetime.now(UTC)
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor")
 
     model = ModelVersion(
         id=model_id,
@@ -166,9 +156,7 @@ async def test_evaluate_model_quality_gate_approved(
 
     setup_mock_db(app, user=user, membership=membership, model_get=model)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             f"/api/v1/models/{model_id}/evaluate",
             json={
@@ -186,9 +174,7 @@ async def test_evaluate_model_quality_gate_approved(
 
 
 @pytest.mark.asyncio
-async def test_predict_unapproved_model_rejected(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_predict_unapproved_model_rejected(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -198,9 +184,7 @@ async def test_predict_unapproved_model_rejected(
     now = datetime.now(UTC)
 
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor")
 
     unapproved_model = ModelVersion(
         id=model_id,
@@ -214,9 +198,7 @@ async def test_predict_unapproved_model_rejected(
 
     setup_mock_db(app, user=user, membership=membership, model_get=unapproved_model)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             f"/api/v1/models/{model_id}/predict",
             json={

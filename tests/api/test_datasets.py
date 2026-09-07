@@ -30,9 +30,7 @@ def test_settings() -> Settings:
 
 @pytest.fixture
 def mock_principal() -> Principal:
-    return Principal(
-        subject="user_sub_001", email="editor@example.com", display_name="Workspace Editor"
-    )
+    return Principal(subject="user_sub_001", email="editor@example.com", display_name="Workspace Editor")
 
 
 def setup_mock_dataset_db(
@@ -109,9 +107,7 @@ async def test_upload_dataset_unauthenticated(test_settings: Settings) -> None:
     app = create_app(settings=test_settings)
     workspace_id = uuid4()
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/api/v1/datasets/upload",
             data={"workspace_id": str(workspace_id)},
@@ -122,24 +118,18 @@ async def test_upload_dataset_unauthenticated(test_settings: Settings) -> None:
 
 
 @pytest.mark.asyncio
-async def test_upload_dataset_invalid_format(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_upload_dataset_invalid_format(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
 
     workspace_id = uuid4()
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor")
 
     setup_mock_dataset_db(app, user=user, membership=membership)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/api/v1/datasets/upload",
             data={"workspace_id": str(workspace_id)},
@@ -153,24 +143,18 @@ async def test_upload_dataset_invalid_format(
 
 
 @pytest.mark.asyncio
-async def test_upload_dataset_empty_file(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_upload_dataset_empty_file(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
 
     workspace_id = uuid4()
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor")
 
     setup_mock_dataset_db(app, user=user, membership=membership)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/api/v1/datasets/upload",
             data={"workspace_id": str(workspace_id)},
@@ -184,24 +168,18 @@ async def test_upload_dataset_empty_file(
 
 
 @pytest.mark.asyncio
-async def test_upload_dataset_viewer_forbidden(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_upload_dataset_viewer_forbidden(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
 
     workspace_id = uuid4()
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer")
 
     setup_mock_dataset_db(app, user=user, membership=membership)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/api/v1/datasets/upload",
             data={"workspace_id": str(workspace_id)},
@@ -220,15 +198,11 @@ async def test_upload_dataset_success(test_settings: Settings, mock_principal: P
 
     workspace_id = uuid4()
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor")
 
     setup_mock_dataset_db(app, user=user, membership=membership)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/api/v1/datasets/upload",
             data={"workspace_id": str(workspace_id)},
@@ -254,9 +228,7 @@ async def test_list_datasets_success(test_settings: Settings, mock_principal: Pr
     workspace_id = uuid4()
     now = datetime.now(UTC)
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer")
 
     existing_datasets = [
         Dataset(
@@ -278,9 +250,7 @@ async def test_list_datasets_success(test_settings: Settings, mock_principal: Pr
 
     setup_mock_dataset_db(app, user=user, membership=membership, dataset_list=existing_datasets)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get(
             f"/api/v1/datasets?workspace_id={workspace_id}&offset=0&limit=10",
             headers={"Authorization": "Bearer token"},
@@ -293,9 +263,7 @@ async def test_list_datasets_success(test_settings: Settings, mock_principal: Pr
 
 
 @pytest.mark.asyncio
-async def test_get_dataset_profile_success(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_get_dataset_profile_success(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -304,9 +272,7 @@ async def test_get_dataset_profile_success(
     dataset_id = uuid4()
     now = datetime.now(UTC)
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer")
 
     dataset = Dataset(
         id=dataset_id,
@@ -344,13 +310,9 @@ async def test_get_dataset_profile_success(
         created_at=now,
     )
 
-    setup_mock_dataset_db(
-        app, user=user, membership=membership, dataset_get=dataset, profile_get=profile
-    )
+    setup_mock_dataset_db(app, user=user, membership=membership, dataset_get=dataset, profile_get=profile)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get(
             f"/api/v1/datasets/{dataset_id}/profile?workspace_id={workspace_id}",
             headers={"Authorization": "Bearer token"},

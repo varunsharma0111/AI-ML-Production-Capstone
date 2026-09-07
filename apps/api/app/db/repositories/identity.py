@@ -39,9 +39,7 @@ class IdentityRepository:
                 # Create a default workspace for the user if database has none
                 ws_id = PUBLIC_TEST_WORKSPACE_ID if settings.public_test_mode else uuid4()
                 ws_slug = "public-test-workspace" if settings.public_test_mode else "default"
-                ws_name = (
-                    "Public Test Workspace" if settings.public_test_mode else "Default Workspace"
-                )
+                ws_name = "Public Test Workspace" if settings.public_test_mode else "Default Workspace"
                 new_ws = Workspace(id=ws_id, slug=ws_slug, name=ws_name)
                 session.add(new_ws)
                 await session.flush()
@@ -53,9 +51,7 @@ class IdentityRepository:
             await session.flush()
         else:
             # Upgrade any existing non-owner memberships for this user to owner (Admin)
-            mem_result = await session.execute(
-                select(WorkspaceMembership).where(WorkspaceMembership.user_id == user.id)
-            )
+            mem_result = await session.execute(select(WorkspaceMembership).where(WorkspaceMembership.user_id == user.id))
             memberships = mem_result.scalars().all()
             if not memberships:
                 ws_result = await session.execute(select(Workspace))
@@ -63,11 +59,7 @@ class IdentityRepository:
                 if not workspaces:
                     ws_id = PUBLIC_TEST_WORKSPACE_ID if settings.public_test_mode else uuid4()
                     ws_slug = "public-test-workspace" if settings.public_test_mode else "default"
-                    ws_name = (
-                        "Public Test Workspace"
-                        if settings.public_test_mode
-                        else "Default Workspace"
-                    )
+                    ws_name = "Public Test Workspace" if settings.public_test_mode else "Default Workspace"
                     new_ws = Workspace(id=ws_id, slug=ws_slug, name=ws_name)
                     session.add(new_ws)
                     await session.flush()
@@ -75,9 +67,7 @@ class IdentityRepository:
                     workspaces = [new_ws]
 
                 for ws in workspaces:
-                    session.add(
-                        WorkspaceMembership(workspace_id=ws.id, user_id=user.id, role="owner")
-                    )
+                    session.add(WorkspaceMembership(workspace_id=ws.id, user_id=user.id, role="owner"))
                 await session.flush()
             else:
                 updated = False
@@ -112,9 +102,7 @@ class IdentityRepository:
                 if workspace_id != PUBLIC_TEST_WORKSPACE_ID:
                     return None
 
-                ws_res = await session.execute(
-                    select(Workspace).where(Workspace.id == workspace_id)
-                )
+                ws_res = await session.execute(select(Workspace).where(Workspace.id == workspace_id))
                 ws = ws_res.scalar_one_or_none()
                 if ws is None:
                     ws = Workspace(
@@ -135,14 +123,8 @@ class IdentityRepository:
 
         return membership
 
-    async def get_user_workspaces(
-        self, session: AsyncSession, user_id: UUID
-    ) -> list[dict[str, Any]]:
-        stmt = (
-            select(Workspace.id, Workspace.slug, Workspace.name, WorkspaceMembership.role)
-            .join(WorkspaceMembership, Workspace.id == WorkspaceMembership.workspace_id)
-            .where(WorkspaceMembership.user_id == user_id)
-        )
+    async def get_user_workspaces(self, session: AsyncSession, user_id: UUID) -> list[dict[str, Any]]:
+        stmt = select(Workspace.id, Workspace.slug, Workspace.name, WorkspaceMembership.role).join(WorkspaceMembership, Workspace.id == WorkspaceMembership.workspace_id).where(WorkspaceMembership.user_id == user_id)
         result = await session.execute(stmt)
         return [
             {

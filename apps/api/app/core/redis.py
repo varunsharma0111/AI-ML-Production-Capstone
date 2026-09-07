@@ -109,9 +109,7 @@ class RedisManager:
             logger.debug("Enqueued job %s to Redis queue '%s'", job_id, queue_name)
             return True
         except RedisError as exc:
-            logger.error(
-                "Failed to enqueue job %s to Redis queue '%s': %s", job_id, queue_name, exc
-            )
+            logger.error("Failed to enqueue job %s to Redis queue '%s': %s", job_id, queue_name, exc)
             return False
 
     async def dequeue_job(self, queue_name: str, timeout: int = 2) -> str | None:

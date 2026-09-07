@@ -46,9 +46,7 @@ class JobRunner:
             await session.commit()
         return recovered_count
 
-    async def execute_job(
-        self, session: AsyncSession, job: Job
-    ) -> tuple[JobStatus, dict[str, Any] | None, str | None]:
+    async def execute_job(self, session: AsyncSession, job: Job) -> tuple[JobStatus, dict[str, Any] | None, str | None]:
         """Run simulated job execution based on job type."""
         if job.started_at is None:
             job.started_at = datetime.now(UTC)
@@ -61,11 +59,7 @@ class JobRunner:
         attempt_number = job.attempt_count
 
         try:
-            req_id = (
-                str(job.payload_json.get("request_id", "unknown"))
-                if isinstance(job.payload_json, dict)
-                else "unknown"
-            )
+            req_id = str(job.payload_json.get("request_id", "unknown")) if isinstance(job.payload_json, dict) else "unknown"
             ws_id = str(job.workspace_id)
             logger.info(
                 "Executing job %s (type=%s, attempt=%d)",
@@ -165,17 +159,9 @@ class JobRunner:
                 target_column = str(job.payload_json["target_column"])
                 model_name = str(job.payload_json["model_name"])
                 model_type = str(job.payload_json.get("model_type", "random_forest"))
-                raw_params = (
-                    job.payload_json.get("hyperparameters")
-                    if isinstance(job.payload_json, dict)
-                    else {}
-                )
+                raw_params = job.payload_json.get("hyperparameters") if isinstance(job.payload_json, dict) else {}
                 hyperparameters = dict(raw_params) if isinstance(raw_params, dict) else {}
-                version_tag = str(
-                    job.payload_json.get(
-                        "version_tag", f"v1.{str(job.id)[:6]}.{job.attempt_count}"
-                    )
-                )
+                version_tag = str(job.payload_json.get("version_tag", f"v1.{str(job.id)[:6]}.{job.attempt_count}"))
 
                 dataset = await dataset_repo.get_dataset(session, dataset_id)
                 if dataset is None or dataset.status != "ready":
@@ -353,9 +339,7 @@ class JobRunner:
                 job.status = JobStatus.FAILED.value
                 job.error_detail = error_str
                 job.completed_at = datetime.now(UTC)
-                logger.error(
-                    "Job %s permanently failed after %d attempts.", job.id, job.max_retries
-                )
+                logger.error("Job %s permanently failed after %d attempts.", job.id, job.max_retries)
 
             await session.flush()
             return JobStatus(job.status), None, error_str

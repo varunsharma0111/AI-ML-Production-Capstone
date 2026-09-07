@@ -65,9 +65,7 @@ class S3StorageBackend(StorageBackend):
                 Body=content,
                 **extra_args,
             )
-            logger.info(
-                "Successfully uploaded object to S3: s3://%s/%s", self.bucket_name, clean_key
-            )
+            logger.info("Successfully uploaded object to S3: s3://%s/%s", self.bucket_name, clean_key)
             try:
                 from app.core.metrics import S3_OPERATIONS_TOTAL
 

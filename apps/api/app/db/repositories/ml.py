@@ -11,9 +11,7 @@ from app.db.models.entities import InferenceLog, ModelEvaluation, ModelVersion
 
 
 class ModelRepository:
-    async def create_model_version(
-        self, session: AsyncSession, model: ModelVersion
-    ) -> ModelVersion:
+    async def create_model_version(self, session: AsyncSession, model: ModelVersion) -> ModelVersion:
         session.add(model)
         await session.flush()
         await session.refresh(model)
@@ -24,38 +22,21 @@ class ModelRepository:
         return result.scalar_one_or_none()
 
     async def list_model_versions(self, session: AsyncSession) -> list[ModelVersion]:
-        result = await session.execute(
-            select(ModelVersion).order_by(ModelVersion.created_at.desc())
-        )
+        result = await session.execute(select(ModelVersion).order_by(ModelVersion.created_at.desc()))
         return list(result.scalars())
 
-    async def list_model_versions_for_workspace(
-        self, session: AsyncSession, workspace_id: UUID
-    ) -> list[ModelVersion]:
-        result = await session.execute(
-            select(ModelVersion)
-            .where(ModelVersion.workspace_id == workspace_id)
-            .order_by(ModelVersion.created_at.desc())
-        )
+    async def list_model_versions_for_workspace(self, session: AsyncSession, workspace_id: UUID) -> list[ModelVersion]:
+        result = await session.execute(select(ModelVersion).where(ModelVersion.workspace_id == workspace_id).order_by(ModelVersion.created_at.desc()))
         return list(result.scalars())
 
-    async def record_evaluation(
-        self, session: AsyncSession, evaluation: ModelEvaluation
-    ) -> ModelEvaluation:
+    async def record_evaluation(self, session: AsyncSession, evaluation: ModelEvaluation) -> ModelEvaluation:
         session.add(evaluation)
         await session.flush()
         await session.refresh(evaluation)
         return evaluation
 
-    async def get_latest_evaluation(
-        self, session: AsyncSession, model_version_id: UUID
-    ) -> ModelEvaluation | None:
-        result = await session.execute(
-            select(ModelEvaluation)
-            .where(ModelEvaluation.model_version_id == model_version_id)
-            .order_by(ModelEvaluation.evaluated_at.desc())
-            .limit(1)
-        )
+    async def get_latest_evaluation(self, session: AsyncSession, model_version_id: UUID) -> ModelEvaluation | None:
+        result = await session.execute(select(ModelEvaluation).where(ModelEvaluation.model_version_id == model_version_id).order_by(ModelEvaluation.evaluated_at.desc()).limit(1))
         return result.scalar_one_or_none()
 
     async def record_inference_log(self, session: AsyncSession, log: InferenceLog) -> InferenceLog:
@@ -63,13 +44,6 @@ class ModelRepository:
         await session.flush()
         return log
 
-    async def list_inference_logs_for_workspace(
-        self, session: AsyncSession, workspace_id: UUID, limit: int = 100
-    ) -> list[InferenceLog]:
-        result = await session.execute(
-            select(InferenceLog)
-            .where(InferenceLog.workspace_id == workspace_id)
-            .order_by(InferenceLog.created_at.desc())
-            .limit(limit)
-        )
+    async def list_inference_logs_for_workspace(self, session: AsyncSession, workspace_id: UUID, limit: int = 100) -> list[InferenceLog]:
+        result = await session.execute(select(InferenceLog).where(InferenceLog.workspace_id == workspace_id).order_by(InferenceLog.created_at.desc()).limit(limit))
         return list(result.scalars())

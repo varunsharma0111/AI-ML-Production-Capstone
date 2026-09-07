@@ -28,10 +28,7 @@ class ControlledInferencePredictor:
                 status_code=400,
                 code="model_not_approved",
                 title="Inference Denied",
-                detail=(
-                    f"Model version status is '{model_status}'. Only 'approved' models "
-                    "can serve inference requests."
-                ),
+                detail=(f"Model version status is '{model_status}'. Only 'approved' models can serve inference requests."),
             )
 
         start_time = time.perf_counter()
@@ -45,9 +42,7 @@ class ControlledInferencePredictor:
 
         # Compute prediction output score & label
         score = round(
-            min(
-                max(val1 * weights[0] + val2 * (weights[1] if len(weights) > 1 else 0.5), 0.0), 1.0
-            ),
+            min(max(val1 * weights[0] + val2 * (weights[1] if len(weights) > 1 else 0.5), 0.0), 1.0),
             4,
         )
         prediction_label = "positive" if score >= 0.5 else "negative"

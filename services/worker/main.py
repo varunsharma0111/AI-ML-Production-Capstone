@@ -62,12 +62,8 @@ logger = logging.getLogger(__name__)
 
 # Worker Prometheus Metrics
 JOB_QUEUE_DEPTH = Gauge("job_queue_depth", "Current depth of the asynchronous background job queue")
-JOB_EXECUTION_FAILURES = Counter(
-    "job_execution_failures_total", "Total count of background job execution failures"
-)
-JOBS_PROCESSED_SUCCESS = Counter(
-    "jobs_processed_success_total", "Total count of successfully executed background jobs"
-)
+JOB_EXECUTION_FAILURES = Counter("job_execution_failures_total", "Total count of background job execution failures")
+JOBS_PROCESSED_SUCCESS = Counter("jobs_processed_success_total", "Total count of successfully executed background jobs")
 
 
 class WorkerMetricsHandler(BaseHTTPRequestHandler):
@@ -201,9 +197,7 @@ async def main() -> None:
             if job_id_str:
                 try:
                     job_id = UUID(job_id_str)
-                    await process_job_by_id(
-                        session_factory, redis_manager, job_runner, job_repo, job_id
-                    )
+                    await process_job_by_id(session_factory, redis_manager, job_runner, job_repo, job_id)
                 except ValueError:
                     logger.error("Invalid job ID popped from Redis queue: %s", job_id_str)
                 continue
@@ -216,9 +210,7 @@ async def main() -> None:
 
             if queued_id:
                 logger.info("Claimed queued job %s via DB fallback polling.", queued_id)
-                await process_job_by_id(
-                    session_factory, redis_manager, job_runner, job_repo, queued_id
-                )
+                await process_job_by_id(session_factory, redis_manager, job_runner, job_repo, queued_id)
             else:
                 await asyncio.sleep(1)
 

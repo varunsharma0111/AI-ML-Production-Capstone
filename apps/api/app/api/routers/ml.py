@@ -103,9 +103,7 @@ async def predict(
     session: AsyncSession = Depends(get_session),
     request_id: str = Depends(get_request_id),
 ) -> PredictResponse:
-    res, latency_ms, version_tag = await _ml_service.predict(
-        session, principal, model_id, payload, request_id
-    )
+    res, latency_ms, version_tag = await _ml_service.predict(session, principal, model_id, payload, request_id)
     return PredictResponse(
         model_id=model_id,
         model_version=version_tag,

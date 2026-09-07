@@ -93,9 +93,7 @@ class AgentService:
         request_id: str = "unknown",
     ) -> tuple[dict[str, Any], float]:
         user = await self._identity_repository.get_or_create_user(session, principal)
-        membership = await self._identity_repository.get_membership(
-            session, payload.workspace_id, user.id, principal
-        )
+        membership = await self._identity_repository.get_membership(session, payload.workspace_id, user.id, principal)
 
         # Validate input safety with security guard
         for arg_name, arg_val in payload.arguments.items():
@@ -137,10 +135,7 @@ class AgentService:
                     request_id=request_id,
                     metadata_json={
                         "tool_name": payload.tool_name,
-                        "reason": (
-                            f"RBAC Denied: role '{membership.role}'"
-                            f" lacks '{required_perm.value}'"
-                        ),
+                        "reason": (f"RBAC Denied: role '{membership.role}' lacks '{required_perm.value}'"),
                     },
                 )
             )
@@ -162,9 +157,7 @@ class AgentService:
         context: dict[str, Any] = {}
 
         if payload.tool_name == "list_models":
-            models = await self._model_repository.list_model_versions_for_workspace(
-                session, payload.workspace_id
-            )
+            models = await self._model_repository.list_model_versions_for_workspace(session, payload.workspace_id)
             context["models"] = [
                 {
                     "id": m.id,
@@ -177,9 +170,7 @@ class AgentService:
             ]
 
         elif payload.tool_name == "list_datasets":
-            datasets = await self._dataset_repository.list_datasets_for_workspace(
-                session, payload.workspace_id, offset=0, limit=50
-            )
+            datasets = await self._dataset_repository.list_datasets_for_workspace(session, payload.workspace_id, offset=0, limit=50)
             context["datasets"] = [
                 {
                     "id": d.id,
@@ -192,9 +183,7 @@ class AgentService:
             ]
 
         elif payload.tool_name == "compare_models":
-            models = await self._model_repository.list_model_versions_for_workspace(
-                session, payload.workspace_id
-            )
+            models = await self._model_repository.list_model_versions_for_workspace(session, payload.workspace_id)
             m1_name = str(payload.arguments.get("model_name_1", "")).lower()
             m2_name = str(payload.arguments.get("model_name_2", "")).lower()
 
@@ -229,9 +218,7 @@ class AgentService:
             }
 
         elif payload.tool_name == "explain_metrics":
-            models = await self._model_repository.list_model_versions_for_workspace(
-                session, payload.workspace_id
-            )
+            models = await self._model_repository.list_model_versions_for_workspace(session, payload.workspace_id)
             target = str(payload.arguments.get("model_id_or_name", "")).lower()
             matched = None
             for m in models:
@@ -243,9 +230,7 @@ class AgentService:
             if not matched:
                 raise ResourceNotFoundError("Requested model version was not found.")
 
-            eval_record = await self._model_repository.get_latest_evaluation(
-                session, matched.id
-            )
+            eval_record = await self._model_repository.get_latest_evaluation(session, matched.id)
 
             context["model"] = {
                 "id": matched.id,
@@ -263,9 +248,7 @@ class AgentService:
                 }
 
         elif payload.tool_name == "summarize_dataset":
-            datasets = await self._dataset_repository.list_datasets_for_workspace(
-                session, payload.workspace_id, offset=0, limit=50
-            )
+            datasets = await self._dataset_repository.list_datasets_for_workspace(session, payload.workspace_id, offset=0, limit=50)
             target = str(payload.arguments.get("dataset_id_or_name", "")).lower()
             matched_ds = None
             for d in datasets:
@@ -277,9 +260,7 @@ class AgentService:
             if not matched_ds:
                 raise ResourceNotFoundError("Requested dataset was not found.")
 
-            profile = await self._dataset_repository.get_profile_by_dataset_id(
-                session, matched_ds.id
-            )
+            profile = await self._dataset_repository.get_profile_by_dataset_id(session, matched_ds.id)
             context["dataset"] = {
                 "id": matched_ds.id,
                 "original_filename": matched_ds.original_filename,
@@ -295,9 +276,7 @@ class AgentService:
                 }
 
         elif payload.tool_name == "run_prediction":
-            models = await self._model_repository.list_model_versions_for_workspace(
-                session, payload.workspace_id
-            )
+            models = await self._model_repository.list_model_versions_for_workspace(session, payload.workspace_id)
             target = str(payload.arguments.get("model_id_or_name", "")).lower()
             matched = None
             for m in models:
@@ -315,23 +294,15 @@ class AgentService:
             if not matched:
                 raise ResourceNotFoundError("No model version available for prediction.")
 
-            features = payload.arguments.get(
-                "input_features", {"age": 35, "income": 50000, "tenure": 4}
-            )
-            predict_req = PredictRequest(
-                workspace_id=payload.workspace_id, input_features=features
-            )
+            features = payload.arguments.get("input_features", {"age": 35, "income": 50000, "tenure": 4})
+            predict_req = PredictRequest(workspace_id=payload.workspace_id, input_features=features)
 
             # Execute MLService predict (eligibility, SHA-256, validation)
-            pred_res, latency, _ = await self._ml_service.predict(
-                session, principal, matched.id, predict_req, request_id
-            )
+            pred_res, latency, _ = await self._ml_service.predict(session, principal, matched.id, predict_req, request_id)
             context["prediction_result"] = pred_res
             context["latency_ms"] = latency
 
-        result, duration_ms = self._sandbox.execute_tool(
-            payload.tool_name, payload.arguments, context=context
-        )
+        result, duration_ms = self._sandbox.execute_tool(payload.tool_name, payload.arguments, context=context)
 
         session.add(
             AuditEvent(
@@ -358,9 +329,7 @@ class AgentService:
         request_id: str = "unknown",
     ) -> AgentOrchestrateResponse:
         user = await self._identity_repository.get_or_create_user(session, principal)
-        membership = await self._identity_repository.get_membership(
-            session, payload.workspace_id, user.id, principal
-        )
+        membership = await self._identity_repository.get_membership(session, payload.workspace_id, user.id, principal)
         if membership is None:
             raise AuthorizationError("User is not a member of the specified workspace.")
 
@@ -394,15 +363,11 @@ class AgentService:
                 res, duration = await self.execute_tool(
                     session,
                     principal,
-                    ToolExecuteRequest(
-                        workspace_id=payload.workspace_id, tool_name=tool_name, arguments=args
-                    ),
+                    ToolExecuteRequest(workspace_id=payload.workspace_id, tool_name=tool_name, arguments=args),
                     request_id,
                 )
                 tools_used.append(tool_name)
-                tool_results.append(
-                    {"tool_name": tool_name, "result": res, "duration_ms": duration}
-                )
+                tool_results.append({"tool_name": tool_name, "result": res, "duration_ms": duration})
                 better = res.get("better_model", "v2.0.0")
                 exp = res.get("explanation", "")
                 m1_data = res.get("model_1", {})
@@ -419,15 +384,7 @@ class AgentService:
                 m2_f1 = float(m2_data.get("f1_score", 0.0)) * 100
                 m2_st = m2_data.get("status")
 
-                answer = (
-                    f"**Model Comparison Analysis**:\n\n"
-                    f"Winner: Version **{better}** performs better!\n\n"
-                    f"- **{m1_name} ({m1_tag})**: Accuracy = {m1_acc:.1f}%, "
-                    f"F1 = {m1_f1:.1f}% (Status: {m1_st})\n"
-                    f"- **{m2_name} ({m2_tag})**: Accuracy = {m2_acc:.1f}%, "
-                    f"F1 = {m2_f1:.1f}% (Status: {m2_st})\n\n"
-                    f"_{exp}_"
-                )
+                answer = f"**Model Comparison Analysis**:\n\nWinner: Version **{better}** performs better!\n\n- **{m1_name} ({m1_tag})**: Accuracy = {m1_acc:.1f}%, F1 = {m1_f1:.1f}% (Status: {m1_st})\n- **{m2_name} ({m2_tag})**: Accuracy = {m2_acc:.1f}%, F1 = {m2_f1:.1f}% (Status: {m2_st})\n\n_{exp}_"
 
             elif "explain" in msg_lower or "why" in msg_lower or "fail" in msg_lower:
                 tool_name = "explain_metrics"
@@ -435,36 +392,21 @@ class AgentService:
                 res, duration = await self.execute_tool(
                     session,
                     principal,
-                    ToolExecuteRequest(
-                        workspace_id=payload.workspace_id, tool_name=tool_name, arguments=args
-                    ),
+                    ToolExecuteRequest(workspace_id=payload.workspace_id, tool_name=tool_name, arguments=args),
                     request_id,
                 )
                 tools_used.append(tool_name)
-                tool_results.append(
-                    {"tool_name": tool_name, "result": res, "duration_ms": duration}
-                )
+                tool_results.append({"tool_name": tool_name, "result": res, "duration_ms": duration})
                 decision = res.get("decision", "REJECTED")
                 reasons = res.get("failure_reasons", [])
-                reasons_str = (
-                    "\n".join([f"- {r}" for r in reasons])
-                    if isinstance(reasons, list) and reasons
-                    else "- All evaluation criteria passed successfully."
-                )
+                reasons_str = "\n".join([f"- {r}" for r in reasons]) if isinstance(reasons, list) and reasons else "- All evaluation criteria passed successfully."
                 m_name = res.get("model_name")
                 v_tag = res.get("version_tag")
                 act_acc = float(res.get("actual_accuracy", 0.0)) * 100
                 req_acc = float(res.get("required_accuracy", 0.0)) * 100
                 act_f1 = float(res.get("actual_f1_score", 0.0)) * 100
                 req_f1 = float(res.get("required_f1_score", 0.0)) * 100
-                answer = (
-                    f"**Quality Gate Diagnostics for {m_name} ({v_tag})**:\n\n"
-                    f"Final Decision: **{decision}**\n\n"
-                    f"Metrics Breakdown:\n"
-                    f"- Accuracy: {act_acc:.1f}% (Required: {req_acc:.1f}%)\n"
-                    f"- F1 Score: {act_f1:.1f}% (Required: {req_f1:.1f}%)\n\n"
-                    f"Evaluation Diagnostics:\n{reasons_str}"
-                )
+                answer = f"**Quality Gate Diagnostics for {m_name} ({v_tag})**:\n\nFinal Decision: **{decision}**\n\nMetrics Breakdown:\n- Accuracy: {act_acc:.1f}% (Required: {req_acc:.1f}%)\n- F1 Score: {act_f1:.1f}% (Required: {req_f1:.1f}%)\n\nEvaluation Diagnostics:\n{reasons_str}"
 
             elif "summarize" in msg_lower or "dataset" in msg_lower and "list" not in msg_lower:
                 tool_name = "summarize_dataset"
@@ -472,24 +414,14 @@ class AgentService:
                 res, duration = await self.execute_tool(
                     session,
                     principal,
-                    ToolExecuteRequest(
-                        workspace_id=payload.workspace_id, tool_name=tool_name, arguments=args
-                    ),
+                    ToolExecuteRequest(workspace_id=payload.workspace_id, tool_name=tool_name, arguments=args),
                     request_id,
                 )
                 tools_used.append(tool_name)
-                tool_results.append(
-                    {"tool_name": tool_name, "result": res, "duration_ms": duration}
-                )
+                tool_results.append({"tool_name": tool_name, "result": res, "duration_ms": duration})
                 cols = res.get("columns", [])
                 col_str = ", ".join([f"`{c['name']}` ({c['inferred_type']})" for c in cols[:6]])
-                answer = (
-                    f"**Dataset Overview: `{res.get('original_filename')}`**:\n\n"
-                    f"- **Status**: `{res.get('status')}`\n"
-                    f"- **Total Rows**: {res.get('row_count'):,}\n"
-                    f"- **Total Columns**: {res.get('column_count')}\n"
-                    f"- **Feature Schema**: {col_str}..."
-                )
+                answer = f"**Dataset Overview: `{res.get('original_filename')}`**:\n\n- **Status**: `{res.get('status')}`\n- **Total Rows**: {res.get('row_count'):,}\n- **Total Columns**: {res.get('column_count')}\n- **Feature Schema**: {col_str}..."
 
             elif "predict" in msg_lower or "churn for" in msg_lower:
                 tool_name = "run_prediction"
@@ -507,45 +439,26 @@ class AgentService:
                 res, duration = await self.execute_tool(
                     session,
                     principal,
-                    ToolExecuteRequest(
-                        workspace_id=payload.workspace_id, tool_name=tool_name, arguments=args
-                    ),
+                    ToolExecuteRequest(workspace_id=payload.workspace_id, tool_name=tool_name, arguments=args),
                     request_id,
                 )
                 tools_used.append(tool_name)
-                tool_results.append(
-                    {"tool_name": tool_name, "result": res, "duration_ms": duration}
-                )
-                answer = (
-                    f"**Real-Time Inference Output**:\n\n"
-                    f"- **Predicted Label**: `{res.get('prediction', 'unknown').upper()}`\n"
-                    f"- **Confidence Score**: {res.get('confidence', 0) * 100:.1f}%\n"
-                    f"- **Model Version**: `{res.get('model_version')}`\n"
-                    f"- **Latency**: `{res.get('latency_ms', 0):.2f} ms`"
-                )
+                tool_results.append({"tool_name": tool_name, "result": res, "duration_ms": duration})
+                answer = f"**Real-Time Inference Output**:\n\n- **Predicted Label**: `{res.get('prediction', 'unknown').upper()}`\n- **Confidence Score**: {res.get('confidence', 0) * 100:.1f}%\n- **Model Version**: `{res.get('model_version')}`\n- **Latency**: `{res.get('latency_ms', 0):.2f} ms`"
 
             elif "datasets" in msg_lower:
                 tool_name = "list_datasets"
                 res, duration = await self.execute_tool(
                     session,
                     principal,
-                    ToolExecuteRequest(
-                        workspace_id=payload.workspace_id, tool_name=tool_name, arguments={}
-                    ),
+                    ToolExecuteRequest(workspace_id=payload.workspace_id, tool_name=tool_name, arguments={}),
                     request_id,
                 )
                 tools_used.append(tool_name)
-                tool_results.append(
-                    {"tool_name": tool_name, "result": res, "duration_ms": duration}
-                )
+                tool_results.append({"tool_name": tool_name, "result": res, "duration_ms": duration})
                 ds_list = res.get("datasets", [])
-                ds_lines = [
-                    f"- `{d['filename']}` ({d['status']}, {d.get('row_count', 'N/A')} rows)"
-                    for d in ds_list
-                ]
-                answer = f"**Workspace Datasets ({res.get('count', 0)})**:\n\n" + (
-                    "\n".join(ds_lines) if ds_lines else "No datasets found in this workspace."
-                )
+                ds_lines = [f"- `{d['filename']}` ({d['status']}, {d.get('row_count', 'N/A')} rows)" for d in ds_list]
+                answer = f"**Workspace Datasets ({res.get('count', 0)})**:\n\n" + ("\n".join(ds_lines) if ds_lines else "No datasets found in this workspace.")
 
             else:
                 # Default list models / workspace summary response
@@ -553,23 +466,14 @@ class AgentService:
                 res, duration = await self.execute_tool(
                     session,
                     principal,
-                    ToolExecuteRequest(
-                        workspace_id=payload.workspace_id, tool_name=tool_name, arguments={}
-                    ),
+                    ToolExecuteRequest(workspace_id=payload.workspace_id, tool_name=tool_name, arguments={}),
                     request_id,
                 )
                 tools_used.append(tool_name)
-                tool_results.append(
-                    {"tool_name": tool_name, "result": res, "duration_ms": duration}
-                )
+                tool_results.append({"tool_name": tool_name, "result": res, "duration_ms": duration})
                 m_list = res.get("models", [])
-                m_lines = [
-                    f"- **{m['name']}** (`{m['version_tag']}`) — Status: `{m['status']}`"
-                    for m in m_list
-                ]
-                answer = f"**Workspace Models ({res.get('count', 0)})**:\n\n" + (
-                    "\n".join(m_lines) if m_lines else "No models registered in this workspace yet."
-                )
+                m_lines = [f"- **{m['name']}** (`{m['version_tag']}`) — Status: `{m['status']}`" for m in m_list]
+                answer = f"**Workspace Models ({res.get('count', 0)})**:\n\n" + ("\n".join(m_lines) if m_lines else "No models registered in this workspace yet.")
 
             # Audit agent completion
             async with session.begin():

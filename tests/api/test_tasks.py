@@ -30,9 +30,7 @@ def test_settings() -> Settings:
 
 @pytest.fixture
 def mock_principal() -> Principal:
-    return Principal(
-        subject="user_sub_001", email="editor@example.com", display_name="Workspace Editor"
-    )
+    return Principal(subject="user_sub_001", email="editor@example.com", display_name="Workspace Editor")
 
 
 def setup_mock_db(
@@ -117,9 +115,7 @@ async def test_create_task_unauthenticated(test_settings: Settings) -> None:
     app = create_app(settings=test_settings)
     workspace_id = uuid4()
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             f"/api/v1/workspaces/{workspace_id}/tasks",
             json={"title": "Test Task"},
@@ -130,9 +126,7 @@ async def test_create_task_unauthenticated(test_settings: Settings) -> None:
 
 
 @pytest.mark.asyncio
-async def test_create_task_unauthorized_non_member(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_create_task_unauthorized_non_member(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -141,9 +135,7 @@ async def test_create_task_unauthorized_non_member(
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
     setup_mock_db(app, user=user, membership=None)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             f"/api/v1/workspaces/{workspace_id}/tasks",
             json={"title": "Test Task"},
@@ -155,23 +147,17 @@ async def test_create_task_unauthorized_non_member(
 
 
 @pytest.mark.asyncio
-async def test_create_task_forbidden_viewer_role(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_create_task_forbidden_viewer_role(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
 
     workspace_id = uuid4()
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer")
     setup_mock_db(app, user=user, membership=membership)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             f"/api/v1/workspaces/{workspace_id}/tasks",
             json={"title": "Test Task"},
@@ -183,24 +169,18 @@ async def test_create_task_forbidden_viewer_role(
 
 
 @pytest.mark.asyncio
-async def test_create_task_success_editor_role(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_create_task_success_editor_role(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
 
     workspace_id = uuid4()
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor")
 
     mock_session = setup_mock_db(app, user=user, membership=membership)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             f"/api/v1/workspaces/{workspace_id}/tasks",
             json={"title": "New Task", "description": "Task description"},
@@ -226,9 +206,7 @@ async def test_list_tasks_success(test_settings: Settings, mock_principal: Princ
     workspace_id = uuid4()
     now = datetime.now(UTC)
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer")
     existing_tasks = [
         Task(
             id=uuid4(),
@@ -254,9 +232,7 @@ async def test_list_tasks_success(test_settings: Settings, mock_principal: Princ
 
     setup_mock_db(app, user=user, membership=membership, task_repo_list=existing_tasks)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get(
             f"/api/v1/workspaces/{workspace_id}/tasks?offset=0&limit=10",
             headers={"Authorization": "Bearer token"},
@@ -281,9 +257,7 @@ async def test_get_task_success(test_settings: Settings, mock_principal: Princip
     task_id = uuid4()
     now = datetime.now(UTC)
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer")
     task = Task(
         id=task_id,
         workspace_id=workspace_id,
@@ -298,9 +272,7 @@ async def test_get_task_success(test_settings: Settings, mock_principal: Princip
 
     setup_mock_db(app, user=user, membership=membership, task_repo_get=task)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get(
             f"/api/v1/workspaces/{workspace_id}/tasks/{task_id}",
             headers={"Authorization": "Bearer token"},
@@ -313,9 +285,7 @@ async def test_get_task_success(test_settings: Settings, mock_principal: Princip
 
 
 @pytest.mark.asyncio
-async def test_get_task_workspace_isolation_not_found(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_get_task_workspace_isolation_not_found(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -324,15 +294,11 @@ async def test_get_task_workspace_isolation_not_found(
     task_id = uuid4()
 
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_b_id, user_id=user.id, role="owner"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_b_id, user_id=user.id, role="owner")
 
     setup_mock_db(app, user=user, membership=membership, task_repo_get=None)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get(
             f"/api/v1/workspaces/{workspace_b_id}/tasks/{task_id}",
             headers={"Authorization": "Bearer token"},
@@ -343,9 +309,7 @@ async def test_get_task_workspace_isolation_not_found(
 
 
 @pytest.mark.asyncio
-async def test_update_task_optimistic_concurrency_conflict(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_update_task_optimistic_concurrency_conflict(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -355,9 +319,7 @@ async def test_update_task_optimistic_concurrency_conflict(
     now = datetime.now(UTC)
 
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="owner"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="owner")
     existing_task = Task(
         id=task_id,
         workspace_id=workspace_id,
@@ -370,9 +332,7 @@ async def test_update_task_optimistic_concurrency_conflict(
 
     setup_mock_db(app, user=user, membership=membership, task_repo_get=existing_task)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.patch(
             f"/api/v1/workspaces/{workspace_id}/tasks/{task_id}",
             json={"version": 1, "title": "Conflicting Update"},
@@ -394,9 +354,7 @@ async def test_update_task_success(test_settings: Settings, mock_principal: Prin
     now = datetime.now(UTC)
 
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="owner"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="owner")
     existing_task = Task(
         id=task_id,
         workspace_id=workspace_id,
@@ -410,9 +368,7 @@ async def test_update_task_success(test_settings: Settings, mock_principal: Prin
 
     mock_session = setup_mock_db(app, user=user, membership=membership, task_repo_get=existing_task)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.patch(
             f"/api/v1/workspaces/{workspace_id}/tasks/{task_id}",
             json={"version": 1, "title": "Updated Title", "status": "completed"},
@@ -428,18 +384,14 @@ async def test_update_task_success(test_settings: Settings, mock_principal: Prin
 
 
 @pytest.mark.asyncio
-async def test_create_task_validation_error(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_create_task_validation_error(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
 
     workspace_id = uuid4()
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             f"/api/v1/workspaces/{workspace_id}/tasks",
             json={"title": ""},

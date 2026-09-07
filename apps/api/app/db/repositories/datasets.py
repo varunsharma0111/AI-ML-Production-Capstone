@@ -22,9 +22,7 @@ class DatasetRepository:
         result = await session.execute(select(Dataset).where(Dataset.id == dataset_id))
         return result.scalar_one_or_none()
 
-    async def get_dataset_for_workspace(
-        self, session: AsyncSession, workspace_id: UUID, dataset_id: UUID
-    ) -> Dataset | None:
+    async def get_dataset_for_workspace(self, session: AsyncSession, workspace_id: UUID, dataset_id: UUID) -> Dataset | None:
         result = await session.execute(
             select(Dataset).where(
                 Dataset.id == dataset_id,
@@ -33,31 +31,17 @@ class DatasetRepository:
         )
         return result.scalar_one_or_none()
 
-    async def list_datasets_for_workspace(
-        self, session: AsyncSession, workspace_id: UUID, offset: int, limit: int
-    ) -> list[Dataset]:
-        result = await session.execute(
-            select(Dataset)
-            .where(Dataset.workspace_id == workspace_id)
-            .order_by(Dataset.created_at.desc())
-            .offset(offset)
-            .limit(limit)
-        )
+    async def list_datasets_for_workspace(self, session: AsyncSession, workspace_id: UUID, offset: int, limit: int) -> list[Dataset]:
+        result = await session.execute(select(Dataset).where(Dataset.workspace_id == workspace_id).order_by(Dataset.created_at.desc()).offset(offset).limit(limit))
         return list(result.scalars().all())
 
-    async def create_profile(
-        self, session: AsyncSession, profile: DatasetProfile
-    ) -> DatasetProfile:
+    async def create_profile(self, session: AsyncSession, profile: DatasetProfile) -> DatasetProfile:
         session.add(profile)
         await session.flush()
         return profile
 
-    async def get_profile_by_dataset_id(
-        self, session: AsyncSession, dataset_id: UUID
-    ) -> DatasetProfile | None:
-        result = await session.execute(
-            select(DatasetProfile).where(DatasetProfile.dataset_id == dataset_id)
-        )
+    async def get_profile_by_dataset_id(self, session: AsyncSession, dataset_id: UUID) -> DatasetProfile | None:
+        result = await session.execute(select(DatasetProfile).where(DatasetProfile.dataset_id == dataset_id))
         return result.scalar_one_or_none()
 
     async def update_dataset_status(

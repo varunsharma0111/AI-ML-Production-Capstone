@@ -60,28 +60,18 @@ class MLService:
         required_permission: Permission,
     ) -> tuple[User, WorkspaceMembership]:
         user = await self._identity_repository.get_or_create_user(session, principal)
-        membership = await self._identity_repository.get_membership(
-            session, workspace_id, user.id, principal
-        )
+        membership = await self._identity_repository.get_membership(session, workspace_id, user.id, principal)
         if membership is None:
-            membership = WorkspaceMembership(
-                workspace_id=workspace_id, user_id=user.id, role="owner"
-            )
+            membership = WorkspaceMembership(workspace_id=workspace_id, user_id=user.id, role="owner")
         require_permission(membership.role, required_permission)
         return user, membership
 
-    async def register_and_train_model(
-        self, session: AsyncSession, principal: Principal, payload: ModelCreate
-    ) -> ModelVersion:
+    async def register_and_train_model(self, session: AsyncSession, principal: Principal, payload: ModelCreate) -> ModelVersion:
         async with session.begin():
             if payload.workspace_id is None:
                 raise ValidationError("workspace_id is required to register a model.")
-            user, _ = await self._authorized_user(
-                session, principal, payload.workspace_id, Permission.MODEL_EVALUATE
-            )
-            artifact_path = self._trainer.train_model(
-                payload.name, payload.version_tag, payload.hyperparameters
-            )
+            user, _ = await self._authorized_user(session, principal, payload.workspace_id, Permission.MODEL_EVALUATE)
+            artifact_path = self._trainer.train_model(payload.name, payload.version_tag, payload.hyperparameters)
 
             model = ModelVersion(
                 workspace_id=payload.workspace_id,
@@ -95,15 +85,11 @@ class MLService:
 
             return await self._model_repository.create_model_version(session, model)
 
-    async def list_models(
-        self, session: AsyncSession, principal: Principal, workspace_id: UUID | None = None
-    ) -> list[ModelVersion]:
+    async def list_models(self, session: AsyncSession, principal: Principal, workspace_id: UUID | None = None) -> list[ModelVersion]:
         async with session.begin():
             if workspace_id:
                 await self._authorized_user(session, principal, workspace_id, Permission.MODEL_READ)
-                return await self._model_repository.list_model_versions_for_workspace(
-                    session, workspace_id
-                )
+                return await self._model_repository.list_model_versions_for_workspace(session, workspace_id)
             return await self._model_repository.list_model_versions(session)
 
     async def get_model(
@@ -132,9 +118,7 @@ class MLService:
     ) -> tuple[ModelVersion, ModelEvaluation]:
         async with session.begin():
             if payload.workspace_id is not None:
-                user, _ = await self._authorized_user(
-                    session, principal, payload.workspace_id, Permission.MODEL_EVALUATE
-                )
+                user, _ = await self._authorized_user(session, principal, payload.workspace_id, Permission.MODEL_EVALUATE)
                 model = await self._model_repository.get_model_version(session, model_id)
                 if model is None:
                     raise ResourceNotFoundError("Model version not found.")
@@ -144,9 +128,7 @@ class MLService:
                     raise ResourceNotFoundError("Model version not found.")
                 if model.workspace_id is None:
                     raise ValidationError("workspace_id is required to evaluate a model.")
-                user, _ = await self._authorized_user(
-                    session, principal, model.workspace_id, Permission.MODEL_EVALUATE
-                )
+                user, _ = await self._authorized_user(session, principal, model.workspace_id, Permission.MODEL_EVALUATE)
 
             target_ws = payload.workspace_id or model.workspace_id
             if target_ws is None:
@@ -166,16 +148,8 @@ class MLService:
 
             # Accuracy & F1 metric extraction logic (from payload or stored metrics_json)
             metrics = model.metrics_json or {}
-            accuracy = (
-                payload.accuracy
-                if payload.accuracy is not None
-                else float(cast(Any, metrics.get("accuracy", 0.0)))
-            )
-            f1_score = (
-                payload.f1_score
-                if payload.f1_score is not None
-                else float(cast(Any, metrics.get("f1_score", 0.0)))
-            )
+            accuracy = payload.accuracy if payload.accuracy is not None else float(cast(Any, metrics.get("accuracy", 0.0)))
+            f1_score = payload.f1_score if payload.f1_score is not None else float(cast(Any, metrics.get("f1_score", 0.0)))
 
             acc_thresh = payload.accuracy_threshold or DEFAULT_ACCURACY_THRESHOLD
             f1_thresh = payload.f1_threshold or DEFAULT_F1_SCORE_THRESHOLD
@@ -248,9 +222,7 @@ class MLService:
         request_id: str = "unknown",
     ) -> ModelVersion:
         async with session.begin():
-            user, membership = await self._authorized_user(
-                session, principal, payload.workspace_id, Permission.MODEL_PROMOTE
-            )
+            user, membership = await self._authorized_user(session, principal, payload.workspace_id, Permission.MODEL_PROMOTE)
 
             model = await self._model_repository.get_model_version(session, model_id)
             if model is None:
@@ -291,14 +263,9 @@ class MLService:
                         },
                     )
                 )
-                raise ValidationError(
-                    "Model must pass quality gate evaluation (APPROVED status) before promotion."
-                )
+                raise ValidationError("Model must pass quality gate evaluation (APPROVED status) before promotion.")
 
-            if (
-                target_status == ModelStatus.PRODUCTION.value
-                and membership.role != WorkspaceRole.OWNER.value
-            ):
+            if target_status == ModelStatus.PRODUCTION.value and membership.role != WorkspaceRole.OWNER.value:
                 session.add(
                     AuditEvent(
                         actor_user_id=user.id,
@@ -307,9 +274,7 @@ class MLService:
                         resource_type="model_version",
                         resource_id=model.id,
                         request_id=request_id,
-                        metadata_json={
-                            "reason": "Only workspace owners can promote models to production"
-                        },
+                        metadata_json={"reason": "Only workspace owners can promote models to production"},
                     )
                 )
                 raise AuthorizationError("Only workspace owners can promote models to production.")
@@ -324,14 +289,10 @@ class MLService:
                             resource_type="model_version",
                             resource_id=model.id,
                             request_id=request_id,
-                            metadata_json={
-                                "reason": f"Invalid transition from {model.status} to staging"
-                            },
+                            metadata_json={"reason": f"Invalid transition from {model.status} to staging"},
                         )
                     )
-                    raise ValidationError(
-                        f"Cannot transition model from '{model.status}' to STAGING."
-                    )
+                    raise ValidationError(f"Cannot transition model from '{model.status}' to STAGING.")
                 model.status = ModelStatus.STAGING.value
                 audit_action = "model.promoted_staging"
 
@@ -345,14 +306,10 @@ class MLService:
                             resource_type="model_version",
                             resource_id=model.id,
                             request_id=request_id,
-                            metadata_json={
-                                "reason": f"Invalid transition from {model.status} to production"
-                            },
+                            metadata_json={"reason": f"Invalid transition from {model.status} to production"},
                         )
                     )
-                    raise ValidationError(
-                        f"Cannot transition model from '{model.status}' to PRODUCTION."
-                    )
+                    raise ValidationError(f"Cannot transition model from '{model.status}' to PRODUCTION.")
                 model.status = ModelStatus.PRODUCTION.value
                 audit_action = "model.promoted_production"
             else:
@@ -374,9 +331,7 @@ class MLService:
             await session.refresh(model)
             return model
 
-    async def get_quality_gate(
-        self, session: AsyncSession, principal: Principal, model_id: UUID, workspace_id: UUID
-    ) -> QualityGateResponse:
+    async def get_quality_gate(self, session: AsyncSession, principal: Principal, model_id: UUID, workspace_id: UUID) -> QualityGateResponse:
         async with session.begin():
             await self._authorized_user(session, principal, workspace_id, Permission.MODEL_READ)
             model = await self._model_repository.get_model_version(session, model_id)
@@ -436,14 +391,10 @@ class MLService:
         request_id: str = "unknown",
     ) -> tuple[dict[str, object], float, str]:
         async with session.begin():
-            user, _ = await self._authorized_user(
-                session, principal, payload.workspace_id, Permission.MODEL_READ
-            )
+            user, _ = await self._authorized_user(session, principal, payload.workspace_id, Permission.MODEL_READ)
 
             model = await self._model_repository.get_model_version(session, model_id)
-            if model is None or (
-                model.workspace_id is not None and model.workspace_id != payload.workspace_id
-            ):
+            if model is None or (model.workspace_id is not None and model.workspace_id != payload.workspace_id):
                 raise ResourceNotFoundError("Model version not found.")
 
             session.add(
@@ -459,9 +410,7 @@ class MLService:
             )
 
             try:
-                prediction_result, latency_ms = self._predictor.predict(
-                    model.status, model.artifact_path, payload.input_features
-                )
+                prediction_result, latency_ms = self._predictor.predict(model.status, model.artifact_path, payload.input_features)
             except Exception as error:
                 session.add(
                     AuditEvent(
@@ -513,6 +462,4 @@ class MLService:
     ) -> list[InferenceLog]:
         async with session.begin():
             await self._authorized_user(session, principal, workspace_id, Permission.MODEL_READ)
-            return await self._model_repository.list_inference_logs_for_workspace(
-                session, workspace_id, limit=limit
-            )
+            return await self._model_repository.list_inference_logs_for_workspace(session, workspace_id, limit=limit)

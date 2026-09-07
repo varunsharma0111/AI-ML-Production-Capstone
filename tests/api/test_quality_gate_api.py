@@ -30,9 +30,7 @@ def test_settings() -> Settings:
 
 @pytest.fixture
 def mock_principal() -> Principal:
-    return Principal(
-        subject="user_sub_001", email="editor@example.com", display_name="Workspace Editor"
-    )
+    return Principal(subject="user_sub_001", email="editor@example.com", display_name="Workspace Editor")
 
 
 def setup_mock_ml_db(
@@ -85,9 +83,7 @@ def setup_mock_ml_db(
         if "FROM model_evaluations" in query_str:
             return eval_get_result
         if "FROM model_versions" in query_str:
-            if "ORDER BY" in query_str and (
-                "workspace_id" in query_str or "WHERE" not in query_str
-            ):
+            if "ORDER BY" in query_str and ("workspace_id" in query_str or "WHERE" not in query_str):
                 return model_list_result
             return model_get_result
         return MagicMock()
@@ -103,9 +99,7 @@ def setup_mock_ml_db(
 
 
 @pytest.mark.asyncio
-async def test_evaluate_model_viewer_forbidden(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_evaluate_model_viewer_forbidden(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -113,15 +107,11 @@ async def test_evaluate_model_viewer_forbidden(
     workspace_id = uuid4()
     model_id = uuid4()
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer")
 
     setup_mock_ml_db(app, user=user, membership=membership)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             f"/api/v1/models/{model_id}/evaluate",
             json={
@@ -136,9 +126,7 @@ async def test_evaluate_model_viewer_forbidden(
 
 
 @pytest.mark.asyncio
-async def test_evaluate_model_passed_approved(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_evaluate_model_passed_approved(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -147,9 +135,7 @@ async def test_evaluate_model_passed_approved(
     model_id = uuid4()
     now = datetime.now(UTC)
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor")
 
     model = ModelVersion(
         id=model_id,
@@ -165,9 +151,7 @@ async def test_evaluate_model_passed_approved(
 
     setup_mock_ml_db(app, user=user, membership=membership, model_get=model)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             f"/api/v1/models/{model_id}/evaluate",
             json={
@@ -186,9 +170,7 @@ async def test_evaluate_model_passed_approved(
 
 
 @pytest.mark.asyncio
-async def test_evaluate_model_failed_rejected(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_evaluate_model_failed_rejected(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -197,9 +179,7 @@ async def test_evaluate_model_failed_rejected(
     model_id = uuid4()
     now = datetime.now(UTC)
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor")
 
     model = ModelVersion(
         id=model_id,
@@ -215,9 +195,7 @@ async def test_evaluate_model_failed_rejected(
 
     setup_mock_ml_db(app, user=user, membership=membership, model_get=model)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             f"/api/v1/models/{model_id}/evaluate",
             json={
@@ -236,9 +214,7 @@ async def test_evaluate_model_failed_rejected(
 
 
 @pytest.mark.asyncio
-async def test_promote_rejected_model_forbidden(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_promote_rejected_model_forbidden(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -247,9 +223,7 @@ async def test_promote_rejected_model_forbidden(
     model_id = uuid4()
     now = datetime.now(UTC)
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor")
 
     model = ModelVersion(
         id=model_id,
@@ -264,9 +238,7 @@ async def test_promote_rejected_model_forbidden(
 
     setup_mock_ml_db(app, user=user, membership=membership, model_get=model)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             f"/api/v1/models/{model_id}/promote",
             json={
@@ -281,9 +253,7 @@ async def test_promote_rejected_model_forbidden(
 
 
 @pytest.mark.asyncio
-async def test_promote_unapproved_candidate_model_forbidden(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_promote_unapproved_candidate_model_forbidden(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -292,9 +262,7 @@ async def test_promote_unapproved_candidate_model_forbidden(
     model_id = uuid4()
     now = datetime.now(UTC)
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor")
 
     model = ModelVersion(
         id=model_id,
@@ -309,9 +277,7 @@ async def test_promote_unapproved_candidate_model_forbidden(
 
     setup_mock_ml_db(app, user=user, membership=membership, model_get=model)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             f"/api/v1/models/{model_id}/promote",
             json={
@@ -326,9 +292,7 @@ async def test_promote_unapproved_candidate_model_forbidden(
 
 
 @pytest.mark.asyncio
-async def test_promote_approved_to_staging_success(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_promote_approved_to_staging_success(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -337,9 +301,7 @@ async def test_promote_approved_to_staging_success(
     model_id = uuid4()
     now = datetime.now(UTC)
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor")
 
     model = ModelVersion(
         id=model_id,
@@ -354,9 +316,7 @@ async def test_promote_approved_to_staging_success(
 
     setup_mock_ml_db(app, user=user, membership=membership, model_get=model)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             f"/api/v1/models/{model_id}/promote",
             json={
@@ -372,9 +332,7 @@ async def test_promote_approved_to_staging_success(
 
 
 @pytest.mark.asyncio
-async def test_promote_to_production_editor_forbidden(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_promote_to_production_editor_forbidden(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -383,9 +341,7 @@ async def test_promote_to_production_editor_forbidden(
     model_id = uuid4()
     now = datetime.now(UTC)
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor")
 
     model = ModelVersion(
         id=model_id,
@@ -400,9 +356,7 @@ async def test_promote_to_production_editor_forbidden(
 
     setup_mock_ml_db(app, user=user, membership=membership, model_get=model)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             f"/api/v1/models/{model_id}/promote",
             json={
@@ -416,9 +370,7 @@ async def test_promote_to_production_editor_forbidden(
 
 
 @pytest.mark.asyncio
-async def test_promote_to_production_owner_success(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_promote_to_production_owner_success(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -427,9 +379,7 @@ async def test_promote_to_production_owner_success(
     model_id = uuid4()
     now = datetime.now(UTC)
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="owner"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="owner")
 
     model = ModelVersion(
         id=model_id,
@@ -444,9 +394,7 @@ async def test_promote_to_production_owner_success(
 
     setup_mock_ml_db(app, user=user, membership=membership, model_get=model)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             f"/api/v1/models/{model_id}/promote",
             json={
@@ -462,9 +410,7 @@ async def test_promote_to_production_owner_success(
 
 
 @pytest.mark.asyncio
-async def test_get_quality_gate_viewer_allowed(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_get_quality_gate_viewer_allowed(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -473,9 +419,7 @@ async def test_get_quality_gate_viewer_allowed(
     model_id = uuid4()
     now = datetime.now(UTC)
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer")
 
     model = ModelVersion(
         id=model_id,
@@ -505,13 +449,9 @@ async def test_get_quality_gate_viewer_allowed(
         evaluated_at=now,
     )
 
-    setup_mock_ml_db(
-        app, user=user, membership=membership, model_get=model, evaluation_get=evaluation
-    )
+    setup_mock_ml_db(app, user=user, membership=membership, model_get=model, evaluation_get=evaluation)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get(
             f"/api/v1/models/{model_id}/quality-gate?workspace_id={workspace_id}",
             headers={"Authorization": "Bearer token"},

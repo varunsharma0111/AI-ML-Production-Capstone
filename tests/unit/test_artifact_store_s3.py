@@ -49,9 +49,7 @@ def test_1_local_artifact_store_save_and_load(temp_local_backend: LocalStorageBa
     assert loaded["weights"] == [0.1, 0.2]
 
 
-def test_2_s3_artifact_store_save_and_load(
-    s3_backend: S3StorageBackend, mock_s3_client: MagicMock
-) -> None:
+def test_2_s3_artifact_store_save_and_load(s3_backend: S3StorageBackend, mock_s3_client: MagicMock) -> None:
     """Verify S3 ArtifactStore calls put_object and get_object on S3 backend."""
     store = ArtifactStore(backend=s3_backend)
     data = {"weights": [0.5, 0.5], "feature_names": ["f1", "f2"]}
@@ -145,14 +143,10 @@ def test_9_model_version_isolation_in_key_structure(
     assert store.load_artifact(key2)["v"] == 2
 
 
-def test_10_s3_unavailable_error_handling(
-    s3_backend: S3StorageBackend, mock_s3_client: MagicMock
-) -> None:
+def test_10_s3_unavailable_error_handling(s3_backend: S3StorageBackend, mock_s3_client: MagicMock) -> None:
     """Verify S3 ClientError translates into DomainError."""
     store = ArtifactStore(backend=s3_backend)
-    mock_s3_client.get_object.side_effect = ClientError(
-        {"Error": {"Code": "500", "Message": "S3 Service Down"}}, "GetObject"
-    )
+    mock_s3_client.get_object.side_effect = ClientError({"Error": {"Code": "500", "Message": "S3 Service Down"}}, "GetObject")
 
     with pytest.raises(DomainError) as exc_info:
         store.load_artifact("some/key.json")
@@ -160,9 +154,7 @@ def test_10_s3_unavailable_error_handling(
     assert exc_info.value.code == "storage_unavailable"
 
 
-def test_11_inference_using_s3_backed_artifact(
-    s3_backend: S3StorageBackend, mock_s3_client: MagicMock
-) -> None:
+def test_11_inference_using_s3_backed_artifact(s3_backend: S3StorageBackend, mock_s3_client: MagicMock) -> None:
     """Verify ControlledInferencePredictor executes predictions using S3-backed artifacts."""
     store = ArtifactStore(backend=s3_backend)
 

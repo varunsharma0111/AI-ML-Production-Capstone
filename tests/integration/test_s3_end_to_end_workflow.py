@@ -42,15 +42,7 @@ def test_milestone7_s3_end_to_end_workflow(mock_s3_client: MagicMock) -> None:
     mock_s3_client.get_object.side_effect = fake_get_object
 
     # 2. Upload CSV Dataset
-    csv_content = (
-        b"f1,f2,f3,label\n"
-        b"1.0,2.0,3.0,positive\n"
-        b"2.0,1.0,4.0,negative\n"
-        b"1.5,2.5,3.5,positive\n"
-        b"3.0,0.5,5.0,negative\n"
-        b"2.5,1.5,4.5,positive\n"
-        b"4.0,0.2,6.0,negative\n"
-    )
+    csv_content = b"f1,f2,f3,label\n1.0,2.0,3.0,positive\n2.0,1.0,4.0,negative\n1.5,2.5,3.5,positive\n3.0,0.5,5.0,negative\n2.5,1.5,4.5,positive\n4.0,0.2,6.0,negative\n"
 
     dataset_key = storage_service.save_dataset_file(
         workspace_id=workspace_id,

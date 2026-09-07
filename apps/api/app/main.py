@@ -75,9 +75,7 @@ def run_migrations_sync(db_url: str) -> None:
     logger.info("Database migrations executed successfully.")
 
 
-def problem_response(
-    request: Request, status_code: int, code: str, title: str, detail: str
-) -> JSONResponse:
+def problem_response(request: Request, status_code: int, code: str, title: str, detail: str) -> JSONResponse:
     """Return a consistent client-safe error with the correlation identifier."""
 
     request_id = getattr(request.state, "request_id", "unknown")
@@ -138,9 +136,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return cast(Response, response)
 
 
-def create_app(
-    settings: Settings | None = None, token_verifier: JwtVerifier | None = None
-) -> FastAPI:
+def create_app(settings: Settings | None = None, token_verifier: JwtVerifier | None = None) -> FastAPI:
     """Create an API app with isolated settings and dependency state for tests."""
 
     resolved_settings = settings or get_settings()
@@ -172,14 +168,8 @@ def create_app(
                         "ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS workspace_id UUID;",
                         "ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS dataset_id UUID;",
                         "ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS job_id UUID;",
-                        (
-                            "ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS metrics_json JSONB"
-                            " DEFAULT '{}'::jsonb NOT NULL;"
-                        ),
-                        (
-                            "ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS"
-                            " hyperparameters_json JSONB DEFAULT '{}'::jsonb NOT NULL;"
-                        ),
+                        ("ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS metrics_json JSONB DEFAULT '{}'::jsonb NOT NULL;"),
+                        ("ALTER TABLE model_versions ADD COLUMN IF NOT EXISTS hyperparameters_json JSONB DEFAULT '{}'::jsonb NOT NULL;"),
                         "ALTER TABLE model_evaluations ADD COLUMN IF NOT EXISTS workspace_id UUID;",
                     ]
                     for stmt in ddl_statements:
@@ -230,9 +220,7 @@ def create_app(
         return problem_response(request, error.status_code, error.code, error.title, error.detail)
 
     @app.exception_handler(RequestValidationError)
-    async def handle_validation_error(
-        request: Request, error: RequestValidationError
-    ) -> JSONResponse:
+    async def handle_validation_error(request: Request, error: RequestValidationError) -> JSONResponse:
         fields = [".".join(str(part) for part in item["loc"]) for item in error.errors()]
         return problem_response(
             request,
@@ -249,9 +237,7 @@ def create_app(
     from starlette.exceptions import HTTPException as StarletteHTTPException
 
     @app.exception_handler(StarletteHTTPException)
-    async def handle_http_exception(
-        request: Request, error: StarletteHTTPException
-    ) -> JSONResponse:
+    async def handle_http_exception(request: Request, error: StarletteHTTPException) -> JSONResponse:
         return problem_response(
             request,
             error.status_code,
@@ -264,14 +250,8 @@ def create_app(
     async def handle_unexpected_error(request: Request, error: Exception) -> JSONResponse:
         request_id = getattr(request.state, "request_id", "unknown")
         logger.exception("unexpected_error", extra={"request_id": request_id, "error": str(error)})
-        detail = (
-            f"An unexpected error occurred: {str(error)}"
-            if resolved_settings.app_env in ("local", "dev", "development", "test")
-            else "An unexpected error occurred."
-        )
-        return problem_response(
-            request, 500, "internal_error", "Internal Server Error", detail
-        )
+        detail = f"An unexpected error occurred: {str(error)}" if resolved_settings.app_env in ("local", "dev", "development", "test") else "An unexpected error occurred."
+        return problem_response(request, 500, "internal_error", "Internal Server Error", detail)
 
     from app.api.routers import (
         operations,

@@ -11,9 +11,7 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_vali
 from app.domains.tasks.types import TaskStatus
 
 TaskTitle = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
-TaskDescription = Annotated[
-    str, StringConstraints(strip_whitespace=True, min_length=1, max_length=10_000)
-]
+TaskDescription = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=10_000)]
 
 
 class TaskCreate(BaseModel):

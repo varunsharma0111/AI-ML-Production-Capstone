@@ -29,9 +29,7 @@ def test_settings() -> Settings:
 @pytest.mark.asyncio
 async def test_current_user_unauthenticated(test_settings: Settings) -> None:
     app = create_app(settings=test_settings)
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/api/v1/me")
 
     assert response.status_code == 401
@@ -47,9 +45,7 @@ async def test_current_user_invalid_token(test_settings: Settings) -> None:
 
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/api/v1/me", headers={"Authorization": "Bearer invalid_token"})
 
     assert response.status_code == 401
@@ -60,9 +56,7 @@ async def test_current_user_invalid_token(test_settings: Settings) -> None:
 @pytest.mark.asyncio
 async def test_current_user_success(test_settings: Settings) -> None:
     mock_verifier = MagicMock()
-    mock_principal = Principal(
-        subject="sub_999", email="user999@example.com", display_name="User Nine Nine Nine"
-    )
+    mock_principal = Principal(subject="sub_999", email="user999@example.com", display_name="User Nine Nine Nine")
     mock_verifier.verify.return_value = mock_principal
 
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -99,9 +93,7 @@ async def test_current_user_success(test_settings: Settings) -> None:
     mock_session_factory = MagicMock(return_value=mock_context)
     app.state.session_factory = mock_session_factory
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/api/v1/me", headers={"Authorization": "Bearer valid_token"})
 
     assert response.status_code == 200

@@ -35,9 +35,7 @@ def test_settings() -> Settings:
 
 @pytest.fixture
 def mock_principal() -> Principal:
-    return Principal(
-        subject="user_sub_001", email="user@example.com", display_name="Workspace User"
-    )
+    return Principal(subject="user_sub_001", email="user@example.com", display_name="Workspace User")
 
 
 def setup_mock_agent_db(
@@ -114,9 +112,7 @@ async def test_agent_orchestrate_unauthenticated(test_settings: Settings) -> Non
     app = create_app(settings=test_settings)
     workspace_id = uuid4()
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/api/v1/agent/orchestrate",
             json={
@@ -129,9 +125,7 @@ async def test_agent_orchestrate_unauthenticated(test_settings: Settings) -> Non
 
 
 @pytest.mark.asyncio
-async def test_agent_orchestrate_workspace_isolation_denied(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_agent_orchestrate_workspace_isolation_denied(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
@@ -142,9 +136,7 @@ async def test_agent_orchestrate_workspace_isolation_denied(
     # User has NO membership in requested workspace
     setup_mock_agent_db(app, user=user, membership=None)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/api/v1/agent/orchestrate",
             json={
@@ -174,18 +166,14 @@ def test_agent_tool_security_command_injection_attempt() -> None:
 
 
 @pytest.mark.asyncio
-async def test_agent_orchestrate_compare_models(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_agent_orchestrate_compare_models(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
 
     workspace_id = uuid4()
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer")
 
     now = datetime.now(UTC)
     m1 = ModelVersion(
@@ -213,9 +201,7 @@ async def test_agent_orchestrate_compare_models(
 
     setup_mock_agent_db(app, user=user, membership=membership, models=[m1, m2])
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/api/v1/agent/orchestrate",
             json={
@@ -233,18 +219,14 @@ async def test_agent_orchestrate_compare_models(
 
 
 @pytest.mark.asyncio
-async def test_agent_orchestrate_explain_metrics(
-    test_settings: Settings, mock_principal: Principal
-) -> None:
+async def test_agent_orchestrate_explain_metrics(test_settings: Settings, mock_principal: Principal) -> None:
     mock_verifier = MagicMock()
     mock_verifier.verify.return_value = mock_principal
     app = create_app(settings=test_settings, token_verifier=mock_verifier)
 
     workspace_id = uuid4()
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="viewer")
 
     now = datetime.now(UTC)
     m1 = ModelVersion(
@@ -261,9 +243,7 @@ async def test_agent_orchestrate_explain_metrics(
 
     setup_mock_agent_db(app, user=user, membership=membership, models=[m1])
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/api/v1/agent/orchestrate",
             json={
@@ -280,9 +260,7 @@ async def test_agent_orchestrate_explain_metrics(
 
 
 @pytest.mark.asyncio
-async def test_real_agent_prediction_end_to_end(
-    test_settings: Settings, mock_principal: Principal, tmp_path: Path
-) -> None:
+async def test_real_agent_prediction_end_to_end(test_settings: Settings, mock_principal: Principal, tmp_path: Path) -> None:
     """REAL END-TO-END TEST:
     Agent calls real inference engine on actual trained model artifact!
     """
@@ -292,20 +270,13 @@ async def test_real_agent_prediction_end_to_end(
 
     workspace_id = uuid4()
     user = User(id=uuid4(), oidc_subject=mock_principal.subject)
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user.id, role="editor")
 
     # Train real model with trainer
     store = ArtifactStore(base_dir=tmp_path)
     trainer = ModelTrainer(artifact_store=store)
 
-    csv_data = (
-        "age,income,tenure,churn\n"
-        "25,30000,1,0\n50,90000,5,1\n22,25000,1,0\n45,80000,4,1\n"
-        "28,35000,2,0\n55,95000,6,1\n30,40000,3,0\n60,100000,7,1\n"
-        "32,42000,3,0\n58,98000,6,1\n"
-    )
+    csv_data = "age,income,tenure,churn\n25,30000,1,0\n50,90000,5,1\n22,25000,1,0\n45,80000,4,1\n28,35000,2,0\n55,95000,6,1\n30,40000,3,0\n60,100000,7,1\n32,42000,3,0\n58,98000,6,1\n"
     csv_file = tmp_path / "agent_churn.csv"
     csv_file.write_text(csv_data, encoding="utf-8")
 
@@ -337,9 +308,7 @@ async def test_real_agent_prediction_end_to_end(
     orig_store = _agent_service._ml_service._predictor.artifact_store
     _agent_service._ml_service._predictor.artifact_store = store
     try:
-        async with httpx.AsyncClient(
-            transport=httpx.ASGITransport(app=app), base_url="http://test"
-        ) as client:
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
                 "/api/v1/agent/orchestrate",
                 json={

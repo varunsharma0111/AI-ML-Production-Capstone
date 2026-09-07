@@ -41,15 +41,9 @@ def test_planned_top_level_directories_exist() -> None:
         "tests",
     )
 
-    missing_directories = [
-        directory
-        for directory in required_directories
-        if not (REPOSITORY_ROOT / directory).is_dir()
-    ]
+    missing_directories = [directory for directory in required_directories if not (REPOSITORY_ROOT / directory).is_dir()]
 
-    assert not missing_directories, (
-        f"Missing planned top-level directories: {', '.join(missing_directories)}"
-    )
+    assert not missing_directories, f"Missing planned top-level directories: {', '.join(missing_directories)}"
 
 
 def test_python_quality_configuration_is_parseable() -> None:

@@ -37,12 +37,7 @@ class OutboxPublisher:
         return event
 
     async def publish_pending_events(self, session: AsyncSession) -> int:
-        result = await session.execute(
-            select(OutboxEvent)
-            .where(OutboxEvent.status == "pending")
-            .order_by(OutboxEvent.created_at.asc())
-            .limit(50)
-        )
+        result = await session.execute(select(OutboxEvent).where(OutboxEvent.status == "pending").order_by(OutboxEvent.created_at.asc()).limit(50))
         events = list(result.scalars())
 
         published_count = 0

@@ -26,9 +26,7 @@ def test_settings() -> Settings:
 @pytest.mark.asyncio
 async def test_liveness_endpoint(test_settings: Settings) -> None:
     app = create_app(settings=test_settings)
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/health/live")
 
     assert response.status_code == 200
@@ -49,9 +47,7 @@ async def test_readiness_endpoint_success(test_settings: Settings) -> None:
     app.state.session_factory = mock_session_factory
     app.state.redis_manager = None
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/health/ready")
 
     assert response.status_code == 200
@@ -71,9 +67,7 @@ async def test_readiness_endpoint_database_failure(test_settings: Settings) -> N
 
     app.state.session_factory = mock_session_factory
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/health/ready")
 
     assert response.status_code == 503
@@ -86,9 +80,7 @@ async def test_readiness_endpoint_database_failure(test_settings: Settings) -> N
 @pytest.mark.asyncio
 async def test_cors_options_preflight_success(test_settings: Settings) -> None:
     app = create_app(settings=test_settings)
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.options(
             f"/api/v1/workspaces/{uuid4()}/operations/dashboard",
             headers={

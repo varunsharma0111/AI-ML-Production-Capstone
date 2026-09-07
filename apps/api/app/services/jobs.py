@@ -40,15 +40,11 @@ class JobService:
         request_id: str,
     ) -> Job:
         async with session.begin():
-            user = await self._authorized_user(
-                session, principal, workspace_id, Permission.TASK_CREATE
-            )
+            user = await self._authorized_user(session, principal, workspace_id, Permission.TASK_CREATE)
 
             # Idempotency check
             if payload.idempotency_key:
-                existing_job = await self._job_repository.find_by_idempotency_key(
-                    session, workspace_id, payload.idempotency_key
-                )
+                existing_job = await self._job_repository.find_by_idempotency_key(session, workspace_id, payload.idempotency_key)
                 if existing_job is not None:
                     return existing_job
 
@@ -100,34 +96,25 @@ class JobService:
         request_id: str,
     ) -> Job:
         async with session.begin():
-            user = await self._authorized_user(
-                session, principal, payload.workspace_id, Permission.TASK_CREATE
-            )
+            user = await self._authorized_user(session, principal, payload.workspace_id, Permission.TASK_CREATE)
 
             from app.core.errors import ResourceNotFoundError, ValidationError
             from app.db.repositories.datasets import DatasetRepository
             from app.domains.jobs.types import JobType
 
             dataset_repo = DatasetRepository()
-            dataset = await dataset_repo.get_dataset_for_workspace(
-                session, payload.workspace_id, payload.dataset_id
-            )
+            dataset = await dataset_repo.get_dataset_for_workspace(session, payload.workspace_id, payload.dataset_id)
             if dataset is None:
                 raise ResourceNotFoundError(f"Dataset {payload.dataset_id} not found in workspace.")
 
             if dataset.status != "ready":
-                raise ValidationError(
-                    f"Dataset '{dataset.original_filename}' is not"
-                    f" ready for training (status: {dataset.status})."
-                )
+                raise ValidationError(f"Dataset '{dataset.original_filename}' is not ready for training (status: {dataset.status}).")
 
             profile = await dataset_repo.get_profile_by_dataset_id(session, dataset.id)
             if profile and profile.columns_json:
                 col_names = [col["name"] for col in profile.columns_json]
                 if payload.target_column not in col_names:
-                    raise ValidationError(
-                        f"Target column '{payload.target_column}' does not exist in dataset."
-                    )
+                    raise ValidationError(f"Target column '{payload.target_column}' does not exist in dataset.")
 
             job_payload = {
                 "workspace_id": str(payload.workspace_id),
@@ -187,9 +174,7 @@ class JobService:
     ) -> list[Job]:
         async with session.begin():
             await self._authorized_user(session, principal, workspace_id, Permission.TASK_READ)
-            return await self._job_repository.list_for_workspace(
-                session, workspace_id, offset, limit
-            )
+            return await self._job_repository.list_for_workspace(session, workspace_id, offset, limit)
 
     async def get_job(
         self,
@@ -214,9 +199,7 @@ class JobService:
         request_id: str,
     ) -> Job:
         async with session.begin():
-            user = await self._authorized_user(
-                session, principal, workspace_id, Permission.TASK_UPDATE
-            )
+            user = await self._authorized_user(session, principal, workspace_id, Permission.TASK_UPDATE)
             job = await self._job_repository.get_for_workspace(session, workspace_id, job_id)
             if job is None:
                 raise ResourceNotFoundError("Job not found in workspace.")
@@ -252,9 +235,7 @@ class JobService:
         permission: Permission,
     ) -> User:
         user = await self._identity_repository.get_or_create_user(session, principal)
-        membership = await self._identity_repository.get_membership(
-            session, workspace_id, user.id, principal
-        )
+        membership = await self._identity_repository.get_membership(session, workspace_id, user.id, principal)
         if membership is None:
             from app.core.errors import AuthorizationError
 

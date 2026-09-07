@@ -45,25 +45,14 @@ class JwtVerifier:
         Returns test/dev principal for dev tokens or public test mode.
         """
         if self._public_test_mode:
-            if (
-                not token
-                or token.startswith("dev_")
-                or token == "dev_token_sample"
-                or token == "public_test_token"
-                or "dev_token" in token
-            ):
+            if not token or token.startswith("dev_") or token == "dev_token_sample" or token == "public_test_token" or "dev_token" in token:
                 return Principal(
                     subject="public-test-user-id",
                     email="public.test@auraml.local",
                     display_name="Public Test User",
                 )
 
-        if (
-            token.startswith("dev_")
-            or token == "dev_token_sample"
-            or "dev_token" in token
-            or self._dev_auth_mode
-        ):
+        if token.startswith("dev_") or token == "dev_token_sample" or "dev_token" in token or self._dev_auth_mode:
             return Principal(
                 subject="dev-user-123",
                 email="dev.user@example.com",

@@ -90,11 +90,7 @@ class ToolSandbox:
             acc2 = float(metrics2.get("accuracy", 0.0))
 
             better_model = m1 if f1_1 >= f1_2 else m2
-            explanation = (
-                f"Model '{better_model['name']}' ({better_model['version_tag']}) performed better "
-                f"with F1 score {max(f1_1, f1_2):.2f} vs {min(f1_1, f1_2):.2f} and "
-                f"Accuracy {max(acc1, acc2):.2f} vs {min(acc1, acc2):.2f}."
-            )
+            explanation = f"Model '{better_model['name']}' ({better_model['version_tag']}) performed better with F1 score {max(f1_1, f1_2):.2f} vs {min(f1_1, f1_2):.2f} and Accuracy {max(acc1, acc2):.2f} vs {min(acc1, acc2):.2f}."
 
             output = {
                 "model_1": {
@@ -130,34 +126,18 @@ class ToolSandbox:
             meta = evaluation.get("evaluation_metadata", {}) if evaluation else {}
             metrics = model.get("metrics_json", {})
 
-            acc = (
-                float(evaluation.get("accuracy", metrics.get("accuracy", 0.0)))
-                if evaluation
-                else float(metrics.get("accuracy", 0.0))
-            )
-            f1 = (
-                float(evaluation.get("f1_score", metrics.get("f1_score", 0.0)))
-                if evaluation
-                else float(metrics.get("f1_score", 0.0))
-            )
+            acc = float(evaluation.get("accuracy", metrics.get("accuracy", 0.0))) if evaluation else float(metrics.get("accuracy", 0.0))
+            f1 = float(evaluation.get("f1_score", metrics.get("f1_score", 0.0))) if evaluation else float(metrics.get("f1_score", 0.0))
             req_acc = float(meta.get("accuracy_threshold", 0.90))
             req_f1 = float(meta.get("f1_threshold", 0.85))
-            passed = (
-                bool(evaluation.get("passed_gate"))
-                if evaluation
-                else (acc >= req_acc and f1 >= req_f1)
-            )
+            passed = bool(evaluation.get("passed_gate")) if evaluation else (acc >= req_acc and f1 >= req_f1)
             reasons = list(meta.get("failure_reasons", []))
 
             if not passed and not reasons:
                 if acc < req_acc:
-                    reasons.append(
-                        f"Accuracy ({acc:.2f}) is below required threshold ({req_acc:.2f})."
-                    )
+                    reasons.append(f"Accuracy ({acc:.2f}) is below required threshold ({req_acc:.2f}).")
                 if f1 < req_f1:
-                    reasons.append(
-                        f"F1 score ({f1:.2f}) is below required threshold ({req_f1:.2f})."
-                    )
+                    reasons.append(f"F1 score ({f1:.2f}) is below required threshold ({req_f1:.2f}).")
 
             output = {
                 "model_name": model.get("name"),
@@ -184,9 +164,7 @@ class ToolSandbox:
                 "original_filename": dataset.get("original_filename"),
                 "status": dataset.get("status"),
                 "row_count": profile.get("row_count") if profile else dataset.get("row_count"),
-                "column_count": profile.get("column_count")
-                if profile
-                else dataset.get("column_count"),
+                "column_count": profile.get("column_count") if profile else dataset.get("column_count"),
                 "columns": [
                     {
                         "name": c.get("name"),

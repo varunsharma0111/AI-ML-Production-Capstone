@@ -18,9 +18,7 @@ def _is_null(val: str) -> bool:
     return val.strip().lower() in NULL_VALUES
 
 
-def _compute_classification_metrics(
-    y_true: list[int], y_pred: list[int]
-) -> tuple[float, float, float, float]:
+def _compute_classification_metrics(y_true: list[int], y_pred: list[int]) -> tuple[float, float, float, float]:
     """Calculate accuracy, macro precision, macro recall, macro F1."""
     if not y_true:
         return 0.0, 0.0, 0.0, 0.0
@@ -148,9 +146,7 @@ class ModelTrainer:
             file_obj.close()
 
         if len(rows) < 2:
-            raise ValueError(
-                f"Target column '{target_column}' contains fewer than 2 valid rows for training"
-            )
+            raise ValueError(f"Target column '{target_column}' contains fewer than 2 valid rows for training")
 
         # 2. Encode features & targets
         raw_targets = [r[1] for r in rows]
@@ -208,9 +204,7 @@ class ModelTrainer:
             elif model_type == "decision_tree":
                 clf = DecisionTreeClassifier(max_depth=max_depth, random_state=random_seed)
             else:
-                clf = RandomForestClassifier(
-                    n_estimators=n_estimators, max_depth=max_depth, random_state=random_seed
-                )
+                clf = RandomForestClassifier(n_estimators=n_estimators, max_depth=max_depth, random_state=random_seed)
 
             clf.fit(X_train, y_train)
             y_pred = [int(p) for p in clf.predict(X_test)]
@@ -261,9 +255,7 @@ class ModelTrainer:
             "weights": feature_weights,
         }
 
-        artifact_path = self.artifact_store.save_artifact(
-            model_name, version_tag, artifact_data, workspace_id=workspace_id
-        )
+        artifact_path = self.artifact_store.save_artifact(model_name, version_tag, artifact_data, workspace_id=workspace_id)
         return metrics, artifact_path
 
 

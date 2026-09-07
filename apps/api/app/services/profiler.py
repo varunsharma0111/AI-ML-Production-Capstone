@@ -198,9 +198,7 @@ def profile_csv_file(file_path: Path | str | bytes) -> tuple[int, int, list[dict
 
             if inferred_type not in ("integer", "float") or uniq_cnt <= 20:
                 top_items = val_counters[i].most_common(5)
-                col_data["top_values"] = [
-                    {"value": item[0], "count": item[1]} for item in top_items
-                ]
+                col_data["top_values"] = [{"value": item[0], "count": item[1]} for item in top_items]
             else:
                 col_data["top_values"] = None
 

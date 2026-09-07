@@ -36,11 +36,7 @@ class ControlledInferencePredictor:
                 status_code=400,
                 code="model_not_approved",
                 title="Inference Denied",
-                detail=(
-                    "Inference unavailable. Model version status is "
-                    f"'{model_status}'. Only models promoted to approved, "
-                    "staging, or production can serve inference requests."
-                ),
+                detail=(f"Inference unavailable. Model version status is '{model_status}'. Only models promoted to approved, staging, or production can serve inference requests."),
             )
 
         if not isinstance(input_features, dict):
@@ -63,9 +59,7 @@ class ControlledInferencePredictor:
 
         target_column = artifact.get("target_column")
         if target_column and target_column in input_features:
-            raise ValidationError(
-                f"Target column '{target_column}' cannot be passed as an input feature."
-            )
+            raise ValidationError(f"Target column '{target_column}' cannot be passed as an input feature.")
 
         feature_names = artifact.get("feature_names", [])
         target_classes = artifact.get("target_classes", ["negative", "positive"])
@@ -81,26 +75,18 @@ class ControlledInferencePredictor:
             try:
                 numeric_val = float(val)
             except (ValueError, TypeError):
-                raise ValidationError(
-                    f"Invalid non-numeric value for feature '{f_name}': {val}"
-                )
+                raise ValidationError(f"Invalid non-numeric value for feature '{f_name}': {val}")
             feature_vector.append(numeric_val)
 
         # Compute model prediction and confidence score
         if feature_names and weights:
-            raw_score = sum(
-                x * (weights[i] if i < len(weights) else 0.5) for i, x in enumerate(feature_vector)
-            )
+            raw_score = sum(x * (weights[i] if i < len(weights) else 0.5) for i, x in enumerate(feature_vector))
             confidence = round(1.0 / (1.0 + pow(2.71828, -raw_score)), 4)
         else:
             confidence = 0.85
 
         predicted_idx = 1 if confidence >= 0.5 else 0
-        prediction_label = (
-            target_classes[predicted_idx]
-            if predicted_idx < len(target_classes)
-            else ("positive" if confidence >= 0.5 else "negative")
-        )
+        prediction_label = target_classes[predicted_idx] if predicted_idx < len(target_classes) else ("positive" if confidence >= 0.5 else "negative")
 
         latency_ms = round((time.perf_counter() - start_time) * 1000, 3)
 

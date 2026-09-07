@@ -65,9 +65,7 @@ async def test_identity_repository_get_membership_found() -> None:
     workspace_id = uuid4()
     user_id = uuid4()
 
-    membership = WorkspaceMembership(
-        id=uuid4(), workspace_id=workspace_id, user_id=user_id, role="editor"
-    )
+    membership = WorkspaceMembership(id=uuid4(), workspace_id=workspace_id, user_id=user_id, role="editor")
 
     mock_result = MagicMock()
     mock_result.scalar_one_or_none.return_value = membership

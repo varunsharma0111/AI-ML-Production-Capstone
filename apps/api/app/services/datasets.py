@@ -77,15 +77,10 @@ class DatasetService:
         if file_size == 0:
             raise ValidationError("Uploaded file is empty.")
         if file_size > MAX_FILE_SIZE_BYTES:
-            raise ValidationError(
-                f"File size ({file_size} bytes) exceeds"
-                f" maximum limit of {MAX_FILE_SIZE_BYTES} bytes."
-            )
+            raise ValidationError(f"File size ({file_size} bytes) exceeds maximum limit of {MAX_FILE_SIZE_BYTES} bytes.")
 
         async with session.begin():
-            user = await self._authorized_user(
-                session, principal, workspace_id, Permission.DATASET_CREATE
-            )
+            user = await self._authorized_user(session, principal, workspace_id, Permission.DATASET_CREATE)
 
             dataset_id = uuid4()
             storage_path = self._storage_service.save_dataset_file(
@@ -165,9 +160,7 @@ class DatasetService:
         """List all datasets in workspace."""
         async with session.begin():
             await self._authorized_user(session, principal, workspace_id, Permission.DATASET_READ)
-            return await self._dataset_repository.list_datasets_for_workspace(
-                session, workspace_id, offset, limit
-            )
+            return await self._dataset_repository.list_datasets_for_workspace(session, workspace_id, offset, limit)
 
     async def get_dataset(
         self,
@@ -179,9 +172,7 @@ class DatasetService:
         """Retrieve single dataset with workspace isolation."""
         async with session.begin():
             await self._authorized_user(session, principal, workspace_id, Permission.DATASET_READ)
-            dataset = await self._dataset_repository.get_dataset_for_workspace(
-                session, workspace_id, dataset_id
-            )
+            dataset = await self._dataset_repository.get_dataset_for_workspace(session, workspace_id, dataset_id)
             if dataset is None:
                 raise ResourceNotFoundError("Dataset not found in workspace.")
             return dataset
@@ -196,9 +187,7 @@ class DatasetService:
         """Retrieve profile statistics for dataset with workspace isolation."""
         async with session.begin():
             await self._authorized_user(session, principal, workspace_id, Permission.DATASET_READ)
-            dataset = await self._dataset_repository.get_dataset_for_workspace(
-                session, workspace_id, dataset_id
-            )
+            dataset = await self._dataset_repository.get_dataset_for_workspace(session, workspace_id, dataset_id)
             if dataset is None:
                 raise ResourceNotFoundError("Dataset not found in workspace.")
 
@@ -217,12 +206,8 @@ class DatasetService:
     ) -> None:
         """Delete dataset record and emit audit event."""
         async with session.begin():
-            user = await self._authorized_user(
-                session, principal, workspace_id, Permission.DATASET_CREATE
-            )
-            dataset = await self._dataset_repository.get_dataset_for_workspace(
-                session, workspace_id, dataset_id
-            )
+            user = await self._authorized_user(session, principal, workspace_id, Permission.DATASET_CREATE)
+            dataset = await self._dataset_repository.get_dataset_for_workspace(session, workspace_id, dataset_id)
             if dataset is None:
                 raise ResourceNotFoundError("Dataset not found in workspace.")
 
@@ -248,9 +233,7 @@ class DatasetService:
         permission: Permission,
     ) -> User:
         user = await self._identity_repository.get_or_create_user(session, principal)
-        membership = await self._identity_repository.get_membership(
-            session, workspace_id, user.id, principal
-        )
+        membership = await self._identity_repository.get_membership(session, workspace_id, user.id, principal)
         if membership is None:
             from app.core.errors import AuthorizationError
 

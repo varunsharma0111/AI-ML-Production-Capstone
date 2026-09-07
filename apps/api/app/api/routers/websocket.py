@@ -34,9 +34,7 @@ async def workspace_jobs_websocket(websocket: WebSocket, workspace_id: UUID) -> 
             principal = verifier.verify(token)
         except Exception as exc:
             if not public_mode:
-                logger.warning(
-                    "WebSocket authentication failed for workspace %s: %s", workspace_id, exc
-                )
+                logger.warning("WebSocket authentication failed for workspace %s: %s", workspace_id, exc)
                 await websocket.close(code=4001, reason="Invalid or expired token")
                 return
 
@@ -70,9 +68,7 @@ async def workspace_jobs_websocket(websocket: WebSocket, workspace_id: UUID) -> 
                 session.add(membership)
                 await session.commit()
             else:
-                logger.warning(
-                    "WebSocket access denied for user %s to workspace %s", user.id, workspace_id
-                )
+                logger.warning("WebSocket access denied for user %s to workspace %s", user.id, workspace_id)
                 await websocket.close(code=4003, reason="Forbidden: Not a member of workspace")
                 return
 

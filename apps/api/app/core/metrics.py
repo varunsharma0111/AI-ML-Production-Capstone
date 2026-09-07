@@ -107,9 +107,7 @@ S3_OPERATIONS_TOTAL = Counter(
 )
 
 
-async def prometheus_metrics_middleware(
-    request: Request, call_next: Callable[[Request], Awaitable[Response]]
-) -> Response:
+async def prometheus_metrics_middleware(request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
     """Middleware collecting HTTP request count and latency metrics."""
     path = request.url.path
     if path in ("/health/live", "/health/ready", "/metrics"):

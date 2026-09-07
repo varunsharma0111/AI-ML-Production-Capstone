@@ -12,17 +12,7 @@ from ml.training.trainer import ModelTrainer
 def test_train_dataset_model_all_algorithms() -> None:
     with tempfile.TemporaryDirectory() as tmp_dir:
         csv_path = Path(tmp_dir) / "sample_data.csv"
-        content = (
-            "feature1,feature2,feature3,target\n"
-            "1.0,2.0,3.0,yes\n"
-            "2.0,1.0,4.0,no\n"
-            "1.5,2.5,3.5,yes\n"
-            "3.0,0.5,5.0,no\n"
-            "2.5,1.5,4.5,yes\n"
-            "4.0,0.2,6.0,no\n"
-            "3.5,1.2,5.5,yes\n"
-            "5.0,0.1,7.0,no\n"
-        )
+        content = "feature1,feature2,feature3,target\n1.0,2.0,3.0,yes\n2.0,1.0,4.0,no\n1.5,2.5,3.5,yes\n3.0,0.5,5.0,no\n2.5,1.5,4.5,yes\n4.0,0.2,6.0,no\n3.5,1.2,5.5,yes\n5.0,0.1,7.0,no\n"
         csv_path.write_text(content, encoding="utf-8")
 
         artifact_store = ArtifactStore(base_dir=Path(tmp_dir) / "artifacts")

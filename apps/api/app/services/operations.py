@@ -41,13 +41,9 @@ class OperationsService:
         required_permission: Permission = Permission.WORKSPACE_READ,
     ) -> tuple[User, WorkspaceMembership]:
         user = await self._identity_repository.get_or_create_user(session, principal)
-        membership = await self._identity_repository.get_membership(
-            session, workspace_id, user.id, principal
-        )
+        membership = await self._identity_repository.get_membership(session, workspace_id, user.id, principal)
         if membership is None:
-            membership = WorkspaceMembership(
-                workspace_id=workspace_id, user_id=user.id, role="owner"
-            )
+            membership = WorkspaceMembership(workspace_id=workspace_id, user_id=user.id, role="owner")
 
         require_permission(membership.role, required_permission)
 
@@ -73,27 +69,15 @@ class OperationsService:
         await self._authorized_user(session, principal, workspace_id, Permission.WORKSPACE_READ)
 
         # Datasets count
-        ds_result = await session.execute(
-            select(Dataset.status, func.count(Dataset.id))
-            .where(Dataset.workspace_id == workspace_id)
-            .group_by(Dataset.status)
-        )
+        ds_result = await session.execute(select(Dataset.status, func.count(Dataset.id)).where(Dataset.workspace_id == workspace_id).group_by(Dataset.status))
         ds_counts: dict[str, int] = {str(row[0]): int(row[1]) for row in ds_result.all()}
 
         # Jobs count
-        job_result = await session.execute(
-            select(Job.status, func.count(Job.id))
-            .where(Job.workspace_id == workspace_id)
-            .group_by(Job.status)
-        )
+        job_result = await session.execute(select(Job.status, func.count(Job.id)).where(Job.workspace_id == workspace_id).group_by(Job.status))
         job_counts: dict[str, int] = {str(row[0]): int(row[1]) for row in job_result.all()}
 
         # Model count
-        model_result = await session.execute(
-            select(ModelVersion.status, func.count(ModelVersion.id))
-            .where(ModelVersion.workspace_id == workspace_id)
-            .group_by(ModelVersion.status)
-        )
+        model_result = await session.execute(select(ModelVersion.status, func.count(ModelVersion.id)).where(ModelVersion.workspace_id == workspace_id).group_by(ModelVersion.status))
         model_counts: dict[str, int] = {str(row[0]): int(row[1]) for row in model_result.all()}
 
         # Inference count & avg latency
@@ -150,13 +134,8 @@ class OperationsService:
         workspace_id: UUID,
         limit: int = 100,
     ) -> list[AuditEventResponse]:
-            await self._authorized_user(session, principal, workspace_id, Permission.WORKSPACE_READ)
+        await self._authorized_user(session, principal, workspace_id, Permission.WORKSPACE_READ)
 
-            result = await session.execute(
-                select(AuditEvent)
-                .where(AuditEvent.workspace_id == workspace_id)
-                .order_by(AuditEvent.occurred_at.desc())
-                .limit(limit)
-            )
-            events = result.scalars().all()
-            return [AuditEventResponse.model_validate(evt) for evt in events]
+        result = await session.execute(select(AuditEvent).where(AuditEvent.workspace_id == workspace_id).order_by(AuditEvent.occurred_at.desc()).limit(limit))
+        events = result.scalars().all()
+        return [AuditEventResponse.model_validate(evt) for evt in events]

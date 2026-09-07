@@ -53,9 +53,7 @@ async def test_production_mode_rejects_unauthenticated_request() -> None:
     app = create_app(settings=settings)
     workspace_id = uuid4()
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get(f"/api/v1/workspaces/{workspace_id}/tasks")
 
     assert response.status_code == 401
@@ -83,9 +81,7 @@ async def test_dev_auth_mode_resolves_deterministic_user() -> None:
     )
     setup_mock_db(app, user=dev_user, membership=None)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get("/api/v1/me")
 
     assert response.status_code == 200
@@ -118,9 +114,7 @@ async def test_dev_auth_mode_non_member_workspace_access_returns_403() -> None:
     # Membership None simulates requesting a workspace where user has no membership
     setup_mock_db(app, user=dev_user, membership=None)
 
-    async with httpx.AsyncClient(
-        transport=httpx.ASGITransport(app=app), base_url="http://test"
-    ) as client:
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://test") as client:
         response = await client.get(f"/api/v1/workspaces/{workspace_id}/tasks")
 
     assert response.status_code == 403
