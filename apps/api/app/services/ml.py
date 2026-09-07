@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any, cast
 from uuid import UUID
 
@@ -35,9 +36,6 @@ from app.domains.ml.types import DEFAULT_ACCURACY_THRESHOLD, DEFAULT_F1_SCORE_TH
 from ml.evaluation.evaluator import ModelEvaluator
 from ml.training.trainer import ModelTrainer
 from services.ml_inference.predictor import ControlledInferencePredictor
-
-
-import asyncio
 
 
 async def _is_in_transaction(session: AsyncSession) -> bool:

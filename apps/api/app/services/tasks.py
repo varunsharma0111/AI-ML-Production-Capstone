@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,9 +14,6 @@ from app.db.repositories.identity import IdentityRepository
 from app.db.repositories.tasks import TaskRepository
 from app.domains.identity.policy import Permission, require_permission
 from app.domains.identity.principal import Principal
-
-
-import asyncio
 
 
 async def _is_in_transaction(session: AsyncSession) -> bool:
