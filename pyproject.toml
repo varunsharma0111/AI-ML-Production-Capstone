@@ -46,11 +46,10 @@ where = ["."]
 target-version = "py311"
 line-length = 500
 extend-exclude = [".venv"]
-ignore = ["E501"]
 
 [tool.ruff.lint]
 select = ["F", "I", "UP"]
-extend-ignore = ["E501"]
+ignore = ["E501"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app", "services", "ml", "agent", "messaging"]
