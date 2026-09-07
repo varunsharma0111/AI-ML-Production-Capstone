@@ -46,6 +46,16 @@ TOOL_PERMISSION_MAP: dict[str, Permission] = {
 }
 
 
+async def _is_in_transaction(session: AsyncSession) -> bool:
+    try:
+        res = session.in_transaction()
+        if asyncio.iscoroutine(res):
+            return bool(await res)
+        return bool(res)
+    except Exception:
+        return False
+
+
 class AgentService:
     def __init__(
         self,
@@ -80,7 +90,7 @@ class AgentService:
         payload: ToolExecuteRequest,
         request_id: str = "unknown",
     ) -> tuple[dict[str, Any], float]:
-        if session.in_transaction():
+        if await _is_in_transaction(session):
             return await self._execute_tool_impl(session, principal, payload, request_id)
         async with session.begin():
             return await self._execute_tool_impl(session, principal, payload, request_id)
@@ -328,7 +338,7 @@ class AgentService:
         payload: AgentOrchestrateRequest,
         request_id: str = "unknown",
     ) -> AgentOrchestrateResponse:
-        if session.in_transaction():
+        if await _is_in_transaction(session):
             return await self._orchestrate_impl(session, principal, payload, request_id)
         async with session.begin():
             return await self._orchestrate_impl(session, principal, payload, request_id)
