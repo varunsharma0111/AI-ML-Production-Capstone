@@ -80,264 +80,275 @@ class AgentService:
         payload: ToolExecuteRequest,
         request_id: str = "unknown",
     ) -> tuple[dict[str, Any], float]:
+        if session.in_transaction():
+            return await self._execute_tool_impl(session, principal, payload, request_id)
         async with session.begin():
-            user = await self._identity_repository.get_or_create_user(session, principal)
-            membership = await self._identity_repository.get_membership(
-                session, payload.workspace_id, user.id, principal
-            )
+            return await self._execute_tool_impl(session, principal, payload, request_id)
 
-            # Validate input safety with security guard
-            for arg_name, arg_val in payload.arguments.items():
-                if isinstance(arg_val, str):
-                    try:
-                        self._security_guard.validate_input_string(arg_val, field_name=arg_name)
-                    except Exception as sec_error:
-                        session.add(
-                            AuditEvent(
-                                actor_user_id=user.id,
-                                workspace_id=payload.workspace_id,
-                                action="agent.tool_denied",
-                                resource_type="agent_tool",
-                                resource_id=user.id,
-                                request_id=request_id,
-                                metadata_json={
-                                    "tool_name": payload.tool_name,
-                                    "reason": f"Security Guard Rejection: {sec_error}",
-                                },
-                            )
+    async def _execute_tool_impl(
+        self,
+        session: AsyncSession,
+        principal: Principal,
+        payload: ToolExecuteRequest,
+        request_id: str = "unknown",
+    ) -> tuple[dict[str, Any], float]:
+        user = await self._identity_repository.get_or_create_user(session, principal)
+        membership = await self._identity_repository.get_membership(
+            session, payload.workspace_id, user.id, principal
+        )
+
+        # Validate input safety with security guard
+        for arg_name, arg_val in payload.arguments.items():
+            if isinstance(arg_val, str):
+                try:
+                    self._security_guard.validate_input_string(arg_val, field_name=arg_name)
+                except Exception as sec_error:
+                    session.add(
+                        AuditEvent(
+                            actor_user_id=user.id,
+                            workspace_id=payload.workspace_id,
+                            action="agent.tool_denied",
+                            resource_type="agent_tool",
+                            resource_id=user.id,
+                            request_id=request_id,
+                            metadata_json={
+                                "tool_name": payload.tool_name,
+                                "reason": f"Security Guard Rejection: {sec_error}",
+                            },
                         )
-                        raise sec_error
-
-            if membership is None:
-                raise AuthorizationError("User is not a member of the specified workspace.")
-
-            # Enforce fine-grained RBAC permission check
-            required_perm = TOOL_PERMISSION_MAP.get(payload.tool_name, Permission.MODEL_READ)
-            try:
-                require_permission(membership.role, required_perm)
-            except AuthorizationError as rbac_error:
-                session.add(
-                    AuditEvent(
-                        actor_user_id=user.id,
-                        workspace_id=payload.workspace_id,
-                        action="agent.tool_denied",
-                        resource_type="agent_tool",
-                        resource_id=user.id,
-                        request_id=request_id,
-                        metadata_json={
-                            "tool_name": payload.tool_name,
-                            "reason": (
-                                f"RBAC Denied: role '{membership.role}'"
-                                f" lacks '{required_perm.value}'"
-                            ),
-                        },
                     )
-                )
-                raise rbac_error
+                    raise sec_error
 
+        if membership is None:
+            raise AuthorizationError("User is not a member of the specified workspace.")
+
+        # Enforce fine-grained RBAC permission check
+        required_perm = TOOL_PERMISSION_MAP.get(payload.tool_name, Permission.MODEL_READ)
+        try:
+            require_permission(membership.role, required_perm)
+        except AuthorizationError as rbac_error:
             session.add(
                 AuditEvent(
                     actor_user_id=user.id,
                     workspace_id=payload.workspace_id,
-                    action="agent.tool_requested",
-                    resource_type="agent_tool",
-                    resource_id=user.id,
-                    request_id=request_id,
-                    metadata_json={"tool_name": payload.tool_name},
-                )
-            )
-
-            # Build context dynamically from real DB repositories
-            context: dict[str, Any] = {}
-
-            if payload.tool_name == "list_models":
-                models = await self._model_repository.list_model_versions_for_workspace(
-                    session, payload.workspace_id
-                )
-                context["models"] = [
-                    {
-                        "id": m.id,
-                        "name": m.name,
-                        "version_tag": m.version_tag,
-                        "status": m.status,
-                        "metrics_json": m.metrics_json or {},
-                    }
-                    for m in models
-                ]
-
-            elif payload.tool_name == "list_datasets":
-                datasets = await self._dataset_repository.list_datasets_for_workspace(
-                    session, payload.workspace_id, offset=0, limit=50
-                )
-                context["datasets"] = [
-                    {
-                        "id": d.id,
-                        "original_filename": d.original_filename,
-                        "status": d.status,
-                        "row_count": d.row_count,
-                        "column_count": d.column_count,
-                    }
-                    for d in datasets
-                ]
-
-            elif payload.tool_name == "compare_models":
-                models = await self._model_repository.list_model_versions_for_workspace(
-                    session, payload.workspace_id
-                )
-                m1_name = str(payload.arguments.get("model_name_1", "")).lower()
-                m2_name = str(payload.arguments.get("model_name_2", "")).lower()
-
-                m1, m2 = None, None
-                for m in models:
-                    tag_or_name = f"{m.name} {m.version_tag}".lower()
-                    if (m1_name in tag_or_name or str(m.id) == m1_name) and not m1:
-                        m1 = m
-                    elif (m2_name in tag_or_name or str(m.id) == m2_name) and not m2:
-                        m2 = m
-
-                if not m1 or not m2:
-                    if len(models) >= 2 and (not m1 or not m2):
-                        m1 = m1 or models[0]
-                        m2 = m2 or models[1]
-                    else:
-                        raise ResourceNotFoundError("Could not find two model versions to compare.")
-
-                context["model_1"] = {
-                    "id": m1.id,
-                    "name": m1.name,
-                    "version_tag": m1.version_tag,
-                    "status": m1.status,
-                    "metrics_json": m1.metrics_json or {},
-                }
-                context["model_2"] = {
-                    "id": m2.id,
-                    "name": m2.name,
-                    "version_tag": m2.version_tag,
-                    "status": m2.status,
-                    "metrics_json": m2.metrics_json or {},
-                }
-
-            elif payload.tool_name == "explain_metrics":
-                models = await self._model_repository.list_model_versions_for_workspace(
-                    session, payload.workspace_id
-                )
-                target = str(payload.arguments.get("model_id_or_name", "")).lower()
-                matched = None
-                for m in models:
-                    if target in f"{m.name} {m.version_tag}".lower() or str(m.id) == target:
-                        matched = m
-                        break
-                if not matched and models:
-                    matched = models[0]
-                if not matched:
-                    raise ResourceNotFoundError("Requested model version was not found.")
-
-                eval_record = await self._model_repository.get_latest_evaluation(
-                    session, matched.id
-                )
-
-                context["model"] = {
-                    "id": matched.id,
-                    "name": matched.name,
-                    "version_tag": matched.version_tag,
-                    "status": matched.status,
-                    "metrics_json": matched.metrics_json or {},
-                }
-                if eval_record:
-                    context["evaluation"] = {
-                        "accuracy": eval_record.accuracy,
-                        "f1_score": eval_record.f1_score,
-                        "passed_gate": eval_record.passed_gate,
-                        "evaluation_metadata": eval_record.evaluation_metadata or {},
-                    }
-
-            elif payload.tool_name == "summarize_dataset":
-                datasets = await self._dataset_repository.list_datasets_for_workspace(
-                    session, payload.workspace_id, offset=0, limit=50
-                )
-                target = str(payload.arguments.get("dataset_id_or_name", "")).lower()
-                matched_ds = None
-                for d in datasets:
-                    if target in d.original_filename.lower() or str(d.id) == target:
-                        matched_ds = d
-                        break
-                if not matched_ds and datasets:
-                    matched_ds = datasets[0]
-                if not matched_ds:
-                    raise ResourceNotFoundError("Requested dataset was not found.")
-
-                profile = await self._dataset_repository.get_profile_by_dataset_id(
-                    session, matched_ds.id
-                )
-                context["dataset"] = {
-                    "id": matched_ds.id,
-                    "original_filename": matched_ds.original_filename,
-                    "status": matched_ds.status,
-                    "row_count": matched_ds.row_count,
-                    "column_count": matched_ds.column_count,
-                }
-                if profile:
-                    context["profile"] = {
-                        "row_count": profile.row_count,
-                        "column_count": profile.column_count,
-                        "columns_json": profile.columns_json or [],
-                    }
-
-            elif payload.tool_name == "run_prediction":
-                models = await self._model_repository.list_model_versions_for_workspace(
-                    session, payload.workspace_id
-                )
-                target = str(payload.arguments.get("model_id_or_name", "")).lower()
-                matched = None
-                for m in models:
-                    if target in f"{m.name} {m.version_tag}".lower() or str(m.id) == target:
-                        matched = m
-                        break
-                if not matched:
-                    # Select first production/staging/approved model if available
-                    for m in models:
-                        if m.status in ["production", "staging", "approved"]:
-                            matched = m
-                            break
-                if not matched and models:
-                    matched = models[0]
-                if not matched:
-                    raise ResourceNotFoundError("No model version available for prediction.")
-
-                features = payload.arguments.get(
-                    "input_features", {"age": 35, "income": 50000, "tenure": 4}
-                )
-                predict_req = PredictRequest(
-                    workspace_id=payload.workspace_id, input_features=features
-                )
-
-                # Execute MLService predict (eligibility, SHA-256, validation)
-                pred_res, latency, _ = await self._ml_service.predict(
-                    session, principal, matched.id, predict_req, request_id
-                )
-                context["prediction_result"] = pred_res
-                context["latency_ms"] = latency
-
-            result, duration_ms = self._sandbox.execute_tool(
-                payload.tool_name, payload.arguments, context=context
-            )
-
-            session.add(
-                AuditEvent(
-                    actor_user_id=user.id,
-                    workspace_id=payload.workspace_id,
-                    action="agent.tool_completed",
+                    action="agent.tool_denied",
                     resource_type="agent_tool",
                     resource_id=user.id,
                     request_id=request_id,
                     metadata_json={
                         "tool_name": payload.tool_name,
-                        "duration_ms": duration_ms,
+                        "reason": (
+                            f"RBAC Denied: role '{membership.role}'"
+                            f" lacks '{required_perm.value}'"
+                        ),
                     },
                 )
             )
+            raise rbac_error
 
-            return result, duration_ms
+        session.add(
+            AuditEvent(
+                actor_user_id=user.id,
+                workspace_id=payload.workspace_id,
+                action="agent.tool_requested",
+                resource_type="agent_tool",
+                resource_id=user.id,
+                request_id=request_id,
+                metadata_json={"tool_name": payload.tool_name},
+            )
+        )
+
+        # Build context dynamically from real DB repositories
+        context: dict[str, Any] = {}
+
+        if payload.tool_name == "list_models":
+            models = await self._model_repository.list_model_versions_for_workspace(
+                session, payload.workspace_id
+            )
+            context["models"] = [
+                {
+                    "id": m.id,
+                    "name": m.name,
+                    "version_tag": m.version_tag,
+                    "status": m.status,
+                    "metrics_json": m.metrics_json or {},
+                }
+                for m in models
+            ]
+
+        elif payload.tool_name == "list_datasets":
+            datasets = await self._dataset_repository.list_datasets_for_workspace(
+                session, payload.workspace_id, offset=0, limit=50
+            )
+            context["datasets"] = [
+                {
+                    "id": d.id,
+                    "original_filename": d.original_filename,
+                    "status": d.status,
+                    "row_count": d.row_count,
+                    "column_count": d.column_count,
+                }
+                for d in datasets
+            ]
+
+        elif payload.tool_name == "compare_models":
+            models = await self._model_repository.list_model_versions_for_workspace(
+                session, payload.workspace_id
+            )
+            m1_name = str(payload.arguments.get("model_name_1", "")).lower()
+            m2_name = str(payload.arguments.get("model_name_2", "")).lower()
+
+            m1, m2 = None, None
+            for m in models:
+                tag_or_name = f"{m.name} {m.version_tag}".lower()
+                if (m1_name in tag_or_name or str(m.id) == m1_name) and not m1:
+                    m1 = m
+                elif (m2_name in tag_or_name or str(m.id) == m2_name) and not m2:
+                    m2 = m
+
+            if not m1 or not m2:
+                if len(models) >= 2 and (not m1 or not m2):
+                    m1 = m1 or models[0]
+                    m2 = m2 or models[1]
+                else:
+                    raise ResourceNotFoundError("Could not find two model versions to compare.")
+
+            context["model_1"] = {
+                "id": m1.id,
+                "name": m1.name,
+                "version_tag": m1.version_tag,
+                "status": m1.status,
+                "metrics_json": m1.metrics_json or {},
+            }
+            context["model_2"] = {
+                "id": m2.id,
+                "name": m2.name,
+                "version_tag": m2.version_tag,
+                "status": m2.status,
+                "metrics_json": m2.metrics_json or {},
+            }
+
+        elif payload.tool_name == "explain_metrics":
+            models = await self._model_repository.list_model_versions_for_workspace(
+                session, payload.workspace_id
+            )
+            target = str(payload.arguments.get("model_id_or_name", "")).lower()
+            matched = None
+            for m in models:
+                if target in f"{m.name} {m.version_tag}".lower() or str(m.id) == target:
+                    matched = m
+                    break
+            if not matched and models:
+                matched = models[0]
+            if not matched:
+                raise ResourceNotFoundError("Requested model version was not found.")
+
+            eval_record = await self._model_repository.get_latest_evaluation(
+                session, matched.id
+            )
+
+            context["model"] = {
+                "id": matched.id,
+                "name": matched.name,
+                "version_tag": matched.version_tag,
+                "status": matched.status,
+                "metrics_json": matched.metrics_json or {},
+            }
+            if eval_record:
+                context["evaluation"] = {
+                    "accuracy": eval_record.accuracy,
+                    "f1_score": eval_record.f1_score,
+                    "passed_gate": eval_record.passed_gate,
+                    "evaluation_metadata": eval_record.evaluation_metadata or {},
+                }
+
+        elif payload.tool_name == "summarize_dataset":
+            datasets = await self._dataset_repository.list_datasets_for_workspace(
+                session, payload.workspace_id, offset=0, limit=50
+            )
+            target = str(payload.arguments.get("dataset_id_or_name", "")).lower()
+            matched_ds = None
+            for d in datasets:
+                if target in d.original_filename.lower() or str(d.id) == target:
+                    matched_ds = d
+                    break
+            if not matched_ds and datasets:
+                matched_ds = datasets[0]
+            if not matched_ds:
+                raise ResourceNotFoundError("Requested dataset was not found.")
+
+            profile = await self._dataset_repository.get_profile_by_dataset_id(
+                session, matched_ds.id
+            )
+            context["dataset"] = {
+                "id": matched_ds.id,
+                "original_filename": matched_ds.original_filename,
+                "status": matched_ds.status,
+                "row_count": matched_ds.row_count,
+                "column_count": matched_ds.column_count,
+            }
+            if profile:
+                context["profile"] = {
+                    "row_count": profile.row_count,
+                    "column_count": profile.column_count,
+                    "columns_json": profile.columns_json or [],
+                }
+
+        elif payload.tool_name == "run_prediction":
+            models = await self._model_repository.list_model_versions_for_workspace(
+                session, payload.workspace_id
+            )
+            target = str(payload.arguments.get("model_id_or_name", "")).lower()
+            matched = None
+            for m in models:
+                if target in f"{m.name} {m.version_tag}".lower() or str(m.id) == target:
+                    matched = m
+                    break
+            if not matched:
+                # Select first production/staging/approved model if available
+                for m in models:
+                    if m.status in ["production", "staging", "approved"]:
+                        matched = m
+                        break
+            if not matched and models:
+                matched = models[0]
+            if not matched:
+                raise ResourceNotFoundError("No model version available for prediction.")
+
+            features = payload.arguments.get(
+                "input_features", {"age": 35, "income": 50000, "tenure": 4}
+            )
+            predict_req = PredictRequest(
+                workspace_id=payload.workspace_id, input_features=features
+            )
+
+            # Execute MLService predict (eligibility, SHA-256, validation)
+            pred_res, latency, _ = await self._ml_service.predict(
+                session, principal, matched.id, predict_req, request_id
+            )
+            context["prediction_result"] = pred_res
+            context["latency_ms"] = latency
+
+        result, duration_ms = self._sandbox.execute_tool(
+            payload.tool_name, payload.arguments, context=context
+        )
+
+        session.add(
+            AuditEvent(
+                actor_user_id=user.id,
+                workspace_id=payload.workspace_id,
+                action="agent.tool_completed",
+                resource_type="agent_tool",
+                resource_id=user.id,
+                request_id=request_id,
+                metadata_json={
+                    "tool_name": payload.tool_name,
+                    "duration_ms": duration_ms,
+                },
+            )
+        )
+
+        return result, duration_ms
 
     async def orchestrate(
         self,

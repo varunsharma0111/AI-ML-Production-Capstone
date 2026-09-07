@@ -25,6 +25,8 @@ class TaskService:
         self._task_repository = task_repository or TaskRepository()
 
     async def current_user(self, session: AsyncSession, principal: Principal) -> User:
+        if session.in_transaction():
+            return await self._identity_repository.get_or_create_user(session, principal)
         async with session.begin():
             return await self._identity_repository.get_or_create_user(session, principal)
 

@@ -59,67 +59,77 @@ class OperationsService:
         principal: Principal,
         workspace_id: UUID,
     ) -> OperationsDashboardResponse:
+        if session.in_transaction():
+            return await self._get_dashboard_telemetry_impl(session, principal, workspace_id)
         async with session.begin():
-            await self._authorized_user(session, principal, workspace_id, Permission.WORKSPACE_READ)
+            return await self._get_dashboard_telemetry_impl(session, principal, workspace_id)
 
-            # Datasets count
-            ds_result = await session.execute(
-                select(Dataset.status, func.count(Dataset.id))
-                .where(Dataset.workspace_id == workspace_id)
-                .group_by(Dataset.status)
-            )
-            ds_counts: dict[str, int] = {str(row[0]): int(row[1]) for row in ds_result.all()}
+    async def _get_dashboard_telemetry_impl(
+        self,
+        session: AsyncSession,
+        principal: Principal,
+        workspace_id: UUID,
+    ) -> OperationsDashboardResponse:
+        await self._authorized_user(session, principal, workspace_id, Permission.WORKSPACE_READ)
 
-            # Jobs count
-            job_result = await session.execute(
-                select(Job.status, func.count(Job.id))
-                .where(Job.workspace_id == workspace_id)
-                .group_by(Job.status)
-            )
-            job_counts: dict[str, int] = {str(row[0]): int(row[1]) for row in job_result.all()}
+        # Datasets count
+        ds_result = await session.execute(
+            select(Dataset.status, func.count(Dataset.id))
+            .where(Dataset.workspace_id == workspace_id)
+            .group_by(Dataset.status)
+        )
+        ds_counts: dict[str, int] = {str(row[0]): int(row[1]) for row in ds_result.all()}
 
-            # Model count
-            model_result = await session.execute(
-                select(ModelVersion.status, func.count(ModelVersion.id))
-                .where(ModelVersion.workspace_id == workspace_id)
-                .group_by(ModelVersion.status)
-            )
-            model_counts: dict[str, int] = {str(row[0]): int(row[1]) for row in model_result.all()}
+        # Jobs count
+        job_result = await session.execute(
+            select(Job.status, func.count(Job.id))
+            .where(Job.workspace_id == workspace_id)
+            .group_by(Job.status)
+        )
+        job_counts: dict[str, int] = {str(row[0]): int(row[1]) for row in job_result.all()}
 
-            # Inference count & avg latency
-            inf_result = await session.execute(
-                select(
-                    func.count(InferenceLog.id),
-                    func.coalesce(func.avg(InferenceLog.latency_ms), 0.0),
-                ).where(InferenceLog.workspace_id == workspace_id)
-            )
-            total_predictions, avg_latency = inf_result.one()
+        # Model count
+        model_result = await session.execute(
+            select(ModelVersion.status, func.count(ModelVersion.id))
+            .where(ModelVersion.workspace_id == workspace_id)
+            .group_by(ModelVersion.status)
+        )
+        model_counts: dict[str, int] = {str(row[0]): int(row[1]) for row in model_result.all()}
 
-            summary = SystemMetricsSummary(
-                total_datasets=sum(ds_counts.values()),
-                ready_datasets=ds_counts.get("ready", 0),
-                profiling_datasets=ds_counts.get("profiling", 0),
-                failed_datasets=ds_counts.get("failed", 0),
-                total_training_jobs=sum(job_counts.values()),
-                queued_jobs=job_counts.get("queued", 0),
-                processing_jobs=job_counts.get("processing", 0),
-                completed_jobs=job_counts.get("completed", 0),
-                failed_jobs=job_counts.get("failed", 0),
-                total_models=sum(model_counts.values()),
-                production_models=model_counts.get("production", 0),
-                staging_models=model_counts.get("staging", 0),
-                approved_models=model_counts.get("approved", 0),
-                rejected_models=model_counts.get("rejected", 0),
-                total_predictions=total_predictions,
-                average_latency_ms=round(float(avg_latency), 2),
-            )
+        # Inference count & avg latency
+        inf_result = await session.execute(
+            select(
+                func.count(InferenceLog.id),
+                func.coalesce(func.avg(InferenceLog.latency_ms), 0.0),
+            ).where(InferenceLog.workspace_id == workspace_id)
+        )
+        total_predictions, avg_latency = inf_result.one()
 
-            return OperationsDashboardResponse(
-                system_status="healthy",
-                api_status="ok",
-                database_status="ok",
-                metrics=summary,
-            )
+        summary = SystemMetricsSummary(
+            total_datasets=sum(ds_counts.values()),
+            ready_datasets=ds_counts.get("ready", 0),
+            profiling_datasets=ds_counts.get("profiling", 0),
+            failed_datasets=ds_counts.get("failed", 0),
+            total_training_jobs=sum(job_counts.values()),
+            queued_jobs=job_counts.get("queued", 0),
+            processing_jobs=job_counts.get("processing", 0),
+            completed_jobs=job_counts.get("completed", 0),
+            failed_jobs=job_counts.get("failed", 0),
+            total_models=sum(model_counts.values()),
+            production_models=model_counts.get("production", 0),
+            staging_models=model_counts.get("staging", 0),
+            approved_models=model_counts.get("approved", 0),
+            rejected_models=model_counts.get("rejected", 0),
+            total_predictions=total_predictions,
+            average_latency_ms=round(float(avg_latency), 2),
+        )
+
+        return OperationsDashboardResponse(
+            system_status="healthy",
+            api_status="ok",
+            database_status="ok",
+            metrics=summary,
+        )
 
     async def list_audit_logs(
         self,
@@ -128,7 +138,18 @@ class OperationsService:
         workspace_id: UUID,
         limit: int = 100,
     ) -> list[AuditEventResponse]:
+        if session.in_transaction():
+            return await self._list_audit_logs_impl(session, principal, workspace_id, limit)
         async with session.begin():
+            return await self._list_audit_logs_impl(session, principal, workspace_id, limit)
+
+    async def _list_audit_logs_impl(
+        self,
+        session: AsyncSession,
+        principal: Principal,
+        workspace_id: UUID,
+        limit: int = 100,
+    ) -> list[AuditEventResponse]:
             await self._authorized_user(session, principal, workspace_id, Permission.WORKSPACE_READ)
 
             result = await session.execute(

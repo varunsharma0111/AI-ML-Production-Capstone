@@ -150,8 +150,16 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
-        await redis_manager.connect()
-        await asyncio.to_thread(run_migrations_sync, resolved_settings.database_url)
+        try:
+            await redis_manager.connect()
+        except Exception as err:
+            logger.warning("Redis connection warning: %s", err)
+
+        if "sqlite" not in resolved_settings.database_url:
+            try:
+                await asyncio.to_thread(run_migrations_sync, resolved_settings.database_url)
+            except Exception as err:
+                logger.warning("Database migration warning: %s", err)
 
         try:
             async with engine.begin() as conn:
@@ -255,9 +263,14 @@ def create_app(
     @app.exception_handler(Exception)
     async def handle_unexpected_error(request: Request, error: Exception) -> JSONResponse:
         request_id = getattr(request.state, "request_id", "unknown")
-        logger.exception("unexpected_error", extra={"request_id": request_id})
+        logger.exception("unexpected_error", extra={"request_id": request_id, "error": str(error)})
+        detail = (
+            f"An unexpected error occurred: {str(error)}"
+            if resolved_settings.app_env in ("local", "dev", "development", "test")
+            else "An unexpected error occurred."
+        )
         return problem_response(
-            request, 500, "internal_error", "Internal Server Error", "An unexpected error occurred."
+            request, 500, "internal_error", "Internal Server Error", detail
         )
 
     from app.api.routers import (

@@ -34,9 +34,9 @@ export const DatasetList: React.FC = () => {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [selectedDataset, setSelectedDataset] = useState<Dataset | null>(null);
 
-  const fetchDatasets = useCallback(async () => {
+  const fetchDatasets = useCallback(async (showSkeleton = false) => {
     if (!activeWorkspace?.id) return;
-    setIsLoading(true);
+    if (showSkeleton) setIsLoading(true);
     setProblem(null);
     try {
       const data = await request<DatasetListResponse>(
@@ -62,13 +62,21 @@ export const DatasetList: React.FC = () => {
     }
   }, [activeWorkspace.id, token]);
 
+  const isProcessing = datasets.some(
+    (ds) => ds.status === "profiling" || ds.status === "uploaded"
+  );
+
   useEffect(() => {
-    fetchDatasets();
-    const interval = setInterval(() => {
-      fetchDatasets();
-    }, 2000);
-    return () => clearInterval(interval);
+    fetchDatasets(true);
   }, [fetchDatasets]);
+
+  useEffect(() => {
+    const pollIntervalMs = isProcessing ? 2000 : 15000;
+    const interval = setInterval(() => {
+      fetchDatasets(false);
+    }, pollIntervalMs);
+    return () => clearInterval(interval);
+  }, [fetchDatasets, isProcessing]);
 
   const handleDeleteDataset = async (e: React.MouseEvent, datasetId: string, filename: string) => {
     e.stopPropagation();

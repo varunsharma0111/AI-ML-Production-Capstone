@@ -33,9 +33,11 @@ class User(Base):
     oidc_subject: Mapped[str] = mapped_column(String(255), unique=True, index=True)
     email: Mapped[str | None] = mapped_column(String(320), nullable=True)
     display_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.now, server_default=func.now()
+    )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+        DateTime(timezone=True), default=datetime.now, onupdate=datetime.now, server_default=func.now()
     )
 
 
@@ -46,9 +48,11 @@ class Workspace(Base):
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     slug: Mapped[str] = mapped_column(String(80), nullable=False)
     name: Mapped[str] = mapped_column(String(160), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.now, server_default=func.now()
+    )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+        DateTime(timezone=True), default=datetime.now, onupdate=datetime.now, server_default=func.now()
     )
 
 
@@ -65,7 +69,9 @@ class WorkspaceMembership(Base):
     workspace_id: Mapped[UUID] = mapped_column(ForeignKey("workspaces.id", ondelete="CASCADE"))
     user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     role: Mapped[str] = mapped_column(String(20), nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.now, server_default=func.now()
+    )
 
 
 class Task(Base):
@@ -81,9 +87,11 @@ class Task(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="open")
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.now, server_default=func.now()
+    )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+        DateTime(timezone=True), default=datetime.now, onupdate=datetime.now, server_default=func.now()
     )
 
 
@@ -101,7 +109,7 @@ class AuditEvent(Base):
     request_id: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     metadata_json: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False, default=dict)
     occurred_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
+        DateTime(timezone=True), default=datetime.now, server_default=func.now()
     )
 
 
@@ -122,9 +130,11 @@ class Job(Base):
     max_retries: Mapped[int] = mapped_column(Integer, nullable=False, default=3)
     attempt_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.now, server_default=func.now()
+    )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+        DateTime(timezone=True), default=datetime.now, onupdate=datetime.now, server_default=func.now()
     )
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
@@ -139,7 +149,9 @@ class JobAttempt(Base):
     status: Mapped[str] = mapped_column(String(50), nullable=False)
     error_detail: Mapped[str | None] = mapped_column(Text, nullable=True)
     duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.now, server_default=func.now()
+    )
 
 
 class ModelVersion(Base):
@@ -162,14 +174,16 @@ class ModelVersion(Base):
         ForeignKey("jobs.id", ondelete="SET NULL"), nullable=True, index=True
     )
     metrics_json: Mapped[dict[str, object]] = mapped_column(
-        JSONB, nullable=False, server_default="{}"
+        JSONB, nullable=False, default=dict
     )
     hyperparameters_json: Mapped[dict[str, object]] = mapped_column(
-        JSONB, nullable=False, server_default="{}"
+        JSONB, nullable=False, default=dict
     )
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.now, server_default=func.now()
+    )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+        DateTime(timezone=True), default=datetime.now, onupdate=datetime.now, server_default=func.now()
     )
 
 
@@ -191,7 +205,7 @@ class ModelEvaluation(Base):
         JSONB, nullable=False, default=dict
     )
     evaluated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now()
+        DateTime(timezone=True), default=datetime.now, server_default=func.now()
     )
 
 
@@ -208,7 +222,9 @@ class InferenceLog(Base):
     input_features: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False)
     prediction: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False)
     latency_ms: Mapped[float] = mapped_column(Float, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.now, server_default=func.now()
+    )
 
 
 class OutboxEvent(Base):
@@ -221,7 +237,9 @@ class OutboxEvent(Base):
     payload_json: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False)
     status: Mapped[str] = mapped_column(String(50), nullable=False, default="pending", index=True)
     retry_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.now, server_default=func.now()
+    )
     published_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
 
@@ -241,9 +259,11 @@ class Dataset(Base):
     status: Mapped[str] = mapped_column(String(50), nullable=False, default="uploaded")
     row_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
     column_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.now, server_default=func.now()
+    )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+        DateTime(timezone=True), default=datetime.now, onupdate=datetime.now, server_default=func.now()
     )
 
 
@@ -259,4 +279,6 @@ class DatasetProfile(Base):
     columns_json: Mapped[list[dict[str, object]]] = mapped_column(
         JSONB, nullable=False, default=list
     )
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=datetime.now, server_default=func.now()
+    )
