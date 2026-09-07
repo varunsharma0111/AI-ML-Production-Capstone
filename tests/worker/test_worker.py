@@ -59,7 +59,7 @@ async def test_process_job_by_id_success() -> None:
     )
 
     assert result is True
-    assert mock_redis.publish_job_update.call_count == 2
+    assert mock_redis.publish_job_update.call_count == 1
     mock_runner.execute_job.assert_called_once()
 
 

@@ -22,7 +22,7 @@ def test_cors_headers_present() -> None:
     response = client.options(
         "/api/v1/tasks",
         headers={
-            "Origin": "http://localhost:8080",
+            "Origin": "http://localhost:3000",
             "Access-Control-Request-Method": "GET",
         },
     )

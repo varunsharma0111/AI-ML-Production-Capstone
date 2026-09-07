@@ -81,12 +81,9 @@ class ControlledInferencePredictor:
             try:
                 numeric_val = float(val)
             except (ValueError, TypeError):
-                if isinstance(val, str):
-                    numeric_val = float(sum(ord(c) for c in val) % 100)
-                else:
-                    raise ValidationError(
-                        f"Invalid non-numeric value for feature '{f_name}': {val}"
-                    )
+                raise ValidationError(
+                    f"Invalid non-numeric value for feature '{f_name}': {val}"
+                )
             feature_vector.append(numeric_val)
 
         # Compute model prediction and confidence score
