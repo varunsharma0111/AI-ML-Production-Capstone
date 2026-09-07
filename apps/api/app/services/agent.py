@@ -11,6 +11,7 @@ if str(_ROOT) not in sys.path:
 
 # ruff: noqa: E402
 
+import asyncio
 import re
 from typing import Any
 
