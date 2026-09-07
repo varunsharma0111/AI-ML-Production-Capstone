@@ -328,24 +328,35 @@ class AgentService:
         payload: AgentOrchestrateRequest,
         request_id: str = "unknown",
     ) -> AgentOrchestrateResponse:
+        if session.in_transaction():
+            return await self._orchestrate_impl(session, principal, payload, request_id)
+        async with session.begin():
+            return await self._orchestrate_impl(session, principal, payload, request_id)
+
+    async def _orchestrate_impl(
+        self,
+        session: AsyncSession,
+        principal: Principal,
+        payload: AgentOrchestrateRequest,
+        request_id: str = "unknown",
+    ) -> AgentOrchestrateResponse:
         user = await self._identity_repository.get_or_create_user(session, principal)
         membership = await self._identity_repository.get_membership(session, payload.workspace_id, user.id, principal)
         if membership is None:
             raise AuthorizationError("User is not a member of the specified workspace.")
 
         # Log agent request audit event
-        async with session.begin():
-            session.add(
-                AuditEvent(
-                    actor_user_id=user.id,
-                    workspace_id=payload.workspace_id,
-                    action="agent.requested",
-                    resource_type="agent_chat",
-                    resource_id=user.id,
-                    request_id=request_id,
-                    metadata_json={"prompt_length": len(payload.message)},
-                )
+        session.add(
+            AuditEvent(
+                actor_user_id=user.id,
+                workspace_id=payload.workspace_id,
+                action="agent.requested",
+                resource_type="agent_chat",
+                resource_id=user.id,
+                request_id=request_id,
+                metadata_json={"prompt_length": len(payload.message)},
             )
+        )
 
         msg_lower = payload.message.lower()
         tools_used: list[str] = []
@@ -476,18 +487,17 @@ class AgentService:
                 answer = f"**Workspace Models ({res.get('count', 0)})**:\n\n" + ("\n".join(m_lines) if m_lines else "No models registered in this workspace yet.")
 
             # Audit agent completion
-            async with session.begin():
-                session.add(
-                    AuditEvent(
-                        actor_user_id=user.id,
-                        workspace_id=payload.workspace_id,
-                        action="agent.completed",
-                        resource_type="agent_chat",
-                        resource_id=user.id,
-                        request_id=request_id,
-                        metadata_json={"tools_used": tools_used},
-                    )
+            session.add(
+                AuditEvent(
+                    actor_user_id=user.id,
+                    workspace_id=payload.workspace_id,
+                    action="agent.completed",
+                    resource_type="agent_chat",
+                    resource_id=user.id,
+                    request_id=request_id,
+                    metadata_json={"tools_used": tools_used},
                 )
+            )
 
             return AgentOrchestrateResponse(
                 answer=answer,
@@ -496,18 +506,17 @@ class AgentService:
             )
 
         except Exception as error:
-            async with session.begin():
-                session.add(
-                    AuditEvent(
-                        actor_user_id=user.id,
-                        workspace_id=payload.workspace_id,
-                        action="agent.failed",
-                        resource_type="agent_chat",
-                        resource_id=user.id,
-                        request_id=request_id,
-                        metadata_json={"error": str(error)},
-                    )
+            session.add(
+                AuditEvent(
+                    actor_user_id=user.id,
+                    workspace_id=payload.workspace_id,
+                    action="agent.failed",
+                    resource_type="agent_chat",
+                    resource_id=user.id,
+                    request_id=request_id,
+                    metadata_json={"error": str(error)},
                 )
+            )
             raise error
 
 
