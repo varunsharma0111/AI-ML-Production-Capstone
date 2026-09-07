@@ -26,7 +26,12 @@ from app.api.schemas.agent import (
     ToolExecuteRequest,
 )
 from app.api.schemas.ml import PredictRequest
-from app.core.errors import AuthorizationError, ResourceNotFoundError
+from app.core.errors import (
+    AuthorizationError,
+    DomainError,
+    ResourceNotFoundError,
+    ValidationError,
+)
 from app.db.models.entities import AuditEvent
 from app.db.repositories.datasets import DatasetRepository
 from app.db.repositories.identity import IdentityRepository
@@ -479,7 +484,7 @@ class AgentService:
                 tools_used.append(tool_name)
                 tool_results.append({"tool_name": tool_name, "result": res, "duration_ms": duration})
                 ds_list = res.get("datasets", [])
-                ds_lines = [f"- `{d['filename']}` ({d['status']}, {d.get('row_count', 'N/A')} rows)" for d in ds_list]
+                ds_lines = [f"- `{d.get('filename', d.get('original_filename', 'dataset'))}` ({d.get('status', 'uploaded')}, {d.get('row_count', 'N/A')} rows)" for d in ds_list]
                 answer = f"**Workspace Datasets ({res.get('count', 0)})**:\n\n" + ("\n".join(ds_lines) if ds_lines else "No datasets found in this workspace.")
 
             else:
@@ -494,7 +499,7 @@ class AgentService:
                 tools_used.append(tool_name)
                 tool_results.append({"tool_name": tool_name, "result": res, "duration_ms": duration})
                 m_list = res.get("models", [])
-                m_lines = [f"- **{m['name']}** (`{m['version_tag']}`) — Status: `{m['status']}`" for m in m_list]
+                m_lines = [f"- **{m.get('name', 'Model')}** (`{m.get('version_tag', 'v1.0.0')}`) — Status: `{m.get('status', 'draft')}`" for m in m_list]
                 answer = f"**Workspace Models ({res.get('count', 0)})**:\n\n" + ("\n".join(m_lines) if m_lines else "No models registered in this workspace yet.")
 
             # Audit agent completion
@@ -510,6 +515,26 @@ class AgentService:
                 )
             )
 
+            return AgentOrchestrateResponse(
+                answer=answer,
+                tools_used=tools_used,
+                tool_results=tool_results,
+            )
+
+        except (ResourceNotFoundError, DomainError, ValidationError) as domain_err:
+            err_msg = getattr(domain_err, "detail", str(domain_err))
+            answer = f"**AI Assistant Guidance**:\n\n{err_msg}\n\n_Tip: To analyze datasets or models in this workspace, upload a CSV file under **Datasets** or train/register a model version in **Model Registry**._"
+            session.add(
+                AuditEvent(
+                    actor_user_id=user.id,
+                    workspace_id=payload.workspace_id,
+                    action="agent.completed",
+                    resource_type="agent_chat",
+                    resource_id=user.id,
+                    request_id=request_id,
+                    metadata_json={"tools_used": tools_used, "notice": err_msg},
+                )
+            )
             return AgentOrchestrateResponse(
                 answer=answer,
                 tools_used=tools_used,
