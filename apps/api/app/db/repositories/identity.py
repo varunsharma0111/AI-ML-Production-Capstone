@@ -124,7 +124,15 @@ class IdentityRepository:
         return membership
 
     async def get_user_workspaces(self, session: AsyncSession, user_id: UUID) -> list[dict[str, Any]]:
+        from app.core.config import get_settings
+
+        settings = get_settings()
+
         stmt = select(Workspace.id, Workspace.slug, Workspace.name, WorkspaceMembership.role).join(WorkspaceMembership, Workspace.id == WorkspaceMembership.workspace_id).where(WorkspaceMembership.user_id == user_id)
+        
+        if settings.public_test_mode:
+            stmt = stmt.where(Workspace.id == PUBLIC_TEST_WORKSPACE_ID)
+
         result = await session.execute(stmt)
         return [
             {
