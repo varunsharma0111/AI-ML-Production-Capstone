@@ -111,7 +111,7 @@ class Settings(BaseSettings):
             return tuple(item.strip() for item in v.split(",") if item.strip())
         if isinstance(value, list | tuple):
             return tuple(str(x).strip() for x in value if str(x).strip())
-        return value
+        return (str(value),)
 
     @field_validator("allowed_jwt_algorithms")
     @classmethod
