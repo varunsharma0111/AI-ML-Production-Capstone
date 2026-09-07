@@ -146,6 +146,11 @@ def create_app(settings: Settings | None = None, token_verifier: JwtVerifier | N
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
+        import os
+        import subprocess
+
+        worker_process = None
+
         try:
             await redis_manager.connect()
         except Exception as err:
@@ -176,7 +181,31 @@ def create_app(settings: Settings | None = None, token_verifier: JwtVerifier | N
                         await conn.execute(text(stmt))
         except Exception as exc:
             logger.warning("Database schema check warning: %s", exc)
+
+        if resolved_settings.app_env in ("production", "staging", "local", "development"):
+            logger.info("Starting integrated background worker process...")
+            env = os.environ.copy()
+            env["DATABASE_URL"] = resolved_settings.database_url
+            env["WORKER_METRICS_PORT"] = "0"
+            try:
+                worker_process = subprocess.Popen(
+                    [sys.executable, "-m", "services.worker.main"],
+                    cwd=str(_ROOT),
+                    env=env
+                )
+            except Exception as e:
+                logger.error("Failed to start integrated worker: %s", e)
+
         yield
+        
+        if worker_process:
+            logger.info("Terminating integrated background worker...")
+            worker_process.terminate()
+            try:
+                worker_process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                worker_process.kill()
+
         await redis_manager.close()
         await engine.dispose()
 
