@@ -1,194 +1,147 @@
-# AuraML
+# AuraML — AI/ML Production Capstone
 
-## Local MLOps & Machine Learning Platform
+## Enterprise MLOps, AI Copilot & Model Governance Platform
 
-AuraML is a local machine-learning platform that brings the core ML workflow into one application — from dataset upload and data profiling to model training, evaluation, quality checks, model promotion, and prediction.
+AuraML is a production-grade machine learning and data operations platform. It unifies the end-to-end ML lifecycle into a single application — from dataset ingestion, data profiling, and automated training to quality gate evaluation, model promotion governance, real-time inference serving, and natural language AI Copilot orchestration.
 
 ---
 
-## Local Architecture
+## 🌐 Live Production Deployments
+
+- **Frontend Application (Vercel)**: [https://ai-ml-production-capstone.vercel.app](https://ai-ml-production-capstone.vercel.app)
+- **Backend API Docs (Render)**: [https://capstone-demo-api.onrender.com/docs](https://capstone-demo-api.onrender.com/docs)
+- **Technical Interview & Architecture Guide**: [interview.md](interview.md)
+
+---
+
+## 📸 Platform Screenshots
+
+### 1. MLOps Global Dashboard & Inference Monitoring
+![Global Platform Dashboard](docs/assets/dashboard_screenshot.jpg)
+
+### 2. AI Copilot Assistant & Model Quality Gate Verification
+![AI Copilot Assistant & Quality Gate](docs/assets/ai_assistant_screenshot.jpg)
+
+---
+
+## 🏗 System Architecture
 
 ```text
-                    ┌──────────────────────┐
-                    │     User / Browser   │
-                    └──────────┬───────────┘
-                               │
-                               │ HTTP
-                               ▼
-                    ┌──────────────────────┐
-                    │    React Frontend    │
-                    │   localhost:5173     │
-                    └──────────┬───────────┘
-                               │
-                               │ HTTP API
-                               ▼
-                    ┌──────────────────────┐
-                    │   FastAPI Backend    │
-                    │   localhost:8000     │
-                    └───────┬───────┬──────┘
-                            │       │
-                     Dataset│       │Job
-                            │       │
-                            ▼       ▼
-                  ┌────────────┐  ┌────────────┐
-                  │   Local    │  │   Redis    │
-                  │  Storage   │  │   Queue    │
-                  │ ./data/    │  │   :6379    │
-                  └─────┬──────┘  └─────┬──────┘
-                        │                │
-                        │                │ Job
-                        │                ▼
-                        │       ┌────────────────┐
-                        └──────►│ Python Worker  │
-                                │ Background ML  │
-                                └───────┬────────┘
-                                        │
-                              ┌─────────┴─────────┐
-                              │                   │
-                              ▼                   ▼
-                       ┌────────────┐      ┌─────────────┐
-                       │ PostgreSQL │      │ Scikit-learn│
-                       │   :5432    │      │ ML Training │
-                       └────────────┘      └──────┬──────┘
+                     ┌────────────────────────┐
+                     │     User / Browser     │
+                     └───────────┬────────────┘
+                                 │
+                                 │ HTTP / REST
+                                 ▼
+                     ┌────────────────────────┐
+                     │ React Frontend (Vercel)│
+                     └───────────┬────────────┘
+                                 │
+                                 │ REST API
+                                 ▼
+                     ┌────────────────────────┐
+                     │  FastAPI Backend (Render)
+                     │ - RBAC Security        │
+                     │ - AI Assistant Engine  │
+                     └───────┬────────┬───────┘
+                             │        │
+                      Dataset│        │Job Queue
+                             │        │
+                             ▼        ▼
+                   ┌────────────┐  ┌────────────┐
+                   │  Storage   │  │ SQL Job    │
+                   │ (S3/Local) │  │ Queue      │
+                   └─────┬──────┘  └─────┬──────┘
+                         │                │
+                         │                │ Job Execution
+                         │                ▼
+                         │       ┌────────────────┐
+                         └──────►│ Python Worker  │
+                                 │ Background ML  │
+                                 └───────┬────────┘
+                                         │
+                               ┌─────────┴─────────┐
+                               │                   │
+                               ▼                   ▼
+                        ┌────────────┐      ┌─────────────┐
+                        │ PostgreSQL │      │ Scikit-learn│
+                        │ Database   │      │ ML Training │
+                        └────────────┘      └──────┬──────┘
+                                                   │
+                                                   ▼
+                                            ┌─────────────┐
+                                            │    Model    │
+                                            │   Artifact  │
+                                            └──────┬──────┘
+                                                   │
+                                                   ▼
+                                          ┌────────────────┐
+                                          │ Prediction API │
+                                          └───────┬────────┘
                                                   │
                                                   ▼
-                                           ┌─────────────┐
-                                           │    Model    │
-                                           │   Artifact  │
-                                           └──────┬──────┘
-                                                  │
-                                                  ▼
-                                         ┌────────────────┐
-                                         │ Prediction API │
-                                         └───────┬────────┘
-                                                 │
-                                                 ▼
-                                         ┌────────────────┐
-                                         │ Prediction     │
-                                         │ Result         │
-                                         └────────────────┘
+                                          ┌────────────────┐
+                                          │ Real-Time      │
+                                          │ Inference Log  │
+                                          └────────────────┘
 ```
-
-### Architecture in Simple Terms
-
-```text
-User
- ↓
-React Frontend
- ↓
-FastAPI Backend
- ├──→ Local File Storage
- └──→ Redis Queue
-          ↓
-     Python Worker
-       ├──→ PostgreSQL
-       └──→ Scikit-learn
-                ↓
-           Model Artifact
-                ↓
-          Prediction API
-                ↓
-        Prediction Result
-```
-
-AuraML uses a background Python worker for longer-running profiling and training jobs instead of making the FastAPI request perform the entire ML operation.
 
 ---
 
-## Project Overview
+## 🚀 Key Features
 
-AuraML provides a web interface for:
+### 1. Dataset Management & Data Profiling
+- Asynchronous CSV dataset upload and validation.
+- Schema inference, column statistical distributions, and missing-value analysis.
+- Multi-tenant workspace storage isolation.
 
-- Uploading datasets
-- Profiling datasets
-- Checking data quality
-- Running background ML training jobs
-- Evaluating models
-- Applying quality gates
-- Promoting approved models
-- Generating predictions
+### 2. Automated Model Training & Registry
+- Asynchronous background training worker powered by Scikit-learn.
+- Strict model state machine (`draft` → `candidate` → `approved` / `rejected` → `staging` / `production`).
+- Artifact storage and hyperparameter tracking.
 
-The platform connects dataset management, asynchronous processing, model training, evaluation, and prediction into one local application.
+### 3. Automated Quality Gate Policy
+- Enforces production readiness before models can serve real-time predictions:
+  - **Accuracy $\ge 0.85$**
+  - **F1 Score $\ge 0.80$**
+  - **Latency $\le 100\text{ ms}$**
+- Models failing the quality gate are automatically marked `rejected` and blocked from real-time endpoints.
 
----
+### 4. AI Copilot Assistant Orchestrator
+- Natural language query orchestration (`/api/v1/agent/orchestrate`).
+- Integrated dataset profiler tool, quality gate evaluation, and task management.
+- Non-blocking markdown fallback response formatting.
 
-## ML Workflow
-
-```text
-CSV Dataset
-     ↓
-Dataset Upload
-     ↓
-Data Profiling
-     ↓
-Quality Checks
-     ↓
-Train ML Model
-     ↓
-Evaluate Model
-     ↓
-Quality Gate
-     ↓
-Promote Model
-     ↓
-Make Predictions
-```
-
-### Background Job Flow
-
-Profiling and model training are processed asynchronously:
-
-```text
-User Request
-     ↓
-FastAPI Backend
-     ↓
-Create Job
-     ↓
-Redis Queue
-     ↓
-Python Worker
-     ↓
-Process Job
-     ↓
-Store Result
-```
-
-This separates normal API requests from longer-running ML operations.
+### 5. Multi-Tenant RBAC Security & Audit Logging
+- Role-Based Access Control (`owner`, `editor`, `viewer`).
+- Transactional Outbox pattern for decoupled event publishing.
+- Immutable audit event logging for all compliance and write operations.
 
 ---
 
-## Example: Customer Churn Prediction
+## 🛠 Technology Stack
 
-AuraML can be demonstrated using a customer churn dataset.
+| Layer | Technology | Purpose |
+| :--- | :--- | :--- |
+| **Frontend** | React 18, TypeScript, Vite, Tailwind CSS | Web application SPA hosted on Vercel |
+| **Backend API** | Python 3.11, FastAPI, Pydantic v2 | REST API & AI Orchestrator hosted on Render |
+| **Database** | PostgreSQL, SQLAlchemy 2.0 (AsyncIO), Alembic | Relational database & ORM persistence |
+| **Worker Queue** | Async SQL Engine with Savepoint Isolation | Background dataset profiling & model training |
+| **ML Engine** | Scikit-learn, Pandas, NumPy, Joblib | Model training, quality evaluation & inference |
+| **Testing & Quality** | Pytest, Pytest-Asyncio, Ruff | Linter, code formatting & unit test suite |
 
-### What is Churn?
+---
 
-Churn means that a customer stopped using a company's service.
+## 📊 Example: Customer Churn Prediction
 
-The `churn` column is the **target variable** — the value the machine-learning model learns to predict.
-
-- `churn = 0` → Customer did not churn
-- `churn = 1` → Customer churned
-
-The remaining columns provide information that the model can use to make its prediction.
-
-### Example Dataset
-
-| Customer | Age | Tenure | Contract | Late Payments | Churn |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| TEL0001 | 25 | 5 | Monthly | 3 | 1 |
-| TEL0002 | 52 | 60 | Two-Year | 0 | 0 |
-| TEL0003 | 31 | 12 | Monthly | 2 | 1 |
-
-This is a binary classification problem because the model predicts one of two outcomes.
+AuraML includes a complete binary classification workflow:
 
 ```text
-Customer Information
+Customer Features (Tenure, Contract, Monthly Charges)
         ↓
     ML Model
         ↓
-  Churn Prediction
+   Churn Prediction
         ↓
    ┌───────────────┐
    │ 0 → Stayed    │
@@ -196,106 +149,14 @@ Customer Information
    └───────────────┘
 ```
 
-The model learns patterns from existing customer data and uses those patterns to predict the churn outcome for new data.
-
 ---
 
-## Local Technology Stack
-
-| Layer | Technology | Purpose |
-| :--- | :--- | :--- |
-| **Frontend** | React, TypeScript, Vite | Web interface for datasets, jobs, models, and predictions |
-| **Backend** | FastAPI, Uvicorn, Python, Pydantic | REST API, validation, and application logic |
-| **Database** | PostgreSQL, SQLAlchemy, Alembic, asyncpg | Stores datasets, jobs, models, metrics, and application records |
-| **Queue** | Redis | Queues background profiling and training jobs |
-| **Worker** | Python Worker | Processes background jobs and ML/data operations |
-| **ML/Data** | Scikit-learn, Python CSV processing | Data profiling, model training, and evaluation |
-| **File Storage** | Local filesystem | Stores uploaded datasets and model artifacts |
-| **Testing** | Pytest, HTTPX | API, integration, and end-to-end testing |
-
----
-
-## Key Features
-
-### Dataset Management & Profiling
-- CSV dataset upload
-- Automatic schema inference
-- Data type detection
-- Missing-value analysis
-- Summary statistics
-- Dataset health information
-- Local dataset storage
-
-### Asynchronous ML Processing
-- Redis-backed job queue
-- Background Python worker
-- Dataset profiling jobs
-- Model training jobs
-- Job status tracking
-
-### Model Training & Evaluation
-- Scikit-learn model training
-- Binary classification workflow
-- Model performance evaluation
-  - Accuracy
-  - Precision
-  - Recall
-  - F1 score
-- Model artifact persistence
-
-### Model Quality & Promotion
-- Automated quality checks
-- Quality gate evaluation
-- Model approval workflow
-- Promotion of models that meet defined requirements
-
-### Prediction
-- Prediction API
-- Promoted model inference
-- Single prediction workflow
-- Batch prediction workflow
-
-### Web Interface
-- React and TypeScript frontend
-- Dataset management interface
-- Job tracking
-- Model evaluation interface
-- Prediction interface
-- Responsive UI
-
----
-
-## Project Structure
-
-```text
-AuraML/
-│
-├── apps/
-│   ├── api/                 # FastAPI backend
-│   └── web/                 # React frontend
-│
-├── services/
-│   └── worker/              # Background Python worker
-│
-├── database/
-│   └── migrations/          # Alembic database migrations
-│
-├── data/
-│   └── uploads/             # Local datasets and model artifacts
-│
-└── tests/                   # Automated tests
-```
-
----
-
-## Quickstart
+## 💻 Quickstart (Local Development)
 
 ### Prerequisites
 - Python 3.11+
 - Node.js 20+
 - npm
-- PostgreSQL
-- Redis
 
 ### 1. Clone the Repository
 ```bash
@@ -303,108 +164,32 @@ git clone https://github.com/varunsharma0111/AI-ML-Production-Capstone.git
 cd AI-ML-Production-Capstone
 ```
 
-### 2. Install Backend Dependencies
+### 2. Install Backend & Frontend Dependencies
 ```bash
 pip install -e .[dev]
+cd apps/web && npm install && cd ../..
 ```
 
-### 3. Install Frontend Dependencies
+### 3. Run Automated Tests & Quality Checks
 ```bash
-cd apps/web
-npm install
-cd ../..
+python -m ruff check .
+python -m pytest tests/unit/
 ```
 
-### 4. Configure Environment Variables
-
-Copy `.env.example` to `.env` and configure the local environment:
-
-```env
-APP_ENV=local
-
-DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/capstone
-
-REDIS_URL=redis://localhost:6379/0
-
-STORAGE_BACKEND=local
-STORAGE_PATH=./data/uploads
-
-CORS_ORIGINS=http://localhost:5173,http://localhost:3000
-```
-
-### 5. Run Database Migrations
+### 4. Start Local API & Frontend
 ```bash
-alembic upgrade head
-```
-
-### 6. Start Local Services
-
-Open three terminals.
-
-**Terminal 1 — FastAPI Backend**
-```bash
+# Terminal 1 - API Backend
 uvicorn apps.api.app.main:app --reload --port 8000
-```
 
-**Terminal 2 — Background Worker**
-```bash
-python services/worker/main.py
-```
-
-**Terminal 3 — React Frontend**
-```bash
-cd apps/web
-npm run dev
+# Terminal 2 - React Frontend
+cd apps/web && npm run dev
 ```
 
 ---
 
-## Testing
+## 📄 Documentation Links
 
-Run these checks from the project root.
-
-### Code Quality
-```bash
-ruff check .
-ruff format --check .
-```
-
-### Type Checking
-```bash
-mypy --explicit-package-bases apps/api services tests
-```
-
-### Automated Tests
-```bash
-pytest -v
-```
-
-### Frontend Production Build
-```bash
-cd apps/web
-npm run build
-```
-
----
-
-## Documentation
-
-- [Architecture Guide](docs/architecture.md) — System architecture, modules, and component interactions.
-- [Security Guide](docs/security.md) — Security model, input validation, and data protection.
-- [API Reference](docs/api.md) — REST API endpoint documentation.
-
----
-
-## Project Summary
-
-AuraML demonstrates how a machine-learning workflow can be organized into a complete local platform rather than a collection of individual scripts.
-
-The project connects:
-
-`React → FastAPI → Redis → Python Worker → PostgreSQL → Scikit-learn`
-
-to provide a complete workflow:
-
-`Dataset Upload → Profiling → Training → Evaluation → Quality Gate → Model Promotion → Prediction`
-
-Everything described in this README refers to the local AuraML implementation.
+- 📚 [Interview & Technical Architecture Guide](interview.md) — Comprehensive guide covering DB schemas, design patterns, MLOps state transitions, and interview Q&A.
+- 📐 [Architecture Overview](docs/architecture.md) — Module hierarchy and component interaction patterns.
+- 🔐 [Security & RBAC Guide](docs/security.md) — Authentication, permissions, and policy enforcement.
+- 🔌 [API Documentation](docs/api.md) — Complete REST API specification.
