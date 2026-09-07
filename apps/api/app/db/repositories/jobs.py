@@ -44,7 +44,10 @@ class JobRepository:
         return result.scalar_one_or_none()
 
     async def get_next_queued_job(self, session: AsyncSession) -> Job | None:
-        result = await session.execute(select(Job).where(Job.status == "queued").order_by(Job.created_at.asc()).limit(1).with_for_update(skip_locked=True))
+        stmt = select(Job).where(Job.status == "queued").order_by(Job.created_at.asc()).limit(1)
+        if session.bind and session.bind.dialect.name != "sqlite":
+            stmt = stmt.with_for_update(skip_locked=True)
+        result = await session.execute(stmt)
         return result.scalar_one_or_none()
 
     async def get_stuck_processing_jobs(self, session: AsyncSession, cutoff_datetime: Any) -> list[Job]:
